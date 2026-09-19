@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>시간을 이해하고 나만의 해시계 만들기 — 5E 탐구 시뮬레이션</title>
+<style>
+:root {
+  --bg: #F6F3EC;
+  --ink: #1F2A37;
+  --high: #D98E4A;
+  --low: #3E7CB1;
+  --accent: #C84B31;
+  --success: #4F8A6D;
+  --card: #FFFDF8;
+  --soft: #EFEAE0;
+  --line: #E3DED2;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #EDE8DC; font-family: -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", system-ui, sans-serif; }
+#shell { max-width: 980px; margin: 0 auto; padding: 16px; }
+#app-box { background: var(--bg); border-radius: 24px; overflow: hidden; min-height: 700px; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 12px; }
+#progress { display: flex; align-items: center; gap: 4px; padding: 12px 4px; overflow-x: auto; flex: 1; }
+.stage-dot { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; min-width: 44px; min-height: 44px; padding: 2px; flex-shrink: 0; }
+.stage-dot:disabled { cursor: not-allowed; }
+.dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: #E3DED2; color: #9C9586; }
+.dot.done { background: var(--ink); color: #fff; }
+.dot-label { font-size: 11px; font-weight: 500; color: #9C9586; white-space: nowrap; }
+.dot-label.active { color: var(--ink); }
+.dot-line { flex: 1; height: 2px; background: var(--line); margin-bottom: 16px; min-width: 12px; }
+.dot-line.filled { background: var(--ink); }
+h1.title { text-align: center; font-size: 17px; font-weight: 800; color: var(--ink); padding: 4px 12px 10px; margin: 0; }
+
+.stage-wrap { display: flex; flex-direction: column; gap: 16px; padding: 16px 20px 28px; max-width: 900px; margin: 0 auto; }
+.card { background: var(--card); border-radius: 18px; padding: 16px; }
+.card-title { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 10px; }
+.lead { font-size: 14px; color: var(--ink); margin: 0; line-height: 1.6; }
+.dim-text { font-size: 12px; color: var(--ink); opacity: 0.65; margin: 0; line-height: 1.6; }
+.tiny-label { font-size: 11px; font-weight: 700; color: var(--ink); opacity: 0.7; margin: 0 0 4px; }
+.q-label { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 10px; line-height: 1.5; }
+.small-label { font-size: 12px; font-weight: 600; color: var(--ink); opacity: 0.75; display: block; margin: 10px 0 4px; }
+
+.btn-primary { background: var(--ink); color: #fff; font-weight: 700; border: none; border-radius: 16px; padding: 12px 16px; min-height: 44px; cursor: pointer; font-size: 14px; }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-primary.full { width: 100%; }
+.btn-soft { background: var(--soft); color: var(--ink); font-weight: 700; border: none; border-radius: 14px; padding: 10px 14px; min-height: 40px; cursor: pointer; font-size: 13px; }
+.btn-soft.active { background: var(--ink); color: #fff; }
+.choice-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.choice-btn { text-align: left; padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-size: 14px; background: var(--soft); color: var(--ink); min-height: 44px; }
+.choice-btn.active { background: var(--ink); color: #fff; }
+.textarea { width: 100%; border: 1.5px solid var(--line); outline: none; resize: vertical; border-radius: 12px; padding: 12px; font-size: 14px; background: #fff; color: var(--ink); font-family: inherit; }
+.textarea:focus { border-color: var(--low); }
+.row { display: flex; }
+.row.gap { gap: 10px; }
+.row.wrap { flex-wrap: wrap; }
+.flex1 { flex: 1; }
+
+/* 아이콘 카드 */
+.tool-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+.tool-card { flex: 1; min-width: 140px; background: var(--soft); border-radius: 14px; padding: 10px; text-align: center; }
+.tool-card svg { width: 100%; height: 90px; display: block; }
+.tool-name { font-size: 12px; font-weight: 700; color: var(--ink); margin: 6px 0 2px; }
+.tool-desc { font-size: 11px; color: var(--ink); opacity: 0.65; margin: 0; line-height: 1.4; }
+
+/* 시뮬레이션 패널 */
+.sim-grid { display: flex; flex-direction: column; gap: 16px; }
+@media (min-width: 780px) { .sim-grid { flex-direction: row; align-items: stretch; } .sim-grid .sim-panel { flex: 1; min-width: 0; } }
+.sim-panel { background: var(--card); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; }
+.sim-svg-wrap { background: #fff; border-radius: 14px; padding: 6px; }
+.svg-box { width: 100%; height: auto; display: block; }
+.slider-block { margin-bottom: 10px; }
+.slider-head { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+input[type=range] { width: 100%; height: 26px; cursor: pointer; -webkit-appearance: none; appearance: none; background: transparent; }
+input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 6px; background: var(--line); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); cursor: pointer; margin-top: -8px; border: 3px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+input[type=range]::-moz-range-track { height: 6px; border-radius: 6px; background: var(--line); }
+input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 3px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+.date-row { display: flex; gap: 6px; }
+.date-row .slider-block { flex: 1; margin-bottom: 6px; }
+.num-input { width: 100%; box-sizing: border-box; padding: 8px 8px; border: 1.5px solid var(--line); border-radius: 8px; font-size: 13px; font-family: inherit; color: var(--ink); background: #fff; outline: none; text-align: center; }
+.num-input:focus { border-color: var(--low); }
+.readout-box { background: var(--soft); border-radius: 12px; padding: 8px 10px; margin: 8px 0; font-size: 12px; color: var(--ink); font-family: monospace; line-height: 1.7; }
+.readout-box b { font-family: inherit; color: var(--accent); }
+.legend-row { display: flex; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: var(--ink); opacity: 0.7; margin-top: 6px; }
+.legend-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.play-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.night-badge { font-size: 11px; font-weight: 700; color: #fff; background: var(--ink); opacity: 0.75; padding: 2px 8px; border-radius: 8px; display: inline-block; margin-top: 4px; }
+.coming-soon { text-align: center; padding: 60px 20px; color: var(--ink); opacity: 0.55; font-size: 13px; }
+.explain-anim { display: block; max-width: 240px; margin: 6px auto 10px; width: 100%; height: auto; background: var(--soft); border-radius: 12px; }
+</style>
+</head>
+<body>
+<div id="shell">
+  <div id="app-box">
+    <div class="topbar"><div id="progress"></div></div>
+    <h1 class="title">시간을 이해하고, 나만의 해시계 만들기</h1>
+    <div id="app"></div>
+  </div>
+</div>
+<script>
+/* ===========================================================
+   시간과 해시계 5E 시뮬레이션 - 순수 JavaScript (프레임워크 없음)
+   1차 산출물: 동기유발(Engage) + 탐구(Explore) 단계
+   =========================================================== */
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "sundial-5e-progress-v2";
+  var STAGES = ["engage", "explore", "explain", "elaborate", "evaluate"];
+  var STAGE_LABEL = { engage: "동기유발", explore: "탐구", explain: "설명", elaborate: "정교화", evaluate: "평가" };
+  var BUILT_STAGES = ["engage", "explore", "explain", "elaborate", "evaluate"];
+
+  var DEFAULT_LAT = 37.5; // 앙부일구는 한양(현재 서울, 약 북위 37.5도) 기준으로 제작되었음 — 위도는 반구 시뮬레이션에서 조절 가능(두 시뮬레이션이 값을 공유)
+
+  /* ---------------- 유틸 ---------------- */
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function toRad(d) { return d * Math.PI / 180; }
+  function toDeg(r) { return r * 180 / Math.PI; }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function pad2(n) { n = Math.floor(n); return (n < 10 ? "0" : "") + n; }
+
+  /* ---------------- 상태 ---------------- */
+  var state = loadState() || {
+    stage: "engage",
+    completion: {},
+    engageChoice: "",
+    engageReason: "",
+    engageOther: "",
+    guess1: "",
+    guess2: "",
+    guess3: "",
+    discuss2: "",
+    explorePage: 1,
+    obs1: "", obs2: "", obs3: "", obs4: "",
+    adv1: "", adv2: "", adv3: "",
+    explainSum1: "", explainSum2: "",
+    elabType: "",
+    elabReason: "",
+    elabMaterials: "",
+    elabScaleIdea: "",
+    elabLimitation: "",
+    elabSketchData: "",
+    quizAnswers: {},
+    evalReflect1: "", evalReflect2: ""
+  };
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var s = JSON.parse(raw);
+      var defaults = { engageOther: "", explainSum1: "", explainSum2: "", elabType: "", elabReason: "", elabMaterials: "", elabScaleIdea: "", elabLimitation: "", elabSketchData: "", quizAnswers: {}, evalReflect1: "", evalReflect2: "" };
+      for (var k in defaults) if (s[k] === undefined) s[k] = defaults[k];
+      return s;
+    } catch (e) { return null; }
+  }
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  var astro = { year: 2026, month: 6, day: 21, hour: 12, lat: DEFAULT_LAT, playing: false, speed: 1, raf: null, lastT: 0 };
+
+  /* ---------------- 천문 계산 ---------------- */
+  function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+  function maxDay(y, m) {
+    var days = [31, isLeap(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    return days[m - 1];
+  }
+  function dayOfYear(y, m, d) {
+    var days = [31, isLeap(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    var n = d;
+    for (var i = 0; i < m - 1; i++) n += days[i];
+    return n;
+  }
+  // Cooper(1969) 근사식 - 태양의 적위(단위: 도)
+  function solarDeclination(N) {
+    return 23.44 * Math.sin(toRad((360 / 365) * (284 + N)));
+  }
+  // 위도, 적위, (소수)시각 -> 태양 고도/방위(북쪽 기준 시계방향, 도)
+  // 이 시뮬레이션은 균시차(equation of time)와 경도 보정은 생략한 평균태양시를 사용합니다.
+  function sunAltAz(latDeg, decDeg, hourDecimal) {
+    var H = toRad(15 * (hourDecimal - 12));
+    var lat = toRad(latDeg), dec = toRad(decDeg);
+    var sinAlt = Math.sin(lat) * Math.sin(dec) + Math.cos(lat) * Math.cos(dec) * Math.cos(H);
+    sinAlt = clamp(sinAlt, -1, 1);
+    var alt = Math.asin(sinAlt);
+    var cosAlt = Math.cos(alt);
+    var az;
+    if (Math.abs(cosAlt) < 1e-6) { az = 0; }
+    else {
+      var sinAz = -Math.sin(H) * Math.cos(dec) / cosAlt;
+      var cosAz = (Math.sin(dec) - Math.sin(alt) * Math.sin(lat)) / (cosAlt * Math.cos(lat));
+      az = Math.atan2(clamp(sinAz, -1, 1), clamp(cosAz, -1, 1));
+    }
+    return { alt: toDeg(alt), az: (toDeg(az) + 360) % 360 };
+  }
+  function currentDec() {
+    return solarDeclination(dayOfYear(astro.year, astro.month, astro.day));
+  }
+
+  /* ================= 진행바 ================= */
+  function renderProgress() {
+    var idx = STAGES.indexOf(state.stage);
+    var html = "";
+    STAGES.forEach(function (s, i) {
+      var built = BUILT_STAGES.indexOf(s) !== -1;
+      html += '<button class="stage-dot" data-jump="' + s + '" ' + (built ? "" : "disabled") + '>' +
+        '<span class="dot ' + (i <= idx ? "done" : "") + '">' + (state.completion[s] ? "✓" : i + 1) + '</span>' +
+        '<span class="dot-label ' + (i <= idx ? "active" : "") + '">' + STAGE_LABEL[s] + (built ? "" : " ⏳") + '</span></button>';
+      if (i < STAGES.length - 1) html += '<span class="dot-line ' + (i < idx ? "filled" : "") + '"></span>';
+    });
+    document.getElementById("progress").innerHTML = html;
+    document.querySelectorAll("[data-jump]").forEach(function (btn) {
+      btn.onclick = function () { state.stage = btn.getAttribute("data-jump"); saveState(); render(); };
+    });
+  }
+
+  /* ================= 아이콘 SVG (동기유발용 — 글자 설명 없이, 원리를 유추할 단서를 담은 도해) ================= */
+  function bezierPt(t, p0, p1, p2) {
+    var mt = 1 - t;
+    return { x: mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x, y: mt * mt * p0.y + 2 * mt * t * p1.y + t * t * p2.y };
+  }
+  function sunGlyph(cx, cy) {
+    return '<g transform="translate(' + cx + ',' + cy + ')"><circle r="6.5" fill="#F2B441"/>' +
+      '<g stroke="#E8A73A" stroke-width="1.6" stroke-linecap="round">' +
+      '<line x1="0" y1="-10" x2="0" y2="-14"/><line x1="8.7" y1="-5" x2="11.7" y2="-7"/><line x1="8.7" y1="5" x2="11.7" y2="7"/>' +
+      '<line x1="0" y1="10" x2="0" y2="14"/><line x1="-8.7" y1="5" x2="-11.7" y2="7"/><line x1="-8.7" y1="-5" x2="-11.7" y2="-7"/>' +
+      '</g></g>';
+  }
+
+  function iconSundial() {
+    var cx = 60, cy = 66, rx = 50, ry = 15;
+    var ticks = "";
+    for (var i = 0; i < 12; i++) {
+      var ang = toRad(i * 30);
+      var ox = cx + Math.cos(ang) * rx, oy = cy + Math.sin(ang) * ry;
+      var ix = cx + Math.cos(ang) * (rx - 7), iy = cy + Math.sin(ang) * (ry - 2.2);
+      ticks += '<line x1="' + ix.toFixed(1) + '" y1="' + iy.toFixed(1) + '" x2="' + ox.toFixed(1) + '" y2="' + oy.toFixed(1) + '" stroke="#8C6A3F" stroke-width="1.3"/>';
+    }
+    var shadowAng = toRad(150); // 그림자가 향하는 눈금 방향
+    var shx = cx + Math.cos(shadowAng) * (rx - 8), shy = cy + Math.sin(shadowAng) * (ry - 2);
+    return '<svg viewBox="0 0 140 90">' + sunGlyph(116, 16) +
+      '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + rx + '" ry="' + ry + '" fill="#EAD9B8" stroke="#B99B63" stroke-width="1.5"/>' +
+      ticks +
+      '<line x1="' + cx + '" y1="' + cy + '" x2="' + shx.toFixed(1) + '" y2="' + shy.toFixed(1) + '" stroke="#2A2118" stroke-width="3" stroke-opacity="0.55" stroke-linecap="round"/>' +
+      '<path d="M' + (cx - 6) + ' ' + cy + ' L' + cx + ' 24 L' + (cx + 6) + ' ' + cy + ' Z" fill="#5A4632"/>' +
+      '<circle cx="' + shx.toFixed(1) + '" cy="' + shy.toFixed(1) + '" r="2.2" fill="#C84B31"/>' +
+      '</svg>';
+  }
+
+  function iconAngbu() {
+    var p0 = { x: 18, y: 42 }, p1 = { x: 70, y: 90 }, p2 = { x: 122, y: 42 };
+    var ticks = "";
+    [0.14, 0.3, 0.5, 0.7, 0.86].forEach(function (t) {
+      var p = bezierPt(t, p0, p1, p2);
+      ticks += '<line x1="' + p.x.toFixed(1) + '" y1="' + p.y.toFixed(1) + '" x2="' + p.x.toFixed(1) + '" y2="' + (p.y - 6).toFixed(1) + '" stroke="#8C6A3F" stroke-width="1.2"/>';
+    });
+    var shadowPt = bezierPt(0.28, p0, p1, p2);
+    return '<svg viewBox="0 0 140 90">' + sunGlyph(118, 14) +
+      '<path d="M' + p0.x + ' ' + p0.y + ' Q' + p1.x + ' ' + p1.y + ' ' + p2.x + ' ' + p2.y + ' L122 40 Q70 20 18 40 Z" fill="#EFEAE0"/>' +
+      '<path d="M' + p0.x + ' ' + p0.y + ' Q' + p1.x + ' ' + p1.y + ' ' + p2.x + ' ' + p2.y + '" fill="none" stroke="#8C6A3F" stroke-width="2.4"/>' +
+      '<path d="M27 44 Q70 74 113 44" fill="none" stroke="#C9B89A" stroke-width="1"/>' +
+      '<path d="M35 41 Q70 62 105 41" fill="none" stroke="#C9B89A" stroke-width="1"/>' +
+      '<path d="M45 39.5 Q70 50 95 39.5" fill="none" stroke="#C9B89A" stroke-width="1"/>' +
+      ticks +
+      '<line x1="70" y1="55" x2="' + shadowPt.x.toFixed(1) + '" y2="' + shadowPt.y.toFixed(1) + '" stroke="#2A2118" stroke-width="2.6" stroke-opacity="0.6" stroke-linecap="round"/>' +
+      '<line x1="70" y1="55" x2="55" y2="23" stroke="#5A4632" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<circle cx="' + shadowPt.x.toFixed(1) + '" cy="' + shadowPt.y.toFixed(1) + '" r="2.4" fill="#C84B31"/>' +
+      '</svg>';
+  }
+
+  function iconWaterClock() {
+    var drips = "";
+    [{ y: 34, r: 2.2 }, { y: 39, r: 1.6 }, { y: 43, r: 1.1 }].forEach(function (d) {
+      drips += '<circle cx="70" cy="' + d.y + '" r="' + d.r + '" fill="#3E7CB1" fill-opacity="0.6"/>';
+    });
+    var rodTicks = "";
+    for (var y = 26; y <= 70; y += 8) rodTicks += '<line x1="93" y1="' + y + '" x2="99" y2="' + y + '" stroke="#5A4632" stroke-width="1.2"/>';
+    return '<svg viewBox="0 0 140 90">' +
+      '<rect x="45" y="8" width="50" height="22" rx="4" fill="#DCEAF4" stroke="#3E7CB1" stroke-width="1.5"/>' +
+      '<rect x="47" y="18" width="46" height="10" rx="2" fill="#8FB6D3"/>' +
+      drips +
+      '<rect x="24" y="46" width="92" height="34" rx="5" fill="#EFF6FA" stroke="#3E7CB1" stroke-width="1.5"/>' +
+      '<rect x="26" y="60" width="88" height="18" rx="3" fill="#8FB6D3"/>' +
+      '<line x1="96" y1="24" x2="96" y2="76" stroke="#5A4632" stroke-width="2.4" stroke-linecap="round"/>' +
+      rodTicks +
+      '<circle cx="96" cy="60" r="2.6" fill="#C84B31"/>' +
+      '</svg>';
+  }
+
+
+  /* ================= ENGAGE ================= */
+  var ENGAGE_CHOICES = [
+    { id: "a", label: "해의 위치나 그림자를 보고 시각을 짐작한다" },
+    { id: "b", label: "닭이 우는 소리 등 동물의 행동을 기준으로 삼는다" },
+    { id: "c", label: "마을의 종이나 북소리를 듣고 시각을 알아챈다" },
+    { id: "d", label: "정확히 알 방법이 없어 대략 비슷한 시간에 나간다" },
+    { id: "e", label: "기타 (내 생각을 직접 적어볼래요)" }
+  ];
+
+  function renderEngage() {
+    var choicesHtml = ENGAGE_CHOICES.map(function (c) {
+      var active = state.engageChoice === c.id;
+      return '<button class="choice-btn ' + (active ? "active" : "") + '" data-engage-choice="' + c.id + '">' + esc(c.label) + '</button>';
+    }).join("");
+
+    return (
+      '<div class="stage-wrap">' +
+      '<div class="card">' +
+      '<p class="lead" style="margin-bottom:10px">📜 상상해보자. 나는 시계도, 휴대폰도 없는 조선 시대에 살고 있어. 그런데 내일 <b>정오(낮 12시)</b>에 친구와 만나기로 약속을 했다면?</p>' +
+      '<label class="q-label">Q. 나는 어떻게 그 시각을 알아내고, 맞춰서 나갈 수 있을까?</label>' +
+      '<div class="choice-list">' + choicesHtml + '</div>' +
+      (state.engageChoice === "e"
+        ? '<label class="small-label" style="margin-top:2px">내 생각을 자유롭게 적어보자.</label>' +
+          '<textarea id="engageOther" class="textarea" rows="2" placeholder="예: 나만의 방법으로는...">' + esc(state.engageOther) + '</textarea>'
+        : '') +
+      '<label class="small-label">왜 그렇게 생각했나요? (선택)</label>' +
+      '<textarea id="engageReason" class="textarea" rows="2" placeholder="자유롭게 적어보자.">' + esc(state.engageReason) + '</textarea>' +
+      '</div>' +
+
+      '<div class="card">' +
+      '<h3 class="card-title">옛날 사람들이 사용한 시간 측정 도구</h3>' +
+      '<p class="dim-text" style="margin-bottom:8px">🔍 설명 없이, 그림만 보고 짐작해보자! 아래 세 도구는 각각 어떻게 시각을 알아냈을까? 그림 속 모양과 구조에서 힌트를 찾아보자.</p>' +
+      '<div class="tool-grid">' +
+      '<div class="tool-card">' + iconSundial() + '<p class="tool-name">막대 해시계</p></div>' +
+      '<div class="tool-card">' + iconAngbu() + '<p class="tool-name">앙부일구</p></div>' +
+      '<div class="tool-card">' + iconWaterClock() + '<p class="tool-name">물시계(자격루)</p></div>' +
+      '</div>' +
+      '<label class="small-label">① 막대 해시계는 그림에서 무엇을 이용해서, 어떻게 시각을 알아냈을까?</label>' +
+      '<textarea id="guess1" class="textarea" rows="2" placeholder="예: 막대가 만드는 ○○을 보고 시각을 알아냈을 것 같다...">' + esc(state.guess1) + '</textarea>' +
+      '<label class="small-label">② 앙부일구는 그림에서 무엇을 이용해서, 어떻게 시각을 알아냈을까?</label>' +
+      '<textarea id="guess2" class="textarea" rows="2" placeholder="예: 오목한 모양 안에 새겨진 ○○을 보고...">' + esc(state.guess2) + '</textarea>' +
+      '<label class="small-label">③ 물시계(자격루)는 그림에서 무엇을 이용해서, 어떻게 시각을 알아냈을까?</label>' +
+      '<textarea id="guess3" class="textarea" rows="2" placeholder="예: 그릇에 담긴 물의 ○○을 보고...">' + esc(state.guess3) + '</textarea>' +
+      '<label class="small-label">토의. 세 도구 중 두 가지를 골라, 각각의 장점과 단점을 비교해보자.</label>' +
+      '<textarea id="discuss2" class="textarea" rows="2" placeholder="예: 해시계는 ~할 때 불편하고, 물시계는 ~할 때 불편하다...">' + esc(state.discuss2) + '</textarea>' +
+      '</div>' +
+
+      '<button class="btn-primary full" id="engageNext" ' + (!state.engageChoice ? "disabled" : "") + '>다음: 앙부일구 시뮬레이션 살펴보기 →</button>' +
+      '</div>'
+    );
+  }
+  function bindEngage() {
+    document.querySelectorAll("[data-engage-choice]").forEach(function (btn) {
+      btn.onclick = function () { state.engageChoice = btn.getAttribute("data-engage-choice"); saveState(); render(); };
+    });
+    ["engageReason", "engageOther", "guess1", "guess2", "guess3", "discuss2"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.oninput = function () { state[id] = el.value; saveState(); };
+    });
+    var nextBtn = document.getElementById("engageNext");
+    if (nextBtn) nextBtn.onclick = function () {
+      state.completion.engage = true; state.stage = "explore"; saveState(); render();
+    };
+  }
+
+  /* ================= EXPLORE: 시뮬레이션 상수/기하 ================= */
+  var BOWL_CX = 150, BOWL_CY = 150, BOWL_R = 118;
+  var DOME_CX = 150, DOME_CY = 138, DOME_R = 104;
+  var domeView = { tilt: 24, rot: 0, dragging: false, sx: 0, sy: 0 };
+
+  function shadowPoint(altDeg, azDeg) {
+    var rho = BOWL_R * Math.cos(toRad(altDeg));
+    var phi = toRad(azDeg + 180);
+    return { x: BOWL_CX + rho * Math.sin(phi), y: BOWL_CY - rho * Math.cos(phi) };
+  }
+  // 반구를 드래그하면 domeView.rot(좌우 회전) / domeView.tilt(위아래 기울기)가 바뀌어 다른 각도에서 볼 수 있음
+  function domePoint(altDeg, azDeg) {
+    var a = toRad(altDeg), A = toRad(azDeg + domeView.rot);
+    var x = Math.cos(a) * Math.sin(A);
+    var y = Math.cos(a) * Math.cos(A);
+    var z = Math.sin(a);
+    var b = toRad(domeView.tilt);
+    var Y = z * Math.cos(b) - y * Math.sin(b);
+    return { x: DOME_CX + DOME_R * x, y: DOME_CY - DOME_R * Y };
+  }
+  // 중심(그노몬)에서 그림자 끝까지, 끝으로 갈수록 가늘어지는 그림자 모양의 폴리곤 좌표 문자열 생성
+  function shadowPolygonPts(cx, cy, tx, ty, baseW, tipW) {
+    var dx = tx - cx, dy = ty - cy;
+    var len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var nx = -dy / len, ny = dx / len;
+    var b1x = cx + nx * baseW, b1y = cy + ny * baseW;
+    var b2x = cx - nx * baseW, b2y = cy - ny * baseW;
+    var t1x = tx + nx * tipW, t1y = ty + ny * tipW;
+    var t2x = tx - nx * tipW, t2y = ty - ny * tipW;
+    return [b1x, b1y, t1x, t1y, t2x, t2y, b2x, b2y].map(function (v) { return v.toFixed(1); }).join(",");
+  }
+  function pathFromPts(pts) {
+    var d = "", pen = false;
+    pts.forEach(function (p) {
+      if (!p) { pen = false; return; }
+      d += (pen ? "L" : "M") + p.x.toFixed(1) + "," + p.y.toFixed(1) + " ";
+      pen = true;
+    });
+    return d.trim();
+  }
+
+  // 1단계에서는 위도를 한양(서울) 기준으로 고정, 2단계(심화)에서는 반구 시뮬레이션의 위도와 값을 공유
+  function activeLat() { return state.explorePage === 2 ? astro.lat : DEFAULT_LAT; }
+
+  // 앙부일구 배경 눈금 — 위도가 바뀔 때마다 다시 계산
+  function buildBowlGrid(lat) {
+    var hourLines = "";
+    for (var h = 6; h <= 18; h++) {
+      var pts = [];
+      for (var dc = -23.44; dc <= 23.441; dc += 1.2) {
+        var r = sunAltAz(lat, dc, h);
+        pts.push(r.alt > 0.3 ? shadowPoint(r.alt, r.az) : null);
+      }
+      hourLines += '<path d="' + pathFromPts(pts) + '" fill="none" stroke="#D8CDB4" stroke-width="1"/>';
+      var mid = sunAltAz(lat, 0, h);
+      if (mid.alt > 0.3) {
+        var lp = shadowPoint(mid.alt, mid.az);
+        hourLines += '<text x="' + lp.x.toFixed(1) + '" y="' + lp.y.toFixed(1) + '" font-size="8" fill="#B3A688" text-anchor="middle">' + h + '시</text>';
+      }
+    }
+    var decCurves = "";
+    [23.44, 11.7, 0, -11.7, -23.44].forEach(function (dc) {
+      var pts = [];
+      for (var h2 = 6; h2 <= 18.001; h2 += 0.25) {
+        var r2 = sunAltAz(lat, dc, h2);
+        pts.push(r2.alt > 0.3 ? shadowPoint(r2.alt, r2.az) : null);
+      }
+      decCurves += '<path d="' + pathFromPts(pts) + '" fill="none" stroke="#E7C9A0" stroke-width="1.2"/>';
+    });
+    return decCurves + hourLines;
+  }
+  function rebuildBowlGrid() {
+    var g = document.getElementById("bowlGrid");
+    if (g) g.innerHTML = buildBowlGrid(activeLat());
+  }
+
+  function domeHorizonPts() {
+    var pts = [];
+    for (var a = 0; a <= 360; a += 5) pts.push(domePoint(0, a));
+    pts.push(domePoint(0, 0));
+    return pts;
+  }
+
+  // 관측자(사람) 실루엣 — 지평선 중앙에 서서 하늘을 올려다보는 모습(회전과 무관하게 항상 같은 자리)
+  function observerFigureHtml() {
+    var fx = DOME_CX, fy = DOME_CY;
+    return (
+      '<g transform="translate(' + fx + ',' + fy + ')">' +
+      '<ellipse cx="0" cy="1" rx="8" ry="2.4" fill="#3A3226" fill-opacity="0.18"/>' +
+      '<line x1="0" y1="0" x2="-5" y2="-14" stroke="#3A3226" stroke-width="2.3" stroke-linecap="round"/>' +
+      '<line x1="0" y1="0" x2="5" y2="-14" stroke="#3A3226" stroke-width="2.3" stroke-linecap="round"/>' +
+      '<line x1="0" y1="-14" x2="0" y2="-27" stroke="#3A3226" stroke-width="3" stroke-linecap="round"/>' +
+      '<line x1="0" y1="-22" x2="-8" y2="-29" stroke="#3A3226" stroke-width="2" stroke-linecap="round"/>' +
+      '<line x1="0" y1="-22" x2="8" y2="-29" stroke="#3A3226" stroke-width="2" stroke-linecap="round"/>' +
+      '<circle cx="0" cy="-32" r="4.5" fill="#3A3226"/>' +
+      '</g>'
+    );
+  }
+
+  function sunRaysHtml() {
+    var s = "";
+    for (var a = 0; a < 360; a += 45) {
+      var r1 = 9, r2 = 13.5, rad = toRad(a);
+      var x1 = Math.cos(rad) * r1, y1 = Math.sin(rad) * r1;
+      var x2 = Math.cos(rad) * r2, y2 = Math.sin(rad) * r2;
+      s += '<line x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '"/>';
+    }
+    return s;
+  }
+
+  function domeCompassLabels() {
+    var n = domePoint(0, 0), e = domePoint(0, 90), s = domePoint(0, 180), w = domePoint(0, 270), z = domePoint(90, 0);
+    function lbl(p, t, dy) { return '<text x="' + p.x.toFixed(1) + '" y="' + (p.y + dy).toFixed(1) + '" font-size="9" fill="#8C9673" text-anchor="middle">' + t + '</text>'; }
+    return lbl(n, "북", -6) + lbl(s, "남", 14) + lbl(e, "동", 4) + lbl(w, "서", 4) + lbl(z, "천정", -6);
+  }
+
+  function bowlCompassLabels() {
+    return '<text x="150" y="18" font-size="10" fill="#9C9586" text-anchor="middle">북</text>' +
+      '<text x="150" y="286" font-size="10" fill="#9C9586" text-anchor="middle">남</text>' +
+      '<text x="278" y="154" font-size="10" fill="#9C9586" text-anchor="middle">동</text>' +
+      '<text x="22" y="154" font-size="10" fill="#9C9586" text-anchor="middle">서</text>';
+  }
+
+  /* ================= EXPLORE: 앙부일구 패널(1·2단계 공용) ================= */
+  function renderBowlPanel(page) {
+    var lat = activeLat();
+    var noteHtml = page === 1
+      ? '<p class="dim-text" style="margin-bottom:8px">실제 앙부일구는 한양(현재 서울, 북위 약 ' + DEFAULT_LAT + '&deg;) 기준으로 제작되었어요. 이번 실험에서는 위도를 이 값으로 고정해두고, <b>날짜와 시각</b>만 바꿔가며 원리를 살펴볼 거예요.</p>'
+      : '<p class="dim-text" style="margin-bottom:8px">이제 위도까지 함께 바꿔볼 거예요. 오른쪽 ② 하늘 시뮬레이션에서 위도를 조절하면, 이 앙부일구도 그 위도를 기준으로 다시 계산돼요. (지금 위도: <b>' + lat.toFixed(0) + '&deg;N</b>)</p>';
+    return (
+      '<div class="sim-panel">' +
+      '<h3 class="card-title">① 앙부일구 시뮬레이션</h3>' +
+      noteHtml +
+      '<div class="date-row">' +
+      '<div class="slider-block"><span class="small-label" style="margin:0 0 2px">년</span><input class="num-input" type="number" id="inYear" value="' + astro.year + '" min="2000" max="2100"/></div>' +
+      '<div class="slider-block"><span class="small-label" style="margin:0 0 2px">월</span><input class="num-input" type="number" id="inMonth" value="' + astro.month + '" min="1" max="12"/></div>' +
+      '<div class="slider-block"><span class="small-label" style="margin:0 0 2px">일</span><input class="num-input" type="number" id="inDay" value="' + astro.day + '" min="1" max="31"/></div>' +
+      '</div>' +
+      '<div class="slider-block"><div class="slider-head"><span>월</span><span id="monthVal" style="font-family:monospace">' + astro.month + '월</span></div>' +
+      '<input type="range" id="sliMonth" min="1" max="12" step="1" value="' + astro.month + '"/></div>' +
+      '<div class="slider-block"><div class="slider-head"><span>일</span><span id="dayVal" style="font-family:monospace">' + astro.day + '일</span></div>' +
+      '<input type="range" id="sliDay" min="1" max="' + maxDay(astro.year, astro.month) + '" step="1" value="' + astro.day + '"/></div>' +
+      '<div class="slider-block"><div class="slider-head"><span>시각</span><span id="hourVal" style="font-family:monospace">' + fmtHour(astro.hour) + '</span></div>' +
+      '<input type="range" id="sliHour" min="0" max="24" step="0.25" value="' + astro.hour + '"/></div>' +
+      '<div class="play-row">' +
+      '<button class="btn-soft flex1" id="playBtn">' + (astro.playing ? "⏸ 일시정지" : "▶ 재생") + '</button>' +
+      '<button class="btn-soft speed-btn ' + (astro.speed === 0.5 ? "active" : "") + '" data-speed="0.5">0.5배속</button>' +
+      '<button class="btn-soft speed-btn ' + (astro.speed === 1 ? "active" : "") + '" data-speed="1">1배속</button>' +
+      '<button class="btn-soft speed-btn ' + (astro.speed === 2 ? "active" : "") + '" data-speed="2">2배속</button>' +
+      '</div>' +
+      '<div class="sim-svg-wrap" style="margin-top:10px">' +
+      '<svg id="bowlSvg" class="svg-box" viewBox="0 0 300 300">' +
+      '<defs><filter id="shadowBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2"/></filter></defs>' +
+      '<circle cx="150" cy="150" r="' + BOWL_R + '" fill="#F7F1E3" stroke="#C9B89A" stroke-width="2"/>' +
+      '<g id="bowlGrid">' + buildBowlGrid(lat) + '</g>' + bowlCompassLabels() +
+      '<polygon id="shadowSoft" points="150,150 150,150 150,150" fill="#2A2118" fill-opacity="0.22" filter="url(#shadowBlur)"/>' +
+      '<polygon id="shadowShape" points="150,150 150,150 150,150" fill="#2A2118" fill-opacity="0.62"/>' +
+      '<circle cx="150" cy="150" r="3.5" fill="#5A4632"/>' +
+      '<circle id="shadowTip" cx="150" cy="150" r="2.5" fill="#2A2118" fill-opacity="0.7"/>' +
+      '</svg></div>' +
+      '<div class="readout-box" id="readoutA"></div>' +
+      '<div class="legend-row"><span><span class="legend-dot" style="background:#E7C9A0"></span>절기선(같은 날짜 곡선)</span><span><span class="legend-dot" style="background:#D8CDB4"></span>시각선(같은 시각 곡선)</span><span><span class="legend-dot" style="background:#2A2118"></span>현재 그림자</span></div>' +
+      '</div>'
+    );
+  }
+
+  /* ================= EXPLORE 1단계: 앙부일구만 ================= */
+  var OBS_QUESTIONS = [
+    { id: "obs1", label: "① 월·일을 6월 21일(하지), 시각을 12:00으로 맞춰보자. 그림자 끝이 중심(그노몬)에서 얼마나 떨어져 있는지 살펴보자. 이번엔 12월 21일(동지) 12:00으로 바꿔보자. 그림자의 길이(중심으로부터 떨어진 정도)는 여름과 겨울 중 언제 더 길까? 왜 그럴까?", ph: "예: 겨울(12/21)이 더 길다. 왜냐하면..." },
+    { id: "obs2", label: "② 앙부일구에는 날짜별로 그림자 끝이 그리는 곡선(절기선)이 그어져 있어. 여름(하지)의 절기선과 겨울(동지)의 절기선은 중심으로부터의 거리가 어떻게 다를까? 앙부일구에서는 여름과 겨울이 어떻게 다르게 표현될까?", ph: "예: 여름의 절기선은 중심에 가깝게, 겨울의 절기선은..." },
+    { id: "obs3", label: "③ 날짜는 그대로 두고, 시각만 오전(예: 8:00) → 정오(12:00) → 오후(예: 16:00)로 바꿔보자. 그림자는 어느 방향에서 어느 방향으로 움직일까?", ph: "예: 아침엔 ○쪽에 있다가, 정오엔..." },
+    { id: "obs4", label: "④ 만약 그림자의 위치만 보고 '지금이 대략 몇 시쯤인지'와 '지금이 어떤 계절인지'를 알아내려면, 그림자의 어떤 특징(방향? 길이?)을 각각 봐야 할까?", ph: "예: 시각은 그림자의 ○○을 보고, 계절은 그림자의 ○○을 본다." }
+  ];
+  function renderExplore1() {
+    var qHtml = OBS_QUESTIONS.map(function (q) {
+      return '<div style="margin-bottom:14px"><p class="q-label" style="margin-bottom:6px">' + q.label + '</p>' +
+        '<textarea class="textarea" rows="2" data-obs="' + q.id + '" placeholder="' + esc(q.ph) + '">' + esc(state[q.id]) + '</textarea></div>';
+    }).join("");
+    return (
+      '<div class="stage-wrap">' +
+      explorePageTabsHtml() +
+      '<p class="lead">먼저 <b>앙부일구 하나</b>만 가지고 원리를 충분히 이해해보자. 날짜와 시각을 바꿔가며 그림자가 어떻게 움직이는지 관찰하고, 아래 질문에 순서대로 답해보자.</p>' +
+      renderBowlPanel(1) +
+      '<div class="card"><h3 class="card-title">관찰 질문</h3>' + qHtml + '</div>' +
+      '<button class="btn-primary full" id="toExplore2Btn" ' + (!state.obs1.trim() ? "disabled" : "") + '>다음: 심화 탐구(하늘 시뮬레이션)로 →</button>' +
+      '</div>'
+    );
+  }
+  function bindExplore1() {
+    bindBowlControls();
+    document.querySelectorAll("[data-obs]").forEach(function (el) {
+      el.oninput = function () { state[el.getAttribute("data-obs")] = el.value; saveState(); document.getElementById("toExplore2Btn").disabled = !state.obs1.trim(); };
+    });
+    var next = document.getElementById("toExplore2Btn");
+    if (next) next.onclick = function () { state.completion.explore = true; state.explorePage = 2; saveState(); render(); };
+    rebuildBowlGrid(); updateShadowA();
+  }
+
+  /* ================= EXPLORE 2단계: 앙부일구 + 반구(심화) ================= */
+  var ADV_QUESTIONS = [
+    { id: "adv1", label: "① ②에서 위도를 적도 근처(0~10&deg;)로 낮춰보자. ①의 그림자 눈금(절기선) 모양이 서울 기준일 때와 어떻게 달라졌을까?", ph: "예: 절기선들이 서로 더 가까워/멀어졌다..." },
+    { id: "adv2", label: "② 이번엔 위도를 높은 곳(60~80&deg;)으로 올려보자. ①의 그림자는 어떻게 달라질까? 왜 그럴까?", ph: "예: 그림자가 더 길어진다. 왜냐하면..." },
+    { id: "adv3", label: "③ ②의 하늘을 마우스로 드래그해서 이리저리 돌려보며, 태양이 계절(여름·겨울)에 따라 하늘의 어느 높이를 지나가는지 관찰해보자. 여름과 겨울, 태양이 지나가는 길(경로)의 높이는 어떻게 다를까?", ph: "예: 여름엔 태양의 길이 하늘 높은 쪽에 있고, 겨울엔..." }
+  ];
+  function renderExplore2() {
+    var qHtml = ADV_QUESTIONS.map(function (q) {
+      return '<div style="margin-bottom:14px"><p class="q-label" style="margin-bottom:6px">' + q.label + '</p>' +
+        '<textarea class="textarea" rows="2" data-adv="' + q.id + '" placeholder="' + esc(q.ph) + '">' + esc(state[q.id]) + '</textarea></div>';
+    }).join("");
+    return (
+      '<div class="stage-wrap">' +
+      explorePageTabsHtml() +
+      '<p class="lead">이번엔 <b>위도</b>까지 바꿔가며 한 단계 더 깊이 탐구해보자. 오른쪽 ② 하늘 시뮬레이션에서 위도를 바꾸면 왼쪽 ① 앙부일구도 함께 바뀌어. 하늘은 <b>마우스로 드래그</b>해서 원하는 각도로 돌려볼 수 있어.</p>' +
+      '<details class="card"><summary style="cursor:pointer;font-weight:700;font-size:13px;color:var(--ink)">❓ "적위(赤緯)"가 뭐예요?</summary>' +
+      declinationAnimHtml() +
+      '<p class="dim-text" style="margin-top:8px">지구의 적도를 하늘 끝까지 넓혔다고 생각한 선을 <b>천구의 적도</b>라고 해요. 태양이 이 선보다 얼마나 위(+)나 아래(&minus;)에 있는지를 각도로 나타낸 것이 <b>적위</b>예요. 여름에는 태양이 천구의 적도보다 위쪽에 있어서 적위가 (+)로 커지고, 겨울에는 아래쪽에 있어서 적위가 (&minus;)로 작아져요. 그래서 여름엔 태양이 하늘 높이 뜨고, 겨울엔 낮게 뜨는 거예요.</p></details>' +
+
+      '<div class="sim-grid">' +
+      renderBowlPanel(2) +
+
+      '<div class="sim-panel">' +
+      '<h3 class="card-title">② 반구(하늘) 시뮬레이션 — 위도를 바꾸고, 드래그로 돌려보기</h3>' +
+      '<div class="slider-block"><div class="slider-head"><span>관측자의 위도 (① 앙부일구와 공유됨)</span><span id="latVal" style="font-family:monospace">북위 ' + astro.lat.toFixed(0) + '&deg;</span></div>' +
+      '<input type="range" id="sliLat" min="0" max="80" step="1" value="' + astro.lat + '"/></div>' +
+      '<div class="row gap" style="margin-bottom:8px">' +
+      '<p class="dim-text flex1">🖱️ 하늘 위를 드래그하면 보는 각도가 바뀌어요. 태양의 경로가 잘 안 보이면 각도를 돌려보세요.</p>' +
+      '<button class="btn-soft" id="resetViewBtn">시점 초기화</button>' +
+      '</div>' +
+      '<div class="sim-svg-wrap">' +
+      '<svg id="domeSvg" class="svg-box" viewBox="0 0 300 260" style="touch-action:none;cursor:grab">' +
+      '<defs>' +
+      '<radialGradient id="sunCore" cx="35%" cy="32%" r="65%"><stop offset="0%" stop-color="#FFF6D0"/><stop offset="55%" stop-color="#F7B93E"/><stop offset="100%" stop-color="#DD8A1F"/></radialGradient>' +
+      '<radialGradient id="sunGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FFD873" stop-opacity="0.55"/><stop offset="100%" stop-color="#FFD873" stop-opacity="0"/></radialGradient>' +
+      '<linearGradient id="skyFade" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#DCEAF4"/><stop offset="100%" stop-color="#F6F3EC" stop-opacity="0"/></linearGradient>' +
+      '</defs>' +
+      '<rect x="0" y="0" width="300" height="260" fill="url(#skyFade)"/>' +
+      '<path id="domeGroundFill" fill="#B7C99A" fill-opacity="0.32" stroke="none"/>' +
+      '<path id="domeHorizonStroke" fill="none" stroke="#96A87A" stroke-width="1.3"/>' +
+      '<g id="domeCompassG"></g>' +
+      '<path id="equatorPath" fill="none" stroke="#9FB8CC" stroke-width="1.2" stroke-dasharray="3 2"/>' +
+      '<path id="sunPathBelow" fill="none" stroke="var(--high)" stroke-width="1.2" stroke-opacity="0.35" stroke-dasharray="3 3"/>' +
+      '<path id="sunPathAbove" fill="none" stroke="var(--high)" stroke-width="1.6"/>' +
+      '<circle id="ncpDot" r="2.5" fill="#5A4632"/>' +
+      observerFigureHtml() +
+      '<g id="sunMarkerB">' +
+      '<circle r="15" fill="url(#sunGlow)"/>' +
+      '<g id="sunRays" stroke="#E8A73A" stroke-width="1.5" stroke-linecap="round">' + sunRaysHtml() + '</g>' +
+      '<circle r="6.5" fill="url(#sunCore)" stroke="#C97A1B" stroke-width="0.6"/>' +
+      '</g>' +
+      '</svg></div>' +
+      '<div class="readout-box" id="readoutB"></div>' +
+      '<div class="legend-row"><span><span class="legend-dot" style="background:#B7C99A"></span>지평선(지면)</span><span><span class="legend-dot" style="background:#9FB8CC"></span>천구의 적도</span><span><span class="legend-dot" style="background:var(--high)"></span>오늘 태양의 경로</span><span>🧍 관측자</span></div>' +
+      '</div>' +
+
+      '</div>' +
+
+      '<div class="card"><h3 class="card-title">심화 탐구 질문</h3>' + qHtml + '</div>' +
+      '<div class="row gap">' +
+      '<button class="btn-soft flex1" id="backExplore1Btn">← 1단계로 돌아가기</button>' +
+      '</div>' +
+      '<button class="btn-primary full" id="toExplainBtn">다음: 설명 단계로 →</button>' +
+      '</div>'
+    );
+  }
+  function bindExplore2() {
+    bindBowlControls();
+    var latEl = document.getElementById("sliLat");
+    latEl.oninput = function () {
+      astro.lat = Number(latEl.value);
+      document.getElementById("latVal").textContent = "북위 " + astro.lat.toFixed(0) + "\u00b0";
+      saveAstroLite(); rebuildBowlGrid(); updateShadowA(); rebuildDomeAll();
+    };
+    var domeSvg = document.getElementById("domeSvg");
+    domeSvg.onpointerdown = function (e) {
+      domeView.dragging = true; domeView.sx = e.clientX; domeView.sy = e.clientY;
+      try { domeSvg.setPointerCapture(e.pointerId); } catch (err) {}
+      domeSvg.style.cursor = "grabbing";
+    };
+    domeSvg.onpointermove = function (e) {
+      if (!domeView.dragging) return;
+      var dx = e.clientX - domeView.sx, dy = e.clientY - domeView.sy;
+      domeView.sx = e.clientX; domeView.sy = e.clientY;
+      domeView.rot = (domeView.rot + dx * 0.6 + 360) % 360;
+      domeView.tilt = clamp(domeView.tilt - dy * 0.4, 8, 75);
+      rebuildDomeAll();
+    };
+    function endDrag() { domeView.dragging = false; domeSvg.style.cursor = "grab"; }
+    domeSvg.onpointerup = endDrag;
+    domeSvg.onpointercancel = endDrag;
+    domeSvg.onpointerleave = function () { if (domeView.dragging) endDrag(); };
+    var resetBtn = document.getElementById("resetViewBtn");
+    if (resetBtn) resetBtn.onclick = function () { domeView.rot = 0; domeView.tilt = 24; rebuildDomeAll(); };
+
+    document.querySelectorAll("[data-adv]").forEach(function (el) {
+      el.oninput = function () { state[el.getAttribute("data-adv")] = el.value; saveState(); };
+    });
+    var backBtn = document.getElementById("backExplore1Btn");
+    if (backBtn) backBtn.onclick = function () { state.explorePage = 1; saveState(); render(); };
+    var toExplain = document.getElementById("toExplainBtn");
+    if (toExplain) toExplain.onclick = function () { state.completion.explore = true; state.stage = "explain"; saveState(); render(); };
+
+    rebuildBowlGrid(); updateShadowA(); rebuildDomeAll();
+  }
+
+  function declinationAnimHtml() {
+    return '<svg viewBox="0 0 220 100" class="explain-anim">' +
+      '<line x1="10" y1="50" x2="210" y2="50" stroke="#9FB8CC" stroke-width="2" stroke-dasharray="4 3"/>' +
+      '<text x="212" y="53" font-size="9" fill="#7C93A8">적도</text>' +
+      '<text x="6" y="16" font-size="9" fill="var(--ink)" opacity="0.55">+ (여름)</text>' +
+      '<text x="6" y="92" font-size="9" fill="var(--ink)" opacity="0.55">&minus; (겨울)</text>' +
+      '<line x1="110" y1="50" x2="110" y2="50" stroke="#E8A73A" stroke-width="1.3" stroke-dasharray="2 2">' +
+      '<animate attributeName="y2" values="20;80;20" dur="6s" repeatCount="indefinite"/>' +
+      '</line>' +
+      '<circle r="7" fill="#F2B441" cx="110">' +
+      '<animate attributeName="cy" values="20;80;20" dur="6s" repeatCount="indefinite"/>' +
+      '</circle>' +
+      '</svg>';
+  }
+
+  function explorePageTabsHtml() {
+    return (
+      '<div class="row gap" style="margin-bottom:-4px">' +
+      '<button class="btn-soft flex1 ' + (state.explorePage === 1 ? "active" : "") + '" data-explore-page="1">1단계 · 앙부일구</button>' +
+      '<button class="btn-soft flex1 ' + (state.explorePage === 2 ? "active" : "") + '" data-explore-page="2">2단계 · 앙부일구+하늘(심화)</button>' +
+      '</div>'
+    );
+  }
+
+  function renderExplore() {
+    return state.explorePage === 2 ? renderExplore2() : renderExplore1();
+  }
+  function bindExplore() {
+    document.querySelectorAll("[data-explore-page]").forEach(function (btn) {
+      btn.onclick = function () {
+        state.explorePage = Number(btn.getAttribute("data-explore-page"));
+        saveState(); render();
+      };
+    });
+    if (state.explorePage === 2) bindExplore2(); else bindExplore1();
+  }
+
+  function fmtHour(h) {
+    var hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+    if (mm === 60) { mm = 0; hh += 1; }
+    if (hh >= 24) hh -= 24;
+    return pad2(hh) + ":" + pad2(mm);
+  }
+
+  /* ---------------- 동적 업데이트 (전체 재렌더 없이 DOM만 갱신) ---------------- */
+  function updateShadowA() {
+    var dec = currentDec();
+    var lat = activeLat();
+    var r = sunAltAz(lat, dec, astro.hour);
+    var soft = document.getElementById("shadowSoft");
+    var shape = document.getElementById("shadowShape");
+    var tip = document.getElementById("shadowTip");
+    var ro = document.getElementById("readoutA");
+    if (!shape) return;
+    if (r.alt > 0.3) {
+      var p = shadowPoint(r.alt, r.az);
+      shape.setAttribute("points", shadowPolygonPts(150, 150, p.x, p.y, 5, 1.3));
+      soft.setAttribute("points", shadowPolygonPts(150, 150, p.x, p.y, 7, 2.5));
+      tip.setAttribute("cx", p.x.toFixed(1)); tip.setAttribute("cy", p.y.toFixed(1));
+      shape.style.display = ""; soft.style.display = ""; tip.style.display = "";
+    } else {
+      shape.style.display = "none"; soft.style.display = "none"; tip.style.display = "none";
+    }
+    if (ro) {
+      ro.innerHTML = astro.year + "년 " + astro.month + "월 " + astro.day + "일 " + fmtHour(astro.hour) + " · 위도 " + lat.toFixed(0) + "&deg;N<br/>" +
+        "태양의 적위(&delta;): <b>" + dec.toFixed(1) + "&deg;</b> · 태양 고도: <b>" + (r.alt > 0 ? r.alt.toFixed(1) + "&deg;" : "지평선 아래") + "</b>" +
+        (r.alt > 0.3 ? " · 방위: <b>" + r.az.toFixed(0) + "&deg;</b>" : "") +
+        (r.alt <= 0.3 ? '<br/><span class="night-badge">🌙 밤 — 그림자가 생기지 않음</span>' : "");
+    }
+  }
+  function rebuildDomeAll() {
+    var groundEl = document.getElementById("domeGroundFill");
+    var horizonEl = document.getElementById("domeHorizonStroke");
+    var compassEl = document.getElementById("domeCompassG");
+    if (!groundEl) return; // 2단계가 아니면 반구 SVG가 없음
+    var pts = domeHorizonPts();
+    groundEl.setAttribute("d", pathFromPts(pts) + " Z");
+    horizonEl.setAttribute("d", pathFromPts(pts));
+    compassEl.innerHTML = domeCompassLabels();
+
+    var dec = currentDec();
+    var eqPts = [], abovePts = [], belowPts = [];
+    for (var h = 0; h <= 24.001; h += 0.5) {
+      var e = sunAltAz(astro.lat, 0, h);
+      eqPts.push(domePoint(e.alt, e.az));
+      var s = sunAltAz(astro.lat, dec, h);
+      var sp = s.alt > -8 ? domePoint(s.alt, s.az) : null;
+      abovePts.push(s.alt >= 0 ? sp : null);
+      belowPts.push(s.alt < 0 ? sp : null);
+    }
+    document.getElementById("equatorPath").setAttribute("d", pathFromPts(eqPts));
+    document.getElementById("sunPathAbove").setAttribute("d", pathFromPts(abovePts));
+    document.getElementById("sunPathBelow").setAttribute("d", pathFromPts(belowPts));
+    var ncp = domePoint(astro.lat, 0);
+    var ncpDot = document.getElementById("ncpDot");
+    ncpDot.setAttribute("cx", ncp.x.toFixed(1)); ncpDot.setAttribute("cy", ncp.y.toFixed(1));
+    updateSunMarkerB();
+  }
+  function updateSunMarkerB() {
+    var dec = currentDec();
+    var cur = sunAltAz(astro.lat, dec, astro.hour);
+    var noon = sunAltAz(astro.lat, dec, 12);
+    var marker = document.getElementById("sunMarkerB");
+    var ro = document.getElementById("readoutB");
+    if (!marker) return;
+    if (cur.alt > -0.3) {
+      var p = domePoint(cur.alt, cur.az);
+      marker.setAttribute("transform", "translate(" + p.x.toFixed(1) + "," + p.y.toFixed(1) + ")");
+      marker.style.display = "";
+    } else {
+      marker.style.display = "none";
+    }
+    if (ro) {
+      ro.innerHTML = "태양의 적위(&delta;): <b>" + dec.toFixed(1) + "&deg;</b> (오늘 날짜로 정해짐, 위도와는 무관해요)<br/>" +
+        "이 위도에서 남중고도: <b>" + noon.alt.toFixed(1) + "&deg;</b> · 지금 고도: <b>" + (cur.alt > -0.3 ? cur.alt.toFixed(1) + "&deg;" : "지평선 아래(밤)") + "</b>";
+    }
+  }
+
+  function bindBowlControls() {
+    var monthEl = document.getElementById("sliMonth"), dayEl = document.getElementById("sliDay"), hourEl = document.getElementById("sliHour");
+    var yearIn = document.getElementById("inYear"), monthIn = document.getElementById("inMonth"), dayIn = document.getElementById("inDay");
+
+    function syncDayMax() {
+      var mx = maxDay(astro.year, astro.month);
+      dayEl.max = mx;
+      if (astro.day > mx) astro.day = mx;
+      dayEl.value = astro.day;
+      dayIn.value = astro.day;
+    }
+    function afterDateChange() {
+      saveAstroLite(); updateShadowA();
+      if (state.explorePage === 2) rebuildDomeAll();
+    }
+    monthEl.oninput = function () {
+      astro.month = Number(monthEl.value);
+      document.getElementById("monthVal").textContent = astro.month + "월";
+      monthIn.value = astro.month;
+      syncDayMax(); afterDateChange();
+    };
+    dayEl.oninput = function () {
+      astro.day = Number(dayEl.value);
+      document.getElementById("dayVal").textContent = astro.day + "일";
+      dayIn.value = astro.day;
+      afterDateChange();
+    };
+    hourEl.oninput = function () {
+      astro.hour = Number(hourEl.value);
+      document.getElementById("hourVal").textContent = fmtHour(astro.hour);
+      saveAstroLite(); updateShadowA();
+      if (state.explorePage === 2) updateSunMarkerB();
+    };
+    yearIn.onchange = function () {
+      var v = clamp(Number(yearIn.value) || astro.year, 2000, 2100);
+      astro.year = v; yearIn.value = v;
+      syncDayMax(); afterDateChange();
+    };
+    monthIn.onchange = function () {
+      var v = clamp(Number(monthIn.value) || astro.month, 1, 12);
+      astro.month = v; monthEl.value = v; document.getElementById("monthVal").textContent = v + "월";
+      syncDayMax(); afterDateChange();
+    };
+    dayIn.onchange = function () {
+      var v = clamp(Number(dayIn.value) || astro.day, 1, maxDay(astro.year, astro.month));
+      astro.day = v; dayEl.value = v; document.getElementById("dayVal").textContent = v + "일";
+      afterDateChange();
+    };
+
+    var playBtn = document.getElementById("playBtn");
+    playBtn.onclick = function () {
+      astro.playing = !astro.playing;
+      playBtn.textContent = astro.playing ? "⏸ 일시정지" : "▶ 재생";
+      if (astro.playing) { astro.lastT = 0; astro.raf = requestAnimationFrame(playStep); }
+      else if (astro.raf) { cancelAnimationFrame(astro.raf); astro.raf = null; }
+    };
+    document.querySelectorAll(".speed-btn").forEach(function (btn) {
+      btn.onclick = function () {
+        astro.speed = Number(btn.getAttribute("data-speed"));
+        document.querySelectorAll(".speed-btn").forEach(function (b) {
+          b.className = "btn-soft speed-btn " + (Number(b.getAttribute("data-speed")) === astro.speed ? "active" : "");
+        });
+      };
+    });
+  }
+
+  function playStep(t) {
+    if (!astro.playing) return;
+    if (!astro.lastT) astro.lastT = t;
+    var dt = (t - astro.lastT) / 1000;
+    astro.lastT = t;
+    var speed = astro.speed * 1.2; // 시간(hour)/초
+    astro.hour += dt * speed;
+    if (astro.hour >= 24) astro.hour -= 24;
+    var hourEl = document.getElementById("sliHour"), hourVal = document.getElementById("hourVal");
+    if (hourEl) { hourEl.value = astro.hour; hourVal.textContent = fmtHour(astro.hour); }
+    updateShadowA();
+    if (state.explorePage === 2) updateSunMarkerB();
+    astro.raf = requestAnimationFrame(playStep);
+  }
+
+  function saveAstroLite() {
+    // 날짜/위도 설정은 세션 내에서만 유지(용량 절약을 위해 localStorage 저장은 생략)
+  }
+
+  /* ================= EXPLAIN ================= */
+  function explainAnim1() {
+    // 그림자 방향: 태양이 이동하며 그림자가 반대 방향으로 회전
+    return '<svg viewBox="0 0 220 110" class="explain-anim">' +
+      '<line x1="10" y1="90" x2="210" y2="90" stroke="#C9B89A" stroke-width="2"/>' +
+      '<line x1="110" y1="90" x2="110" y2="55" stroke="#5A4632" stroke-width="3" stroke-linecap="round"/>' +
+      '<circle cx="110" cy="90" r="3.5" fill="#5A4632"/>' +
+      '<line x1="110" y1="90" x2="70" y2="97" stroke="#2A2118" stroke-width="3" stroke-opacity="0.55" stroke-linecap="round">' +
+      '<animateTransform attributeName="transform" type="rotate" values="60 110 90;-60 110 90;60 110 90" keyTimes="0;0.5;1" dur="5s" repeatCount="indefinite"/>' +
+      '</line>' +
+      '<circle r="6" fill="#F2B441"><animateMotion dur="5s" repeatCount="indefinite" path="M10,45 Q110,5 210,45 Q110,5 10,45"/></circle>' +
+      '</svg>';
+  }
+  function explainAnim2() {
+    // 그림자 길이: 태양 고도가 오르내리며 그림자 길이가 반대로 변화
+    return '<svg viewBox="0 0 220 110" class="explain-anim">' +
+      '<line x1="10" y1="90" x2="210" y2="90" stroke="#C9B89A" stroke-width="2"/>' +
+      '<line x1="110" y1="90" x2="110" y2="55" stroke="#5A4632" stroke-width="3" stroke-linecap="round"/>' +
+      '<circle cx="110" cy="90" r="3.5" fill="#5A4632"/>' +
+      '<line x1="110" y1="90" y2="90" stroke="#2A2118" stroke-width="3" stroke-opacity="0.55" stroke-linecap="round">' +
+      '<animate attributeName="x2" values="98;160;98" keyTimes="0;0.5;1" dur="5s" repeatCount="indefinite"/>' +
+      '</line>' +
+      '<circle r="6" fill="#F2B441" cx="110">' +
+      '<animate attributeName="cy" values="18;68;18" keyTimes="0;0.5;1" dur="5s" repeatCount="indefinite"/>' +
+      '</circle>' +
+      '</svg>';
+  }
+  function explainAnim3() {
+    // 위도 비교: 저위도 vs 고위도에서 태양 고도(남중고도)가 다름을 정적 비교
+    function diagram(lat, label) {
+      var altDeg = 90 - lat; // 춘분 기준 남중고도 근사
+      var a = toRad(altDeg);
+      var sx = 55 + Math.cos(a) * 42, sy = 78 - Math.sin(a) * 42;
+      return '<div style="flex:1;text-align:center">' +
+        '<svg viewBox="0 0 110 90" class="explain-anim" style="max-width:130px">' +
+        '<line x1="8" y1="78" x2="102" y2="78" stroke="#C9B89A" stroke-width="2"/>' +
+        '<line x1="55" y1="78" x2="' + sx.toFixed(1) + '" y2="' + sy.toFixed(1) + '" stroke="#E8A73A" stroke-width="1.5" stroke-dasharray="2 2"/>' +
+        '<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="5" fill="#F2B441"/>' +
+        '<line x1="55" y1="78" x2="55" y2="45" stroke="#5A4632" stroke-width="2.5" stroke-linecap="round"/>' +
+        '<circle cx="55" cy="78" r="2.5" fill="#5A4632"/>' +
+        '</svg>' +
+        '<p class="dim-text" style="margin-top:2px">' + label + ' (남중고도 약 ' + altDeg.toFixed(0) + '&deg;)</p></div>';
+    }
+    return '<div style="display:flex;gap:10px">' + diagram(5, "위도가 낮은 곳") + diagram(55, "위도가 높은 곳") + '</div>';
+  }
+  function explainAnim4() {
+    // 물시계: 물방울이 떨어지고, 눈금 막대의 수위 표시가 서서히 올라감
+    return '<svg viewBox="0 0 220 110" class="explain-anim">' +
+      '<rect x="80" y="8" width="60" height="20" rx="4" fill="#DCEAF4" stroke="#3E7CB1" stroke-width="1.5"/>' +
+      '<rect x="82" y="16" width="56" height="10" rx="2" fill="#8FB6D3"/>' +
+      '<circle cx="110" cy="34" r="2.2" fill="#3E7CB1" fill-opacity="0.7">' +
+      '<animate attributeName="cy" values="30;58;30" dur="1.6s" repeatCount="indefinite"/>' +
+      '<animate attributeName="opacity" values="1;0;1" dur="1.6s" repeatCount="indefinite"/>' +
+      '</circle>' +
+      '<rect x="55" y="60" width="110" height="34" rx="5" fill="#EFF6FA" stroke="#3E7CB1" stroke-width="1.5"/>' +
+      '<rect x="57" y="76" width="106" height="16" rx="3" fill="#8FB6D3">' +
+      '<animate attributeName="y" values="90;62;90" keyTimes="0;0.9;1" dur="5s" repeatCount="indefinite"/>' +
+      '<animate attributeName="height" values="2;28;2" keyTimes="0;0.9;1" dur="5s" repeatCount="indefinite"/>' +
+      '</rect>' +
+      '<line x1="135" y1="42" x2="135" y2="90" stroke="#5A4632" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<line x1="132" y1="50" x2="138" y2="50" stroke="#5A4632" stroke-width="1"/>' +
+      '<line x1="132" y1="60" x2="138" y2="60" stroke="#5A4632" stroke-width="1"/>' +
+      '<line x1="132" y1="70" x2="138" y2="70" stroke="#5A4632" stroke-width="1"/>' +
+      '<line x1="132" y1="80" x2="138" y2="80" stroke="#5A4632" stroke-width="1"/>' +
+      '</svg>';
+  }
+
+  var EXPLAIN_CARDS = [
+    {
+      title: "☀️ 왜 그림자의 '방향'은 시간에 따라 바뀔까?",
+      body: "지구는 하루에 한 바퀴씩 스스로 돈다(자전). 그래서 우리 눈에는 태양이 동쪽에서 떠서 남쪽 하늘을 지나 서쪽으로 지는 것처럼 보여. 태양의 위치(방위)가 계속 바뀌니까, 그 반대쪽에 생기는 그림자의 <b>방향</b>도 시간에 따라 규칙적으로 바뀌는 거야. 앙부일구의 '시각선'은 바로 이 원리를 이용해서, 그림자가 가리키는 방향만 보고 시각을 읽을 수 있게 그은 눈금이야.",
+      anim: explainAnim1
+    },
+    {
+      title: "🌍 왜 그림자의 '길이'는 계절마다 다를까?",
+      body: "지구는 자전축이 23.4&deg; 정도 기울어진 채로 태양 주위를 돈다(공전). 이 기울기 때문에 계절에 따라 태양이 정오에 얼마나 높이 뜨는지(남중고도)가 달라져. 여름엔 태양이 높이 떠서 그림자가 짧고, 겨울엔 낮게 떠서 그림자가 길어져. 앙부일구의 '절기선'은 이 남중고도 변화를 이용해서, 그림자 끝이 놓인 곡선만 보고 대략적인 날짜(절기)를 읽을 수 있게 그은 눈금이야.",
+      anim: explainAnim2
+    },
+    {
+      title: "🧭 왜 위도마다 앙부일구 눈금이 달라야 할까?",
+      body: "②(반구) 시뮬레이션에서 확인했듯이, 위도가 달라지면 같은 날짜라도 태양의 남중고도와 하늘을 지나가는 길(경로)이 달라져. 그래서 서울(북위 약 37.5&deg;) 기준으로 만든 앙부일구를 적도나 훨씬 북쪽 지역에 그대로 가져가면 시각이 잘 맞지 않아. 실제로 앙부일구는 설치할 장소의 위도에 맞춰 눈금을 새로 계산해서 만들어야 해.",
+      anim: explainAnim3
+    },
+    {
+      title: "💧 물시계는 어떤 원리로 시간을 잴까?",
+      body: "물시계는 '일정한 시간 동안 일정한 양의 물이 흐른다'는 사실을 이용해. 위 칸에서 아래 칸으로 물이 일정한 속도로 떨어지면, 아래 칸에 쌓인 물의 높이(또는 위 칸에 남은 물의 높이)가 시간의 흐름과 비례하게 돼. 그래서 눈금이 있는 막대(잣대)를 꽂아두면, 물이 닿은 눈금을 읽어서 시각을 알 수 있어. 해와 상관없이 작동하기 때문에 흐린 날이나 밤에도 쓸 수 있다는 게 큰 장점이야.",
+      anim: explainAnim4
+    }
+  ];
+  var EXPLAIN_GUESS_CHECK = [
+    { g: "guess1", title: "막대 해시계", real: "막대(그노몬)가 만드는 그림자의 <b>방향과 길이</b>를 눈금과 비교해서 시각과 계절을 읽어냈어." },
+    { g: "guess2", title: "앙부일구", real: "오목한 그릇 안에 새겨진 <b>시각선(방향)</b>과 <b>절기선(길이)</b> 두 종류의 눈금 위에 그림자 끝이 놓인 위치를 읽어냈어." },
+    { g: "guess3", title: "물시계(자격루)", real: "일정하게 떨어지는 <b>물의 양(높이)</b>이 눈금 막대의 어디에 닿는지를 읽어서 시간의 흐름을 쟀어." }
+  ];
+  function renderExplain() {
+    var cardsHtml = EXPLAIN_CARDS.map(function (c) {
+      return '<div class="card"><h3 class="card-title">' + c.title + '</h3>' + (c.anim ? c.anim() : "") + '<p class="lead">' + c.body + '</p></div>';
+    }).join("");
+    var checkHtml = EXPLAIN_GUESS_CHECK.map(function (c) {
+      var mine = state[c.g] && state[c.g].trim() ? esc(state[c.g]) : "<span style='opacity:0.5'>(동기유발 단계에서 답을 적지 않았어요)</span>";
+      return '<div style="margin-bottom:12px"><p class="small-label" style="margin-top:0">' + c.title + '</p>' +
+        '<div class="readout-box" style="font-family:inherit"><b style="color:var(--low)">내가 짐작했던 답</b><br/>' + mine + '</div>' +
+        '<div class="readout-box" style="font-family:inherit;margin-top:4px"><b style="color:var(--accent)">실제 원리</b><br/>' + c.real + '</div></div>';
+    }).join("");
+    return (
+      '<div class="stage-wrap">' +
+      '<p class="lead">탐구에서 관찰한 내용을 바탕으로, 그림자가 시각과 계절에 따라 달라지는 이유를 과학적으로 정리해보자.</p>' +
+      cardsHtml +
+      '<div class="card"><h3 class="card-title">🔎 내 추측 확인하기</h3><p class="dim-text" style="margin-bottom:10px">동기유발 단계에서 그림만 보고 짐작했던 답과, 실제 원리를 비교해보자.</p>' + checkHtml + '</div>' +
+      '<div class="card">' +
+      '<label class="small-label" style="margin-top:0">정리 질문 1. 그림자의 <b>방향</b>은 무엇과 관련이 있다고 정리할 수 있을까?</label>' +
+      '<textarea id="explainSum1" class="textarea" rows="2" placeholder="예: 그림자의 방향은 ○○과 관련이 있다...">' + esc(state.explainSum1) + '</textarea>' +
+      '<label class="small-label">정리 질문 2. 그림자의 <b>길이</b>는 무엇과 관련이 있다고 정리할 수 있을까?</label>' +
+      '<textarea id="explainSum2" class="textarea" rows="2" placeholder="예: 그림자의 길이는 ○○과 관련이 있다...">' + esc(state.explainSum2) + '</textarea>' +
+      '</div>' +
+      '<button class="btn-primary full" id="toElaborateBtn">다음: 정교화 — 나만의 시계 설계하기 →</button>' +
+      '</div>'
+    );
+  }
+  function bindExplain() {
+    ["explainSum1", "explainSum2"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.oninput = function () { state[id] = el.value; saveState(); };
+    });
+    var next = document.getElementById("toElaborateBtn");
+    if (next) next.onclick = function () { state.completion.explain = true; state.stage = "elaborate"; saveState(); render(); };
+  }
+
+  /* ================= ELABORATE ================= */
+  var CLOCK_PROS_CONS = [
+    { name: "해시계 / 앙부일구", pros: "만들기 비교적 간단하고, 재료비가 거의 안 든다. 눈금만 정확히 그리면 낮 동안 꽤 정확하다.", cons: "해가 떠 있을 때만 쓸 수 있다. 흐린 날·비 오는 날·밤에는 쓸 수 없고, 위도와 계절에 맞춰 눈금을 다시 계산해야 한다." },
+    { name: "물시계", pros: "날씨나 밤낮에 관계없이 쓸 수 있다. 원리가 단순해서 실내에서도 만들 수 있다.", cons: "물이 항상 일정한 속도로 흐르게 만들기가 은근히 어렵다(구멍 크기, 온도, 수압 변화 등). 물을 계속 채워줘야 하고, 겨울엔 얼 수도 있다." }
+  ];
+  var ELAB_MATERIAL_IDEAS = ["막대·연필·나무젓가락", "종이컵·페트병", "투명한 자·눈금자", "흙·모래·화분", "실·클립", "두꺼운 종이·마분지", "구멍 뚫린 캔·물통"];
+  function renderElaborate() {
+    var prosConsHtml = CLOCK_PROS_CONS.map(function (c) {
+      return '<div class="tool-card" style="text-align:left;min-width:220px"><p class="tool-name" style="font-size:13px">' + c.name + '</p>' +
+        '<p class="dim-text"><b style="color:var(--success)">장점</b> · ' + c.pros + '</p>' +
+        '<p class="dim-text" style="margin-top:6px"><b style="color:var(--accent)">단점</b> · ' + c.cons + '</p></div>';
+    }).join("");
+    var materialChips = ELAB_MATERIAL_IDEAS.map(function (m) { return '<span class="btn-soft" style="display:inline-block;padding:6px 10px;font-size:12px;margin:0 4px 4px 0;cursor:default">' + m + '</span>'; }).join("");
+    return (
+      '<div class="stage-wrap">' +
+      '<p class="lead">이제 배운 원리를 활용해서, 주변에서 구할 수 있는 재료로 <b>나만의 시간 측정 도구</b>를 설계해보자. 실제로 만들 것을 상상하면서 설계도를 그려보는 활동이야.</p>' +
+
+      '<div class="card"><h3 class="card-title">해시계 vs 물시계 — 장단점 다시 보기</h3>' +
+      '<div class="tool-grid">' + prosConsHtml + '</div></div>' +
+
+      '<div class="card">' +
+      '<h3 class="card-title">① 어떤 방식으로 만들지 정해보자</h3>' +
+      '<div class="choice-list">' +
+      '<button class="choice-btn ' + (state.elabType === "sundial" ? "active" : "") + '" data-elab-type="sundial">해시계(또는 앙부일구) 방식으로 만들기</button>' +
+      '<button class="choice-btn ' + (state.elabType === "water" ? "active" : "") + '" data-elab-type="water">물시계 방식으로 만들기</button>' +
+      '<button class="choice-btn ' + (state.elabType === "other" ? "active" : "") + '" data-elab-type="other">두 방식을 섞은 나만의 방식으로 만들기</button>' +
+      '</div>' +
+      '<label class="small-label">왜 이 방식을 골랐나요? (내가 만들 장소·상황의 장단점을 생각해보자)</label>' +
+      '<textarea id="elabReason" class="textarea" rows="2" placeholder="예: 우리 교실 창가는 햇빛이 잘 들어서 해시계가 유리할 것 같다...">' + esc(state.elabReason) + '</textarea>' +
+      '</div>' +
+
+      '<div class="card">' +
+      '<h3 class="card-title">② 어떤 재료를 쓸까?</h3>' +
+      '<p class="dim-text" style="margin-bottom:8px">주변에서 구할 수 있는 재료 예시(참고용, 꼭 아래 목록이 아니어도 좋아):</p>' +
+      '<div style="margin-bottom:8px">' + materialChips + '</div>' +
+      '<textarea id="elabMaterials" class="textarea" rows="2" placeholder="예: 나무젓가락(막대), 종이 접시(눈금판), 유성펜(눈금 표시)...">' + esc(state.elabMaterials) + '</textarea>' +
+      '</div>' +
+
+      '<div class="card">' +
+      '<h3 class="card-title">③ 설계도 그려보기</h3>' +
+      '<p class="dim-text" style="margin-bottom:8px">아래 캔버스에 직접 설계도를 그려보자. 어디에 눈금을 표시할지, 그림자(또는 물)가 어디로 이동할지도 함께 그려보면 좋아.</p>' +
+      '<div class="sim-svg-wrap" style="padding:0"><canvas id="sketchCanvas" width="600" height="360" style="width:100%;height:auto;display:block;border-radius:14px;background:#fff;touch-action:none"></canvas></div>' +
+      '<div class="play-row"><button class="btn-soft" id="sketchClearBtn">🧹 지우기</button></div>' +
+      '</div>' +
+
+      '<div class="card">' +
+      '<h3 class="card-title">④ 시간 눈금은 어떻게 표시할까?</h3>' +
+      '<textarea id="elabScaleIdea" class="textarea" rows="2" placeholder="예: 정오에 그림자가 가리키는 곳에 먼저 표시하고, 한 시간마다...">' + esc(state.elabScaleIdea) + '</textarea>' +
+      '</div>' +
+
+      '<div class="card">' +
+      '<h3 class="card-title">⑤ 예상되는 문제점과 보완 방법</h3>' +
+      '<label class="small-label" style="margin-top:0">앞서 정리한 장단점을 떠올려보며, 내가 설계한 시계는 어떤 상황에서 부정확해지거나 사용하기 어려울까? 그리고 어떻게 보완할 수 있을까?</label>' +
+      '<textarea id="elabLimitation" class="textarea" rows="3" placeholder="예: 흐린 날에는 그림자가 안 생겨서 사용할 수 없다. 이를 보완하려면...">' + esc(state.elabLimitation) + '</textarea>' +
+      '</div>' +
+
+      '<button class="btn-primary full" id="toEvaluateBtn" ' + (!state.elabType ? "disabled" : "") + '>다음: 평가 →</button>' +
+      '</div>'
+    );
+  }
+  function bindElaborate() {
+    document.querySelectorAll("[data-elab-type]").forEach(function (btn) {
+      btn.onclick = function () {
+        state.elabType = btn.getAttribute("data-elab-type"); saveState(); render();
+      };
+    });
+    ["elabReason", "elabMaterials", "elabScaleIdea", "elabLimitation"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.oninput = function () { state[id] = el.value; saveState(); };
+    });
+    bindSketchCanvas();
+    var next = document.getElementById("toEvaluateBtn");
+    if (next) next.onclick = function () { state.completion.elaborate = true; state.stage = "evaluate"; saveState(); render(); };
+  }
+  function bindSketchCanvas() {
+    var canvas = document.getElementById("sketchCanvas");
+    if (!canvas) return;
+    var ctx = canvas.getContext("2d");
+    ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.strokeStyle = "#3A3226"; ctx.lineWidth = 3;
+    var drawing = false, lastX = 0, lastY = 0;
+    function loadSaved() {
+      if (state.elabSketchData) {
+        var img = new Image();
+        img.onload = function () { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+        img.src = state.elabSketchData;
+      }
+    }
+    function getPos(e) {
+      var rect = canvas.getBoundingClientRect();
+      var scaleX = canvas.width / rect.width, scaleY = canvas.height / rect.height;
+      return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    }
+    function start(e) { drawing = true; var p = getPos(e); lastX = p.x; lastY = p.y; }
+    function move(e) {
+      if (!drawing) return;
+      var p = getPos(e);
+      ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y); ctx.stroke();
+      lastX = p.x; lastY = p.y;
+    }
+    function end() {
+      if (!drawing) return;
+      drawing = false;
+      try { state.elabSketchData = canvas.toDataURL("image/png"); saveState(); } catch (err) {}
+    }
+    canvas.onpointerdown = function (e) { canvas.setPointerCapture(e.pointerId); start(e); };
+    canvas.onpointermove = move;
+    canvas.onpointerup = end;
+    canvas.onpointercancel = end;
+    var clearBtn = document.getElementById("sketchClearBtn");
+    if (clearBtn) clearBtn.onclick = function () { ctx.clearRect(0, 0, canvas.width, canvas.height); state.elabSketchData = ""; saveState(); };
+    loadSaved();
+  }
+
+  /* ================= EVALUATE ================= */
+  var QUIZ = [
+    { id: "q1", q: "하루 동안 그림자의 '방향'이 바뀌는 가장 주된 이유는?", options: ["지구의 자전", "지구의 공전", "태양의 크기 변화", "달의 위치 변화"], correct: 0, exp: "지구가 하루에 한 바퀴 자전하면서 태양이 하늘을 가로지르는 것처럼 보이기 때문이야." },
+    { id: "q2", q: "계절에 따라 정오 그림자의 '길이'가 달라지는 가장 주된 이유는?", options: ["지구-태양 거리 변화", "지구 자전축이 기울어져 태양의 남중고도가 달라져서", "지구 자전 속도 변화", "태양 표면 온도 변화"], correct: 1, exp: "자전축이 기울어져 있어서 계절마다 태양이 정오에 뜨는 높이(남중고도)가 달라지기 때문이야." },
+    { id: "q3", q: "앙부일구를 다른 위도의 지역에 그대로 가져가면 시각이 잘 안 맞는 이유는?", options: ["위도마다 하루 길이가 다르기 때문에", "위도마다 태양의 남중고도와 경로가 달라지기 때문에", "위도마다 중력이 다르기 때문에", "위도와는 관계가 없다"], correct: 1, exp: "위도가 달라지면 같은 날짜라도 태양이 지나가는 길과 남중고도가 달라지기 때문이야." },
+    { id: "q4", q: "물시계가 해시계에 비해 갖는 가장 큰 장점은?", options: ["더 정확하다", "흐린 날이나 밤에도 쓸 수 있다", "만들기가 항상 더 쉽다", "재료가 항상 더 싸다"], correct: 1, exp: "물시계는 햇빛과 상관없이 작동하기 때문에 날씨나 밤낮에 영향을 받지 않아." },
+    { id: "q5", q: "해시계(앙부일구 포함)의 가장 큰 한계는?", options: ["재료가 비싸다", "흐리거나 밤에는 사용할 수 없다", "너무 무겁다", "위도에 영향을 받지 않는다"], correct: 1, exp: "해시계는 태양빛(그림자)을 이용하기 때문에 흐린 날이나 밤에는 사용할 수 없어." }
+  ];
+  function renderEvaluate() {
+    var correctCount = 0;
+    QUIZ.forEach(function (item) { if (state.quizAnswers[item.id] === item.correct) correctCount++; });
+    var quizHtml = QUIZ.map(function (item, qi) {
+      var answered = state.quizAnswers[item.id];
+      var optsHtml = item.options.map(function (opt, oi) {
+        var cls = "choice-btn";
+        if (answered !== undefined) {
+          if (oi === item.correct) cls += " active";
+          else if (oi === answered) cls += ""; // 오답은 기본 스타일 유지, 아래 X 표시로 구분
+        }
+        var mark = "";
+        if (answered !== undefined) {
+          if (oi === item.correct) mark = " ✅";
+          else if (oi === answered) mark = " ❌";
+        }
+        return '<button class="' + cls + '" data-quiz="' + item.id + '" data-opt="' + oi + '" ' + (answered !== undefined ? "disabled" : "") + '>' + esc(opt) + mark + '</button>';
+      }).join("");
+      return '<div class="card"><p class="q-label">Q' + (qi + 1) + '. ' + item.q + '</p><div class="choice-list">' + optsHtml + '</div>' +
+        (answered !== undefined ? '<p class="dim-text" style="margin-top:8px">💡 ' + item.exp + '</p>' : '') + '</div>';
+    }).join("");
+    var allAnswered = QUIZ.every(function (item) { return state.quizAnswers[item.id] !== undefined; });
+    return (
+      '<div class="stage-wrap">' +
+      '<p class="lead">배운 내용을 스스로 점검해보자. 정답을 고르면 바로 설명이 나와.</p>' +
+      quizHtml +
+      (allAnswered ? '<div class="card" style="text-align:center"><p class="q-label" style="margin-bottom:0">5문제 중 <span style="color:var(--accent)">' + correctCount + '개</span> 정답! 🎉</p></div>' : "") +
+      '<div class="card">' +
+      '<label class="small-label" style="margin-top:0">이번 활동에서 새롭게 알게 된 점은 무엇인가요?</label>' +
+      '<textarea id="evalReflect1" class="textarea" rows="2" placeholder="자유롭게 적어보자.">' + esc(state.evalReflect1) + '</textarea>' +
+      '<label class="small-label">더 알아보고 싶은 점이나 궁금한 점이 있나요?</label>' +
+      '<textarea id="evalReflect2" class="textarea" rows="2" placeholder="자유롭게 적어보자.">' + esc(state.evalReflect2) + '</textarea>' +
+      '</div>' +
+      '<div class="card" style="text-align:center;background:var(--soft)"><p class="lead" style="font-weight:700">🎉 여기까지가 "시간을 이해하고, 나만의 해시계 만들기" 5E 수업의 전체 과정이에요. 수고했어요!</p></div>' +
+      '</div>'
+    );
+  }
+  function bindEvaluate() {
+    document.querySelectorAll("[data-quiz]").forEach(function (btn) {
+      btn.onclick = function () {
+        var qid = btn.getAttribute("data-quiz"), oi = Number(btn.getAttribute("data-opt"));
+        if (state.quizAnswers[qid] !== undefined) return;
+        state.quizAnswers[qid] = oi; saveState();
+        if (QUIZ.every(function (item) { return state.quizAnswers[item.id] !== undefined; })) state.completion.evaluate = true;
+        saveState(); render();
+      };
+    });
+    ["evalReflect1", "evalReflect2"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.oninput = function () { state[id] = el.value; saveState(); };
+    });
+  }
+
+  /* ================= 미구현 단계 ================= */
+  function renderComingSoon(label) {
+    return '<div class="stage-wrap"><div class="card coming-soon">🚧 "' + esc(label) + '" 단계는 아직 준비 중이에요.</div></div>';
+  }
+
+  /* ================= 메인 렌더 ================= */
+  function render() {
+    renderProgress();
+    var html = "";
+    if (state.stage === "engage") html = renderEngage();
+    else if (state.stage === "explore") html = renderExplore();
+    else if (state.stage === "explain") html = renderExplain();
+    else if (state.stage === "elaborate") html = renderElaborate();
+    else if (state.stage === "evaluate") html = renderEvaluate();
+    else html = renderComingSoon(STAGE_LABEL[state.stage]);
+    document.getElementById("app").innerHTML = html;
+
+    if (state.stage === "engage") bindEngage();
+    else if (state.stage === "explore") bindExplore();
+    else if (state.stage === "explain") bindExplain();
+    else if (state.stage === "elaborate") bindElaborate();
+    else if (state.stage === "evaluate") bindEvaluate();
+  }
+
+  function init() { render(); }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+</script>
+</body>
+</html>
