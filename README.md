@@ -17,6 +17,9 @@ sims/               시뮬레이션 파일
   plate-tectonics-sim.html  판구조론 시뮬레이션만
   exoplanet.html            외계행성 탐사 연구소        [12행우01-05]
   exoplanet-sim.html        외계행성 시뮬레이션만
+  cheongu-game.html         천구 레이저 관측대 게임     [12지실03-01]
+  cheongu-sim.html          천구 관측실 (시뮬레이션만)
+  cheongu-workbook.html     천구 레이저 관측대 인쇄용 워크북
   pressure-wind.html        기압과 바람 5E (워크북)     [9과13-07]
   pressure-wind-sim.html    기압과 바람 시뮬레이션만
   sundial.html              해시계 만들기 5E (워크북)   성취기준 외
@@ -41,7 +44,7 @@ teacher/
  sim:{url:'', file:'sims/새파일-sim.html'}},   // 시뮬레이션만 버전이 있을 때만
 ```
 
-과목은 성취기준 코드 앞부분(9과, 10통과, 12지구, 12지시, 12행우)으로 자동 분류됩니다.
+과목은 성취기준 코드 앞부분(9과, 10통과, 12지구, 12지시, 12행우, 12지실)으로 자동 분류됩니다.
 `url`은 claude.ai 미리보기용 주소라서 깃허브에서는 쓰이지 않고, `file` 경로가 쓰입니다.
 
 ## 알아 둘 점
