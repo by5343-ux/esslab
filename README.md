@@ -8,6 +8,7 @@
 ```
 index.html          포털(첫 화면). 목록, 과목 분류, 학생용 링크·QR 만들기
 sims/               시뮬레이션 파일
+  cyclone-sim.html          중위도 저기압 시뮬레이션만 [12지구01-03]  (워크북 준비 중)
   enso.html                 ENSO 탐구 (워크북)          [12지구01-05]
   enso-sim.html             ENSO 시뮬레이션만
   geodex.html               GEODEX 게임                 [12지구02-05]
@@ -43,6 +44,8 @@ teacher/
  url:'', file:'sims/새파일.html',
  sim:{url:'', file:'sims/새파일-sim.html'}},   // 시뮬레이션만 버전이 있을 때만
 ```
+
+워크북 없이 시뮬레이션만 있는 경우에는 `simOnly:true`를 넣고 `file`과 `sim.file`에 같은 파일을 적습니다(예: cyclone).
 
 과목은 성취기준 코드 앞부분(9과, 10통과, 12지구, 12지시, 12행우, 12지실)으로 자동 분류됩니다.
 `url`은 claude.ai 미리보기용 주소라서 깃허브에서는 쓰이지 않고, `file` 경로가 쓰입니다.
