@@ -1,0 +1,1704 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stratify(지사학의 달인) 자유 제작</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E4E8E5; --panel:#F6F7F5; --ink:#1E2327; --muted:#4A5359; --line:#C5CCC8;
+  --wood:#7A4E2D; --wood2:#6A4126; --peg:#E8D2AE;
+  --accent:#2E3561; --accent-ink:#FFFFFF; --hint-bg:#FFF4D9; --hint-ink:#5A3A00; --warn-bg:#FBE3DA; --warn-ink:#7A2410;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#181B1D; --panel:#23272A; --ink:#ECEFEC; --muted:#B3BBB7; --line:#3A4145;
+    --accent:#A8B3F0; --accent-ink:#141833; --hint-bg:#3A2F14; --hint-ink:#FFE3A6; --warn-bg:#3D1F17; --warn-ink:#FFC4B0;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#181B1D; --panel:#23272A; --ink:#ECEFEC; --muted:#B3BBB7; --line:#3A4145;
+  --accent:#A8B3F0; --accent-ink:#141833; --hint-bg:#3A2F14; --hint-ink:#FFE3A6; --warn-bg:#3D1F17; --warn-ink:#FFC4B0;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+header{padding:14px 16px 4px;max-width:1180px;margin:0 auto}
+.esslab{font-size:.8125rem;font-weight:600;color:var(--muted);margin-bottom:2px}
+.diffcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.diffcard summary{cursor:pointer;font-weight:700;font-size:1.0625rem;min-height:32px;display:flex;align-items:center}
+table.diff{width:100%;border-collapse:collapse;margin-top:8px;font-size:.9375rem;line-height:1.5}
+table.diff th,table.diff td{border-top:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+table.diff th{font-size:.875rem;color:var(--muted)}
+table.diff td:first-child{font-weight:700;white-space:nowrap;width:5.5em}
+.foot{max-width:1180px;margin:0 auto;padding:8px 16px calc(28px + env(safe-area-inset-bottom,0px));font-size:.8125rem;line-height:1.6;color:var(--muted)}
+.foot div{margin-top:4px}
+.foot a{color:var(--accent)}
+h1{margin:0;font-size:1.5rem;line-height:1.2;font-weight:700;letter-spacing:-0.01em}
+h1 small{font-size:1rem;font-weight:600;color:var(--muted);margin-left:.4em}
+.lead{margin:.35rem 0 0;color:var(--muted);font-size:1rem}
+.app{max-width:1180px;margin:0 auto;padding:0 16px 32px}
+.stage{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:16px 0 8px}
+.frame{position:relative;width:fit-content;max-width:100%;margin:14px auto 0;padding:10px;border-radius:6px;
+  background:repeating-linear-gradient(176deg,var(--wood) 0 7px,var(--wood2) 7px 9px,var(--wood) 9px 15px);
+  box-shadow:0 2px 0 rgba(0,0,0,.25)}
+.peg{position:absolute;top:-16px;width:13px;height:24px;border-radius:4px 4px 1px 1px;background:var(--peg);
+  box-shadow:inset -3px 0 0 rgba(0,0,0,.12)}
+.peg:nth-child(1){left:16%}.peg:nth-child(2){left:calc(50% - 6px)}.peg:nth-child(3){right:16%}
+#sec{display:block;width:min(calc(100vw - 52px),calc(40svh * 1.25));aspect-ratio:5/4;background:#DCEEF7;border-radius:2px;touch-action:pan-y;cursor:grab;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.note{margin:.5rem auto 0;text-align:center;color:var(--muted);font-size:.875rem}
+.tools{display:flex;gap:8px;justify-content:center;margin-top:8px}
+button{font:inherit;color:inherit}
+.tool{min-height:44px;padding:8px 16px;border-radius:10px;border:1.5px solid var(--line);background:var(--panel);font-weight:600;cursor:pointer}
+.tool:disabled{opacity:.45;cursor:default}
+.tool.armed{background:var(--warn-bg);color:var(--warn-ink);border-color:currentColor}
+.msg{min-height:0;margin:8px auto 0;max-width:34rem;padding:0;border-radius:10px;font-size:1rem}
+.msg:not(:empty){padding:10px 14px}
+.msg.hint{background:var(--hint-bg);color:var(--hint-ink)}
+.msg.warn{background:var(--warn-bg);color:var(--warn-ink)}
+.msg.info{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+.side{display:flex;flex-direction:column;gap:16px;padding-top:8px}
+.drawer{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg);padding:4px;border-radius:12px}
+.tab{min-height:46px;border:0;border-radius:9px;background:transparent;font-size:1.0625rem;font-weight:700;cursor:pointer;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.group h3{margin:14px 2px 8px;font-size:.95rem;font-weight:700;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+.blk{display:flex;align-items:center;gap:10px;min-height:56px;padding:6px 10px 6px 6px;border:1.5px solid var(--line);
+  border-radius:10px;background:var(--bg);cursor:pointer;text-align:left}
+.blk:hover{border-color:var(--accent)}
+.blk:active{transform:translateY(1px)}
+.blk canvas,.blk svg{flex:none;width:48px;height:38px;border-radius:5px;display:block}
+.blk svg{background:var(--panel);border:1px solid var(--line)}
+.blk span{font-size:1rem;font-weight:600;line-height:1.25}
+.blk span small{display:block;font-size:.8125rem;font-weight:400;color:var(--muted)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.log{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.log h2{margin:0 0 6px;font-size:1.0625rem}
+.log ol{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:2rem 1fr;gap:4px;padding:8px 0;border-top:1px solid var(--line);font-size:1rem}
+.log li:first-child{border-top:0}
+.log li b{font-weight:700;color:var(--accent)}
+.log li{grid-template-columns:2rem 1fr 44px;align-items:center;position:relative;background:var(--panel)}
+.handle{width:44px;height:44px;border:0;border-radius:8px;background:transparent;color:var(--muted);cursor:grab;touch-action:none;display:grid;place-items:center}
+.handle svg{width:22px;height:22px}
+.handle:hover{background:var(--bg)}
+.log li.dragging{z-index:2;box-shadow:0 6px 18px rgba(0,0,0,.18);border-radius:8px;opacity:.95}
+.log li.drop-before{box-shadow:inset 0 3px 0 var(--accent)}
+.log li.drop-after{box-shadow:inset 0 -3px 0 var(--accent)}
+.chip{position:absolute;transform:translate(-50%,calc(-100% - 18px));pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;
+  background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:.9375rem;padding:6px 12px;border-radius:999px;box-shadow:0 4px 12px rgba(0,0,0,.25);z-index:3}
+.log .empty{color:var(--muted);display:block}
+header{padding-bottom:0}
+.modes{display:flex;gap:6px;overflow-x:auto;margin:10px -16px 0;padding:2px 16px 6px;scrollbar-width:none}
+.modes button{flex:none;min-height:48px;padding:6px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--panel);font-weight:700;font-size:1rem;cursor:pointer;text-align:left;line-height:1.2}
+.modes button small{display:block;font-weight:400;font-size:.8125rem;color:var(--muted)}
+.modes button[aria-current="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.modes button[aria-current="true"] small{color:inherit;opacity:.85}
+.mission{max-width:560px;margin:0 auto;background:#8B5A2B;color:#fff;border-radius:10px;padding:8px 10px 10px;box-shadow:inset 0 0 0 3px #6E4520}
+.mhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mhead b{font-size:.9375rem;line-height:1.3}
+.mhead button{width:40px;height:36px;border-radius:8px;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:1.5rem;line-height:1;cursor:pointer}
+.mhead button:disabled{opacity:.35}
+.mbody{display:flex;gap:10px;align-items:center;margin-top:6px}
+.thumbwrap{flex:none;width:40%;max-width:190px;padding:3px;border:0;border-radius:4px;background:#3f3f3f;cursor:zoom-in}
+.thumbwrap[hidden]{display:none}
+#thumb{display:block;width:100%;aspect-ratio:5/4}
+#mtext{margin:0;font-size:.9375rem;line-height:1.5}
+body.inmission #sec{width:min(calc(100vw - 52px),calc(29svh * 1.25))}
+body.inmission .note{font-size:.8125rem;margin-top:.35rem}
+body.inmission .draghint{display:none}
+body.inmission .stage{padding-top:8px}
+body.inmission .frame{margin-top:22px}
+.tool.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+body:not(.inmission) #check{display:none}
+body.errmode .tools,body.errmode .drawer,body.errmode .log{display:none}
+body.errmode #sec{cursor:crosshair}
+.errp{max-width:34rem;margin:10px auto 0;display:flex;flex-direction:column;gap:8px}
+.estep{margin:0;font-weight:600;font-size:1rem;text-align:center}
+.estep b{display:inline-block;min-width:1.6em;padding:0 .4em;margin-right:.3em;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
+.lawopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lawopts[hidden],#noErr[hidden],.errp[hidden]{display:none}
+.lawopts .tool{text-align:left;line-height:1.3;font-size:.9375rem}
+.lawopts .tool small{display:block;font-weight:400;font-size:.8125rem;color:var(--muted)}
+.lawopts .wrong{text-decoration:line-through;opacity:.55}
+#noErr{align-self:center}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmp figure{margin:0}
+.cmp figcaption{font-size:.875rem;font-weight:700;margin-bottom:4px}
+.cmp canvas{border-radius:6px}
+.intro{position:fixed;inset:0;z-index:40;background:#1C1511;transition:opacity .7s ease}
+.intro.out{opacity:0;pointer-events:none}
+#introCv{position:absolute;inset:0;width:100%;height:100%;transition:opacity 1.4s ease}
+.intro.titled #introCv{opacity:.22}
+.ititle{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#FFF;opacity:0;transition:opacity 1.2s ease .3s;pointer-events:none;padding:24px}
+.intro.titled .ititle{opacity:1;pointer-events:auto}
+.ititle h1{margin:0;font-size:clamp(3rem,13vw,6rem);line-height:1;font-weight:700;letter-spacing:-0.02em;text-shadow:0 3px 18px rgba(0,0,0,.45)}
+.ititle .ko{margin:.6rem 0 0;font-size:clamp(1.25rem,5vw,1.75rem);font-weight:600}
+.ititle .sub{margin:.3rem 0 0;font-size:1rem;opacity:.8}
+#introStart{margin-top:2rem;min-height:52px;padding:10px 34px;border-radius:999px;border:0;background:#E8D2AE;color:#3A2414;font:inherit;font-size:1.125rem;font-weight:700;cursor:pointer}
+.iskip{position:absolute;right:max(14px, env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));min-height:44px;padding:8px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.25);color:#fff;font:inherit;cursor:pointer}
+.intro.titled .iskip{display:none}
+.toprow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.gear{display:flex;align-items:center;gap:6px;min-height:40px;padding:6px 12px}
+.gear svg{width:20px;height:20px}
+.timer{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:700;background:rgba(0,0,0,.25);padding:2px 10px;border-radius:999px;margin-left:auto;margin-right:6px}
+.timer.low{background:#C8321E}
+.mhead b{margin-right:auto}
+.stamp{position:absolute;left:50%;top:46%;z-index:4;transform:translate(-50%,-50%) rotate(-8deg);display:flex;flex-direction:column;align-items:center;
+  padding:12px 26px;border:5px solid #C8321E;border-radius:14px;background:rgba(255,253,246,.93);color:#C8321E;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:none}
+.stamp b{white-space:nowrap;font-size:clamp(1.6rem,7vw,2.4rem);line-height:1.1;font-weight:700}
+.stamp[hidden]{display:none}
+.stamp span{font-size:1rem;font-weight:700;margin-top:2px}
+.stamp:not([hidden]){animation:stampIn .5s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes stampIn{0%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(2.4)}100%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(1)}}
+.frame.cleared{box-shadow:0 0 0 4px #F2C14E,0 0 26px 6px rgba(242,193,78,.6)}
+@media (prefers-reduced-motion:reduce){.stamp:not([hidden]){animation:none}}
+.record{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 22px;margin:0 0 4px;font-size:1.375rem;font-weight:700;font-variant-numeric:tabular-nums}
+.record small{display:block;font-size:.8125rem;font-weight:400;color:var(--muted)}
+.record .new{font-size:1rem;background:#F2C14E;color:#3A2414;padding:2px 10px;border-radius:999px}
+.record .new{color:#B5651D}
+.setgrp{margin:12px 0}
+.setgrp h3{margin:0 0 6px}
+.setgrp label{display:flex;align-items:center;gap:8px;min-height:40px;font-size:1rem}
+.setgrp input{width:20px;height:20px;accent-color:var(--accent)}
+.setgrp select{font:inherit;padding:6px 8px;border-radius:8px}
+.reveal{position:fixed;inset:0;z-index:30;background:rgba(20,14,10,.78);display:grid;place-items:center;padding:16px;perspective:1400px;transition:background .45s ease}
+.reveal[hidden]{display:none}
+.reveal.leaving{background:rgba(20,14,10,0)}
+.rstage{width:min(560px,100%,calc((100svh - 48px) * .75));transform-style:preserve-3d}
+.rcard{position:relative;width:100%;aspect-ratio:3/4;margin:0 auto;transform-style:preserve-3d;transform-origin:50% 50%}
+.rface{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;background:#8B5A2B;color:#fff;
+  box-shadow:inset 0 0 0 6px #6E4520,0 18px 50px rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center}
+.rback{background:repeating-linear-gradient(176deg,#7A4E2D 0 9px,#6A4126 9px 12px,#7A4E2D 12px 20px);gap:10px}
+.rlogo{font-size:clamp(2.4rem,11vw,4rem);font-weight:700;letter-spacing:-.02em;color:#F3E2C2;text-shadow:0 3px 0 rgba(0,0,0,.3)}
+.rlv{font-size:1.25rem;font-weight:700;color:#F3E2C2}
+.rtap{position:absolute;bottom:18px;font-size:.875rem;opacity:.75}
+.rfront{transform:rotateY(180deg);justify-content:flex-start;gap:12px}
+.rfront b{font-size:1.25rem}
+.rpicwrap{width:100%;flex:none;padding:5px;border-radius:6px;background:#3f3f3f}
+.rpicwrap[hidden]{display:none}
+#rpic{display:block;width:100%;aspect-ratio:5/4}
+#rtext{margin:0;font-size:1.125rem;line-height:1.6;text-align:left}
+.rfront.textonly{justify-content:center}
+.rfront.textonly #rtext{font-size:clamp(1.125rem,4.6vw,1.375rem)}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,12,14,.55);display:grid;place-items:center;padding:16px}
+.overlay[hidden]{display:none}
+.sheet{width:min(560px,100%);max-height:calc(100svh - 32px);overflow:auto;background:var(--panel);color:var(--ink);border-radius:16px;padding:20px 20px 0;line-height:1.55}
+.sheet h2{margin:0 0 12px;font-size:1.375rem;line-height:1.3}
+.sheet h3{margin:20px 0 8px;font-size:1.0625rem}
+.sheet h3 small{font-weight:400;font-size:.8125rem;color:var(--muted);margin-left:4px}
+.sheet ul,.sheet ol{margin:0;padding-left:1.3rem}
+.sheet li{margin:4px 0}
+.sheet canvas{display:block;width:100%;aspect-ratio:5/4;border-radius:6px}
+.quiz{background:var(--bg);border-radius:12px;padding:4px 14px 12px;margin-bottom:6px}
+.quiz p{margin:.3rem 0}
+.qopts{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.qopts .tool{text-align:left;font-weight:600}
+.qopts .right{background:#DCEFD6;color:#1F4D17;border-color:#5E8C2A}
+.qopts .wrong{text-decoration:line-through;opacity:.6}
+.qres.ok{color:var(--ink);font-weight:600}
+.qres.no{color:var(--warn-ink)}
+.laws{list-style:none;padding:0 !important;margin:0;display:flex;flex-direction:column;gap:8px}
+.laws .law{margin:0;background:var(--bg);border-radius:12px;padding:10px 14px;border-left:4px solid var(--accent)}
+.law b{display:block;font-size:.9375rem;color:var(--accent)}
+.law span{display:block;font-size:1rem}
+.law small{display:block;margin-top:2px;font-size:.875rem;color:var(--muted);line-height:1.5}
+.caution{margin:10px 0 2px;padding:10px 12px 12px;border-radius:12px;background:#FFF4D9;color:#4A3200;border:2px solid #F2C14E}
+.caution .ctag{display:inline-block;font-size:.8125rem;font-weight:700;background:#F2C14E;color:#3A2414;padding:1px 10px;border-radius:999px}
+.caution .chead{display:block;margin-top:6px;font-size:1rem;line-height:1.4;color:#3A2414}
+details.caution{padding:8px 12px}
+details.caution summary{cursor:pointer;font-weight:700;font-size:.9375rem;color:#3A2414;min-height:28px;display:flex;align-items:center;gap:6px;list-style:none}
+details.caution summary::-webkit-details-marker{display:none}
+details.caution summary::after{content:"펼치기";margin-left:auto;flex:none;white-space:nowrap;padding-left:8px;font-weight:600;font-size:.8125rem;color:#7A5A20}
+details.caution[open] summary::after{content:"접기"}
+.ctext{margin:4px 0 0;font-size:.9375rem;line-height:1.55}
+.csvg{margin-top:8px;background:#fff;border-radius:8px;padding:6px}
+.csvg svg{display:block;width:100%;height:auto}
+.story{list-style:none;padding:0 !important;margin:0;display:flex;flex-direction:column-reverse}
+.story li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;margin:0;padding:6px 0;position:relative}
+.story li::before{content:"";position:absolute;left:13px;top:0;bottom:0;width:2px;background:var(--line)}
+.story li:last-child::before{top:18px}.story li:first-child::before{bottom:calc(100% - 18px)}
+.story i{position:relative;z-index:1;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:.8125rem;font-weight:700;background:var(--panel);border:2px solid var(--line);color:var(--muted)}
+.story li.ev i{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.story span{display:block;font-weight:600;padding-top:2px}
+.story small{display:block;font-size:.875rem;color:var(--muted)}
+.ovbtns{display:flex;gap:8px;justify-content:flex-end;position:sticky;bottom:0;z-index:3;margin:18px -20px 0;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line);box-shadow:0 -8px 16px -10px rgba(0,0,0,.25)}
+@media (min-width:880px){
+  body.inmission #sec{width:min(calc((min(100vw, 1180px) - 60px) * 0.512 - 24px),calc(52svh * 1.25))}
+  .app{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,1fr);gap:28px;align-items:start}
+  .stage{top:calc(env(safe-area-inset-top,0px) + 8px)}
+  #sec{width:min(calc((min(100vw, 1180px) - 60px) * 0.512 - 24px),calc(68svh * 1.25))}
+}
+@media (prefers-reduced-motion:reduce){.blk:active{transform:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="esslab">ESS Lab · 지구과학 [12지구02-01]</div>
+  <div class="toprow"><h1>Stratify<small>지사학의 달인</small></h1>
+    <button type="button" class="tool gear" id="settingsBtn" aria-label="설정"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>설정</span></button>
+  </div>
+  <nav class="modes" aria-label="레벨 고르기">
+    <button type="button" data-mode="1">레벨 1<small>지층 누중</small></button>
+    <button type="button" data-mode="2">레벨 2<small>사건 더하기</small></button>
+    <button type="button" data-mode="3">레벨 3<small>시나리오 조립</small></button>
+    <button type="button" data-mode="4">레벨 4<small>오류 찾기</small></button>
+    <button type="button" data-mode="free">자유 제작<small>마음대로 쌓기</small></button>
+  </nav>
+</header>
+<main class="app">
+  <section class="stage" aria-label="지층 단면">
+    <div class="mission" id="mission" hidden>
+      <div class="mhead">
+        <button type="button" id="prevCard" aria-label="이전 카드">‹</button>
+        <b id="mtitle"></b><span class="timer" id="timer" hidden></span>
+        <button type="button" id="nextCard" aria-label="다음 카드">›</button>
+      </div>
+      <div class="mbody">
+        <button type="button" class="thumbwrap" id="thumbBtn" aria-label="목표 그림 크게 보기"><canvas id="thumb"></canvas></button>
+        <p id="mtext"></p>
+      </div>
+    </div>
+    <div class="frame"><span class="peg"></span><span class="peg"></span><span class="peg"></span>
+      <div class="stamp" id="stamp" hidden><b>미션 클리어!</b><span id="stampTime"></span></div>
+      <canvas id="sec" role="img" aria-label="아직 아무것도 쌓지 않은 빈 단면"></canvas>
+      <div class="chip" id="chip" hidden aria-hidden="true"></div>
+    </div>
+    <p class="note">모형이에요. 층 두께와 사건의 규모는 보기 쉽게 키웠고, 화석 그림은 그 층에 든 화석을 나타낸 기호예요.<span class="draghint"> 층을 길게 누른 채 끌면 순서를 바꿀 수 있어요.</span></p>
+    <div class="tools">
+      <button class="tool" id="undo" type="button">되돌리기</button>
+      <button class="tool" id="reset" type="button">처음부터</button>
+      <button class="tool primary" id="check" type="button">확인하기</button>
+    </div>
+    <div class="errp" id="errp" hidden>
+      <p class="estep" id="estep"></p>
+      <div class="lawopts" id="lawopts" hidden></div>
+      <button type="button" class="tool" id="noErr">이상한 곳이 없어요</button>
+    </div>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  </section>
+  <div class="side">
+    <section class="drawer" aria-label="블록 서랍">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-units" aria-controls="panel-units" aria-selected="true" type="button">지층</button>
+        <button class="tab" role="tab" id="tab-events" aria-controls="panel-events" aria-selected="false" type="button">사건</button>
+      </div>
+      <div id="panel-units" role="tabpanel" aria-labelledby="tab-units"></div>
+      <div id="panel-events" role="tabpanel" aria-labelledby="tab-events" hidden></div>
+    </section>
+    <section class="log" aria-label="사건 기록">
+      <h2>사건 기록</h2>
+      <ol id="log"></ol>
+    </section>
+    <section class="diffcard" aria-label="이 시뮬레이션이 실제와 다른 점">
+      <details>
+        <summary>이 시뮬레이션이 실제와 다른 점</summary>
+        <table class="diff">
+          <tr><th></th><th>시뮬레이션</th><th>실제</th></tr>
+          <tr><td>단면</td><td>법칙을 연습하려고 만든 <b>가상 단면(모형)</b></td><td>실제 노두는 풀이나 흙에 덮여 일부만 보이는 경우가 많음</td></tr>
+          <tr><td>지층 두께·색</td><td>모든 층의 두께가 같고, 구분하기 쉬운 색</td><td>층마다 두께가 다르고, 색이 비슷해 암석과 구조를 직접 살펴야 함</td></tr>
+          <tr><td>화석 그림</td><td>그 층에 든 화석을 나타낸 <b>기호</b>(크게, 줄지어 그림)</td><td>화석은 작고 드문드문 들어 있음. 공룡 발자국은 층의 윗면에서 보임</td></tr>
+          <tr><td>침식면</td><td>평평하게 깎임</td><td>울퉁불퉁한 경우가 많음</td></tr>
+          <tr><td>기저역암</td><td>부정합마다 생김</td><td><b>기저역암이 없는 부정합도 많음</b></td></tr>
+          <tr><td>접촉변성대</td><td>마그마가 닿은 층에 늘 같은 폭으로 생김(이 게임의 약속)</td><td>암맥이 얇거나 암석에 따라 아주 얇아서 잘 안 보이기도 함</td></tr>
+          <tr><td>관입암 모양</td><td>비스듬한 암맥만 나옴</td><td>층과 나란히 들어간 암상, 아주 큰 저반 등 모양이 다양함</td></tr>
+          <tr><td>역전</td><td>지층 덩어리를 통째로 뒤집고 조금 기울임</td><td>크게 휘어 넘어간 과습곡의 아래쪽 날개, 충상 단층 등으로 생김</td></tr>
+          <tr><td>규모와 시간</td><td>단층의 어긋남, 습곡의 크기, 변성대 폭을 크게 과장. 사건은 몇 초 만에 일어남</td><td>한 층이 쌓이거나 한 사건이 일어나는 데 보통 수천~수백만 년 이상 걸림</td></tr>
+        </table>
+      </details>
+    </section>
+  </div>
+</main>
+<footer class="foot">
+  <div><b>Earth Science School Lab</b> · bae_earth(배지구)</div>
+  <div>지구과학 [12지구02-01] 지층 형성의 선후 관계를 결정짓는 법칙들을 활용하여 상대 연령을 비교하고, 방사성 동위 원소를 이용한 광물의 절대 연령을 구할 수 있다.</div>
+  <div>연계 [12지구02-02] 지질시대를 기(紀) 수준에서 구분하고, 지층과 화석을 통해 지질시대의 생물과 환경 변화를 해석할 수 있다.</div>
+  <div>절대 연령(방사성 동위 원소)은 <a href="dating-sim.html">상대 연령과 절대 연령</a> 시뮬레이션에서 다뤄요. 오프라인 교구 Stratify(경상남도교육청 과학교육원)를 웹으로 옮겼어요.</div>
+</footer>
+<div class="intro" id="intro">
+  <canvas id="introCv" aria-hidden="true"></canvas>
+  <div class="ititle" id="ititle">
+    <h1>Stratify</h1>
+    <p class="ko">지사학의 달인</p>
+    <p class="sub">잃어버린 시간을 찾아서</p>
+    <button type="button" id="introStart">시작하기</button>
+  </div>
+  <button type="button" class="iskip" id="introSkip">건너뛰기</button>
+</div>
+<div class="reveal" id="reveal" hidden>
+  <div class="rstage">
+    <div class="rcard" id="rcard">
+      <div class="rface rback"><span class="rlogo">Stratify</span><span class="rlv" id="rlv"></span><span class="rtap">탭하면 넘어가요</span></div>
+      <div class="rface rfront">
+        <b id="rtitle"></b>
+        <div class="rpicwrap" id="rpicwrap"><canvas id="rpic"></canvas></div>
+        <p id="rtext"></p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ovTitle">
+    <h2 id="ovTitle"></h2>
+    <div id="ovBody"></div>
+    <div class="ovbtns"><button class="tool" id="ovClose" type="button">닫기</button><button class="tool primary" id="ovNext" type="button">다음 카드</button></div>
+  </div>
+</div>
+<script>
+"use strict";
+/* ============================================================
+   데이터: 블록과 사건 정의 (카드·블록 추가는 여기서)
+   ============================================================ */
+const UNITS = {
+  tri:    {label:'삼엽충',     log:'삼엽충 화석층',     group:'fossil', bg:'#D8B9BE'},
+  amm:    {label:'암모나이트', log:'암모나이트 화석층', group:'fossil', bg:'#BCC3C8'},
+  dino:   {label:'공룡 발자국',log:'공룡 발자국 화석층',group:'fossil', bg:'#C9A189'},
+  numm:   {label:'화폐석',     log:'화폐석 화석층',     group:'fossil', bg:'#F3F0D2'},
+  mamm:   {label:'매머드',     log:'매머드 화석층',     group:'fossil', bg:'#ECECEC'},
+  ripple: {label:'연흔',       log:'연흔이 있는 층',    group:'struct', bg:'#D3C3AF'},
+  mud:    {label:'건열',       log:'건열이 있는 층',    group:'struct', bg:'#D9C6B2'},
+  cross:  {label:'사층리',     log:'사층리가 있는 층',  group:'struct', bg:'#EFDFBE'},
+  graded: {label:'점이층리',   log:'점이층리가 있는 층',group:'struct', bg:'#E6D6C4'},
+  sand:   {label:'사암',       log:'사암층',            group:'plain',  bg:'#E7CC97'},
+  shale:  {label:'셰일',       log:'셰일층',            group:'plain',  bg:'#A9A597'},
+  cong:   {label:'역암',       log:'역암층',            group:'plain',  bg:'#D9C2A2'},
+  granite:{label:'화강암',     log:'화강암(기반암)',    group:'base',   bg:'#FF8C69', sub:'맨 처음에만'},
+  basalt: {label:'용암',       bg:'#57545C', internal:true},
+  basal:  {label:'기저역암',   bg:'#C9AB93', internal:true}
+};
+const GROUPS = [
+  ['fossil','화석이 든 층'], ['struct','퇴적 구조가 있는 층'], ['plain','일반 퇴적층'], ['base','기반암']
+];
+const EVENTS = [
+  {id:'normal', label:'정단층'}, {id:'reverse', label:'역단층'}, {id:'fold', label:'습곡'},
+  {id:'intr', label:'관입'}, {id:'extr', label:'분출'}, {id:'ero', label:'침식'},
+  {id:'flip', label:'역전'}, {id:'surf', label:'지표면'}
+];
+const EVENT_TEXT = {
+  normal:'정단층: 그때까지 쌓인 층이 모두 끊어지고, 단층면 위쪽 덩어리가 아래로 내려감',
+  reverse:'역단층: 그때까지 쌓인 층이 모두 끊어지고, 단층면 위쪽 덩어리가 위로 올라감',
+  fold:'습곡: 그때까지 쌓인 층이 모두 휘어 배사와 향사가 생김',
+  intr:'관입: 마그마가 그때까지의 층을 뚫고 들어가 굳음. 닿은 층에 접촉변성대가 생김',
+  extr:'분출: 마그마가 지표로 흘러나와 용암층이 됨. 아래층에만 접촉변성대가 생김',
+  ero:'침식: 윗부분이 깎여 나감. 그동안 쌓였던 기록이 사라짐',
+  flip:'역전: 그때까지 쌓인 층이 뒤집히고 기울어짐(과습곡·충상)',
+  surf:'지표면: 지금의 땅. 암석이 풍화되어 흙과 식물이 덮음',
+  surfEro:'지표면: 솟아오른 부분이 침식되어 평평해진 뒤, 암석이 풍화되어 흙과 식물이 덮음'
+};
+const HINT = {
+  depBlocked1:'끊기거나 휜 면 위에 새 층이 그대로 쌓일 수 있을까요? 지금 단면의 맨 위를 다시 보세요.',
+  depBlocked2:'먼저 [침식] 사건으로 울퉁불퉁한 윗면을 깎아 보세요. 그다음에 쌓을 수 있어요.',
+  flipBlocked1:'지금 단면의 맨 위가 끊기거나 휘어 있어요. 다음 일이 일어나기 전에 먼저 무엇이 필요할까요?',
+  flipBlocked2:'먼저 [침식] 사건으로 윗면을 깎아 보세요.'
+};
+
+/* ============================================================
+   모형 좌표: x 0~100(가로), z(위로 +). 보이는 창 z -4~96
+   ============================================================ */
+let ASP = 1.25, CAMZ = -4;
+const TAU = Math.PI*2, LT = 8, ZBOT = -4, ZLIMIT = 70, VMIN = 44, VMAX = 78, FOLDL = 60;
+let VH = VMIN, VH_FROM = VMIN;   // 보이는 높이(모형 단위). 쌓일수록 자동으로 넓어짐
+const DX = 0.5, DZ = -Math.sqrt(3)/2;      // 단층면 아래 방향(경사 60°, 오른쪽으로 기울어짐)
+const NX = Math.sqrt(3)/2, NZ = 0.5;       // 상반 쪽 법선
+let H = [];                                 // 지질 역사(놓은 순서)
+
+/* ---------- 무늬(타일) 그리기: 단위는 모형 좌표, 타일 12.5 × 8, y는 층 윗면에서 아래로 ---------- */
+function rnd(seed){ let s = seed>>>0; return ()=>{ s = (s*1664525+1013904223)>>>0; return s/4294967296; }; }
+const PAINT = {
+  tri(c){
+    for (const [x,y] of [[3.1,2.4],[9.35,5.6]]){
+      c.save(); c.translate(x,y);
+      c.fillStyle='#6B4636'; c.strokeStyle='#6B4636'; c.lineCap='round';
+      c.beginPath(); c.ellipse(0.5,0,2.0,1.25,0,0,TAU); c.fill();
+      c.beginPath(); c.ellipse(-1.45,0,0.95,1.5,0,0,TAU); c.fill();
+      c.lineWidth=0.26;
+      c.beginPath(); c.moveTo(-1.5,1.3); c.quadraticCurveTo(-0.2,2.2,1.4,1.75); c.stroke();
+      c.beginPath(); c.moveTo(-1.5,-1.3); c.quadraticCurveTo(-0.2,-2.2,1.4,-1.75); c.stroke();
+      c.strokeStyle='#D2AE9C'; c.lineWidth=0.12;
+      for (let sx=-0.7; sx<2.3; sx+=0.42){ c.beginPath(); c.moveTo(sx,-1.05); c.lineTo(sx,1.05); c.stroke(); }
+      c.beginPath(); c.moveTo(-2.1,0.45); c.lineTo(2.3,0.45); c.moveTo(-2.1,-0.45); c.lineTo(2.3,-0.45); c.stroke();
+      c.restore();
+    }
+  },
+  amm(c){
+    for (const [x,y] of [[3.1,4],[9.35,4]]){
+      c.save(); c.translate(x,y);
+      c.fillStyle='#8A5A3B'; c.beginPath(); c.arc(0,0,2.2,0,TAU); c.fill();
+      c.strokeStyle='#F2E4D2'; c.lineWidth=0.17; c.beginPath();
+      for (let t=0; t<=4.2*Math.PI; t+=0.08){ const r=2.05*(1-t/(4.6*Math.PI)); const px=r*Math.cos(t), py=r*Math.sin(t); t===0?c.moveTo(px,py):c.lineTo(px,py); }
+      c.stroke();
+      c.lineWidth=0.09;
+      for (let t=0; t<TAU; t+=TAU/16){ c.beginPath(); c.moveTo(1.15*Math.cos(t),1.15*Math.sin(t)); c.lineTo(2.1*Math.cos(t),2.1*Math.sin(t)); c.stroke(); }
+      c.restore();
+    }
+  },
+  dino(c){
+    const print=(x,y)=>{ c.save(); c.translate(x,y); c.rotate(Math.PI);
+      c.strokeStyle='#4E4A3C'; c.fillStyle='#4E4A3C'; c.lineWidth=0.62; c.lineCap='round';
+      for (const [tx,ty] of [[1.55,-0.95],[1.95,0],[1.55,0.95]]){ c.beginPath(); c.moveTo(0,0); c.lineTo(tx,ty); c.stroke(); }
+      c.beginPath(); c.arc(-0.05,0,0.55,0,TAU); c.fill(); c.restore(); };
+    print(3.6,2.6); print(9.85,5.4);
+  },
+  numm(c){
+    for (const [x,y] of [[3.1,4],[9.35,4]]){
+      c.fillStyle='#A79C83'; c.beginPath(); c.arc(x,y,2.0,0,TAU); c.fill();
+      c.strokeStyle='#5F5643'; c.lineWidth=0.11;
+      for (let r=0.35; r<2.0; r+=0.33){ c.beginPath(); c.arc(x,y,r,0,TAU); c.stroke(); }
+    }
+  },
+  mamm(c){
+    for (const [x,y] of [[3.3,4.3],[9.55,4.3]]){
+      c.save(); c.translate(x,y); c.fillStyle='#141414';
+      c.beginPath(); c.ellipse(0.3,0,1.9,1.3,0,0,TAU); c.fill();
+      c.beginPath(); c.arc(-0.5,-1.0,0.95,0,TAU); c.fill();
+      c.beginPath(); c.arc(-1.65,-0.55,0.95,0,TAU); c.fill();
+      for (const lx of [-1.3,-0.4,0.7,1.5]){ c.fillRect(lx,0.4,0.55,1.55); }
+      c.strokeStyle='#141414'; c.lineWidth=0.45; c.lineCap='round';
+      c.beginPath(); c.moveTo(-2.3,-0.4); c.quadraticCurveTo(-2.9,0.8,-2.5,1.6); c.stroke();
+      c.strokeStyle='#F4F4F4'; c.lineWidth=0.2;
+      c.beginPath(); c.moveTo(-2.1,0.1); c.quadraticCurveTo(-3.1,0.9,-2.0,1.0); c.stroke();
+      c.restore();
+    }
+  },
+  ripple(c){
+    c.strokeStyle='#2A2622'; c.lineWidth=0.26; c.lineJoin='miter';
+    for (const y of [2.6,5.7]){ c.beginPath(); c.moveTo(0,y);
+      for (let x=0; x<12.5; x+=12.5/5){ c.quadraticCurveTo(x+1.25,y+1.5,x+2.5,y); } c.stroke(); }
+  },
+  mud(c){
+    c.strokeStyle='#2A2622'; c.lineWidth=0.26; c.lineJoin='miter'; c.beginPath(); c.moveTo(0,1.3);
+    for (let i=0;i<5;i++){ const cx=1.25+i*2.5; c.lineTo(cx-0.6,1.3); c.lineTo(cx,5.8); c.lineTo(cx+0.6,1.3); }
+    c.lineTo(12.5,1.3); c.stroke();
+  },
+  cross(c){
+    c.strokeStyle='#7A5E3A'; c.lineWidth=0.14;
+    const step=12.5/11;
+    for (const [top,bot] of [[0.6,4.0],[4.0,7.4]]){
+      for (let i=-6;i<=12;i++){ const x0=i*step; c.beginPath(); c.moveTo(x0,top); c.quadraticCurveTo(x0+2.0,bot,x0+3.6,bot); c.stroke(); }
+    }
+    c.strokeStyle='#5E4628'; c.lineWidth=0.22;
+    for (const y of [0.6,4.0]){ c.beginPath(); c.moveTo(0,y); c.lineTo(12.5,y); c.stroke(); }
+  },
+  graded(c){
+    const R=rnd(7); let y=7.75;
+    while (y>0.35){
+      const f=y/8, r=0.11+0.62*Math.pow(f,1.6);
+      const n=Math.max(1,Math.floor(12.5/(2.5*r))), dx=12.5/n;
+      for (let i=0;i<n;i++){ const x=(i+0.5)*dx+(R()-0.5)*dx*0.35;
+        c.fillStyle='#9C9C98'; c.strokeStyle='#666662'; c.lineWidth=0.06;
+        c.beginPath(); c.ellipse(x, y-r+(R()-0.5)*0.2*r, r, r*0.8, 0,0,TAU); c.fill(); c.stroke(); }
+      y -= 2.25*r+0.05;
+    }
+  },
+  sand(c){ const R=rnd(3); c.fillStyle='#9E7B45';
+    for (let i=0;i<10;i++) for (let j=0;j<7;j++){ c.beginPath(); c.arc(i*1.25+R()*1.0, j*1.15+0.4+R()*0.6, 0.12,0,TAU); c.fill(); } },
+  shale(c){ c.strokeStyle='#6C695E'; c.lineWidth=0.15; const p=12.5/8;
+    for (let j=0;j<8;j++){ const y=0.6+j*0.95, off=(j%2)*p/2;
+      for (let i=-1;i<9;i++){ const x=i*p+off; c.beginPath(); c.moveTo(x,y); c.lineTo(x+p*0.62,y); c.stroke(); } } },
+  cong(c){ const R=rnd(11); c.lineWidth=0.1;
+    for (let j=0;j<3;j++) for (let i=0;i<5;i++){ const x=i*2.5+1.25+(j%2)*1.25+(R()-0.5)*0.5, y=1.4+j*2.6+(R()-0.5)*0.6;
+      c.fillStyle='#F0E0C8'; c.strokeStyle='#8A7358'; c.beginPath(); c.ellipse(((x%12.5)+12.5)%12.5,y,0.95,0.62,R()*3,0,TAU); c.fill(); c.stroke(); } },
+  granite(c){ c.strokeStyle='#2E3561'; c.lineWidth=0.3; c.lineCap='butt'; const p=12.5/8;
+    for (let j=0;j<4;j++){ const y=1+j*2, off=(j%2)*p/2;
+      for (let i=-1;i<9;i++){ const x=i*p+off+p/4; c.beginPath(); c.moveTo(x-0.45,y); c.lineTo(x+0.45,y); c.moveTo(x,y-0.45); c.lineTo(x,y+0.45); c.stroke(); } } },
+  basalt(c){ c.strokeStyle='#BDB9C3'; c.lineWidth=0.17; const p=12.5/7;
+    for (let j=0;j<4;j++){ const y=1.1+j*2, off=(j%2)*p/2;
+      for (let i=-1;i<8;i++){ const x=i*p+off+p/4; c.beginPath(); c.moveTo(x-0.35,y-0.35); c.lineTo(x,y+0.35); c.lineTo(x+0.35,y-0.35); c.stroke(); } } },
+  basal(c){ const R=rnd(5); c.lineWidth=0.09;
+    for (const y of [6.6,7.55]) for (let i=0;i<7;i++){ const x=i*(12.5/7)+0.9+(y>7?0.8:0)+(R()-0.5)*0.4;
+      c.fillStyle='#F7DCC8'; c.strokeStyle='#8F725C'; c.beginPath(); c.ellipse(x%12.5,y,0.78,0.42,0,0,TAU); c.fill(); c.stroke(); } }
+};
+
+/* ---------- 타일 만들기와 표본 추출 ---------- */
+let tiles = {}, DW = 0, DH = 0;
+function paintTile(c, id){ c.fillStyle = UNITS[id].bg; c.fillRect(0,0,12.5,8); PAINT[id](c); }
+function buildTiles(k){
+  tiles = {};
+  for (const id of Object.keys(UNITS)){
+    const tw = Math.max(8,Math.round(12.5*k)), th = Math.max(6,Math.round(8*k));
+    const cv = document.createElement('canvas'); cv.width=tw; cv.height=th;
+    const c = cv.getContext('2d'); c.scale(tw/12.5, th/8); paintTile(c,id);
+    tiles[id] = {w:tw, h:th, sx:tw/12.5, sy:th/8, d:c.getImageData(0,0,tw,th).data};
+  }
+  tiles.dike = tiles.granite;
+}
+function tileAt(t, u, v){
+  let tx = Math.floor(u*t.sx) % t.w; if (tx<0) tx += t.w;
+  let vm = v % 8; if (vm<0) vm += 8;
+  let ty = Math.floor((8-vm)*t.sy) % t.h; if (ty<0) ty += t.h;
+  return (ty*t.w + tx)*4;
+}
+
+/* ============================================================
+   핵심: 지금 보이는 점(x,z)을 역사를 거슬러 따라가며 어떤 암석인지 찾기
+   ============================================================ */
+let R_unit, R_u, R_v, R_ae, R_ln, R_halo, R_fl, R_ix, R_hot, R_peb = false, R_xen = false, R_bt = false, R_btv = 0;
+function hit(unit,u,v,ae,ln,halo,fl,ix,hot){ R_unit=unit; R_u=u; R_v=v; R_ae=ae; R_ln=ln; R_halo=halo; R_fl=fl; R_ix=ix; R_hot=hot||0; return true; }
+function surfAt(arr, x){ const f=Math.max(0,Math.min(arr.length-1,x/2)); const i=Math.floor(f), j=Math.min(arr.length-1,i+1); return arr[i]+(arr[j]-arr[i])*(f-i); }
+
+function sample(x, z, n, anim){
+  let cun=null, cu=0, cv=0, cix=-1, cae=false, cfirst=false, chot=0, hal=-1, fl=-1, xl=false;
+  R_peb = false; R_xen = false; let bt = false, btv = 0;
+  let flAll = false, bk = false; const FL = H.fakeLine;
+  if (FL){ const sd0 = (x-FL.x0)*NX*(FL.side<0?-1:1) + (z-FL.z0)*NZ; flAll = sd0>-0.3 && sd0<0.3; }
+  for (let i=n-1; i>=0; i--){
+    const e = H[i], a = (anim && anim.idx===i) ? anim.a : 1, t = e.t;
+    if (t==='dep'){
+      if (e.first){
+        const T = a<1 ? (ZBOT-4)+(e.T-(ZBOT-4))*a : e.T;
+        if (z<=T){ cun=e.unit; cu=x; cv=z-e.base; cix=i; cae=false; cfirst=true; chot=0; bk=false; bt = e.basalTop!=null && z > e.basalTop-1.8; if (bt) btv = z-(e.basalTop-1.8); }
+        break;
+      }
+      const T = e.base + (e.T-e.base)*a;
+      if (z>T) break;
+      cun=e.unit; cu=e.inv ? -x : x; cv=e.inv ? e.T-z : z-e.base; cix=i; cae=e.ae; cfirst=false; chot=0;
+      bk = !!(e.bake && Math.abs(x-e.bake.x)<e.bake.half && z-e.base<2.6) || !!(e.bakeAll && z-e.base<2.6);
+      bt = e.basalTop!=null && z > e.basalTop-1.8; if (bt) btv = z-(e.basalTop-1.8);
+      if (e.ae && cv<1.6){                          // 기저역암 자갈 중 일부는 바로 아래 암석의 조각
+        const row = cv<0.8 ? 0 : 1, pv = 0.42+row*0.74, gx = x/1.9 - row*0.5, k0 = Math.round(gx);
+        for (let k=k0-1;k<=k0+1;k++){
+          const hsh = ((k*73856093) ^ (row*19349663) ^ (Math.round(e.base*10)*83492791))>>>0;
+          if (hsh%3===0) continue;                   // 나머지 자갈은 다른 곳에서 온 자갈(기저역암 무늬)
+          const px = (k + row*0.5)*1.9 + ((hsh>>4)%100/100-0.5)*0.5;
+          const q = ((x-px)/0.8)**2 + ((cv-pv)/0.36)**2;
+          if (q<1){ R_peb = true; xl = q>0.62; cun=null; x = x + ((hsh>>9)%7-3); z = e.base - 0.9 - (hsh>>13)%3*0.6; break; }
+        }
+      }
+    } else if (t==='ero'){
+      const E = e.top - (e.top-e.E)*a;
+      if (z>E) break;
+    } else if (t==='fault'){
+      const sg = e.side<0 ? -1 : 1, s = e.s*a, sd = (x-e.x0)*NX*sg + (z-e.z0)*NZ;   // side: 단층면이 기우는 쪽(1 오른쪽, -1 왼쪽)
+      if (fl<0 && sd>-0.3 && sd<0.3) fl=i;
+      if (sd>0){ x -= e.dir*s*DX*sg; z -= e.dir*s*DZ; }
+    } else if (t==='fold'){
+      z -= e.A*a*Math.sin(TAU*x/(e.len||FOLDL) + e.ph) * (e.taper!=null ? Math.max(0, Math.min(1, (z-e.taper)/6)) : 1);
+    } else if (t==='flip'){
+      z -= e.k*a*(x-50);
+      const th=Math.PI*a, c=Math.cos(th), s=Math.sin(th), dx=x-50, dz=z-e.m;
+      const x0 = 50 + c*dx + s*dz, z0 = e.m - s*dx + c*dz;
+      if (z0>=e.B && z0<=e.S){ x=x0; z=z0; }
+      else if (z>=e.B) break;
+    } else if (t==='intr'){
+      const zt = e.zb + (e.ztop-e.zb)*Math.min(1,a/0.55);
+      const hot = a<0.55 ? 1 : 1-(a-0.55)/0.45, hw = e.d*Math.max(0,Math.min(1,(a-0.5)/0.4));
+      const cx = e.xc + e.sl*(Math.min(z,zt)-e.ztop);
+      const d = z<=zt ? Math.abs(x-cx) : Math.hypot(x-cx, z-zt);
+      if (d<e.w){
+        let xin = false;
+        if (e.xen) for (const X of e.xen){            // 포획암: 마그마가 뜯어낸 주변 암석 조각
+          if (X.z > zt) continue;
+          const dx = x-X.x, dz = z-X.z, cr = Math.cos(X.rot), sr = Math.sin(X.rot);
+          const u = (dx*cr + dz*sr)/X.r, v = (-dx*sr + dz*cr)/(X.r*0.68), m = Math.max(Math.abs(u), Math.abs(v));
+          if (m<1){ xin = true; R_xen = true; xl = m>0.8; x = X.sx + dx; z = X.sz + dz; break; }
+        }
+        if (!xin) return hit('dike', x, z, false, (e.w-d)<0.22, hal>i, fl>i, i, hot);
+        continue;
+      }
+      if (hal<0 && hw>0 && d<e.w+hw) hal=i;
+    } else if (t==='surf'){
+      if (e.ero){ const E = e.top - (e.top-e.E)*a; if (z>E) break; }
+    } else if (t==='extr'){
+      const fa=Math.min(1,a*2.5), la=Math.max(0,Math.min(1,(a-0.4)*4)), sfx=surfAt(e.surf,x);
+      const hot = a<0.65 ? 1 : 1-(a-0.65)/0.35, hw = e.d*Math.max(0,Math.min(1,(a-0.6)/0.35));
+      const ftop = -24 + (sfx+1+24)*fa, d = Math.abs(x-e.xc);
+      if (d<e.w && z<=ftop) return hit('basalt', x, z, false, (e.w-d)<0.2, hal>i, fl>i, i, hot);
+      if (hal<0 && hw>0 && z<=sfx && (d<e.w+hw || z>sfx-hw)) hal=i;
+      if (la>0){ const T = e.base + (e.T-e.base)*la; if (z<=T){ cun='basalt'; cu=x; cv=z-e.base; cix=i; cae=false; cfirst=false; chot=hot; } }
+    }
+  }
+  if (cun===null) return false;
+  R_bt = bt && !R_peb && !R_xen; R_btv = btv;
+  return hit(cun, cu, cv, cae && !R_peb, xl || (!cfirst && cun!=='basalt' && cv<0.22), (hal>cix && !(H[cix] && H[cix].nohalo)) || bk, flAll || fl>cix, cix, cun==='basalt'?chot:0);
+}
+
+function surfaceArr(n){
+  const a = [];
+  for (let k=0; k<=50; k++){
+    const x=k*2; let lo=ZBOT-40;
+    for (let z=ZBOT+VMAX+30; z>=ZBOT-40; z-=0.5){ if (sample(x,z,n,null)){ lo=z; break; } }
+    let hi=lo+0.5; for (let it=0; it<6; it++){ const m=(lo+hi)/2; if (sample(x,m,n,null)) lo=m; else hi=m; }
+    a.push(+lo.toFixed(3));
+  }
+  return a;
+}
+
+/* ---------- 그리기 ---------- */
+const cvs = document.getElementById('sec'); let ctx = cvs.getContext('2d');
+const off = document.createElement('canvas'), octx = off.getContext('2d');
+function hex(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+const SKY_A=hex('#EAF4FA'), SKY_B=hex('#CFE6F3'), SKY_S=hex('#BDE3F7');
+const MAGMA=hex('#E2452B'), MAGMA2=hex('#F28A2E');
+const PEB_TEX = {granite:1, dike:1, basalt:1};
+const PEB_COL = Object.fromEntries(Object.entries(UNITS).map(([k,u])=>{ const c = hex(u.bg); return [k, c.map(v=>v*0.86)]; }));
+let HL = null; const HL_TO=hex('#2E3561'), HL_DIM=hex('#FFFFFF');
+const SOIL=hex('#7A3B22'), SOIL_DOT=hex('#E07B4A'), GRASS=hex('#5E8C2A'), HATCH=hex('#2B1E1E'), FAULT=hex('#1E1B1A'), EDGE=hex('#3C2B22');
+
+function render(q, anim){
+  if (!DW) return;
+  const vh = anim ? VH_FROM + (VH-VH_FROM)*anim.a : VH;
+  const W = Math.max(60, Math.round(DW*q)), Hh = Math.round(W/ASP), kp = W/(vh*ASP), n = H.length;
+  const X0 = 50 - vh*ASP/2, ZT = CAMZ + vh;
+  off.width = W; off.height = Hh;
+  const img = octx.createImageData(W,Hh), d = img.data;
+  const hasSurf = H.some(e=>e.t==='surf') && !(anim && H[anim.idx].t==='surf');
+  const colTop = new Int32Array(W).fill(-1);
+  const hp = Math.max(4, Math.round(0.95*kp)), hw = Math.max(1, Math.round(hp*0.3));
+  for (let j=0; j<Hh; j++){
+    const z = ZT - (j+0.5)/kp, f = j/Hh;
+    const sky = hasSurf ? SKY_S : [SKY_A[0]+(SKY_B[0]-SKY_A[0])*f, SKY_A[1]+(SKY_B[1]-SKY_A[1])*f, SKY_A[2]+(SKY_B[2]-SKY_A[2])*f];
+    for (let i=0; i<W; i++){
+      const x = X0 + (i+0.5)/kp, o = (j*W+i)*4;
+      let r,g,b;
+      if (!sample(x,z,n,anim)){ r=sky[0]; g=sky[1]; b=sky[2]; }
+      else {
+        if (colTop[i]<0) colTop[i]=j;
+        let t = tiles[R_unit], v = R_v;
+        if (R_bt){ t = tiles.basal; v = R_btv; } else if (R_ae && v>=0 && v<1.8){ t = tiles.basal; }
+        if (R_peb && !PEB_TEX[R_unit]){ const c = PEB_COL[R_unit]; r=c[0]; g=c[1]; b=c[2]; }
+        else { const p = tileAt(t, R_u, v); r=t.d[p]; g=t.d[p+1]; b=t.d[p+2]; }
+        if (R_halo){ const m = (((i-j)%hp)+hp)%hp < hw ? 0.72 : 0.12; r+= (HATCH[0]-r)*m; g+=(HATCH[1]-g)*m; b+=(HATCH[2]-b)*m; }
+        if (R_ln || (R_ae && v>=0 && v<0.3)){ r+=(EDGE[0]-r)*0.75; g+=(EDGE[1]-g)*0.75; b+=(EDGE[2]-b)*0.75; }
+        if (R_hot>0){ const gl = 0.85*R_hot, w = (Math.sin(R_u*1.7+R_v*1.1)+1)*0.5, mc = w>0.5 ? MAGMA : MAGMA2;
+          r+=(mc[0]-r)*gl; g+=(mc[1]-g)*gl; b+=(mc[2]-b)*gl; }
+        if (R_fl){ r=FAULT[0]; g=FAULT[1]; b=FAULT[2]; }
+        if (HL && R_ix!==HL.src){ const m = R_ix===HL.to ? 0.3 : 0.6, tc = R_ix===HL.to ? HL_TO : HL_DIM;
+          r+=(tc[0]-r)*m; g+=(tc[1]-g)*m; b+=(tc[2]-b)*m; }
+      }
+      d[o]=r; d[o+1]=g; d[o+2]=b; d[o+3]=255;
+    }
+  }
+  if (hasSurf){
+    const soil = Math.round(2.4*kp), grass = Math.max(2,Math.round(0.7*kp));
+    for (let i=0;i<W;i++){ const t0=colTop[i]; if (t0<0) continue;
+      for (let j=t0; j<Math.min(Hh,t0+soil); j++){ const o=(j*W+i)*4; let c = j<t0+grass ? GRASS : SOIL;
+        if (c===SOIL && ((i*73856093 ^ j*19349663)>>>0)%37===0) c=SOIL_DOT;
+        d[o]=c[0]; d[o+1]=c[1]; d[o+2]=c[2]; } }
+  }
+  octx.putImageData(img,0,0);
+  ctx.imageSmoothingEnabled = q<1;
+  ctx.clearRect(0,0,DW,DH);
+  ctx.drawImage(off,0,0,DW,DH);
+  if (hasSurf) drawTrees(colTop, W, X0, kp);
+}
+function drawTrees(colTop, W, X0, kp){
+  const u = DW/W*kp;
+  for (let x=3.125; x<100; x+=6.25){
+    const col = Math.floor((x-X0)*kp); if (col<0 || col>=W || colTop[col]<0) continue;
+    const X = (x-X0)*u, Y = colTop[col]*DW/W + 0.2*u;
+    ctx.fillStyle='#6D4527'; ctx.fillRect(X-0.18*u, Y-2.2*u, 0.36*u, 2.2*u);
+    ctx.fillRect(X-1.15*u, Y-1.6*u, 0.3*u, 1.6*u); ctx.fillRect(X+0.85*u, Y-1.6*u, 0.3*u, 1.6*u);
+    for (const [ox,oy,rx,ry,col2] of [[-1.0,-2.3,0.75,1.05,'#8BC34A'],[1.0,-2.3,0.75,1.05,'#7CB342'],[0,-2.9,0.85,1.4,'#4E8A2A']]){
+      ctx.fillStyle=col2; ctx.beginPath(); ctx.ellipse(X+ox*u, Y+oy*u, rx*u, ry*u, 0, 0, TAU); ctx.fill(); }
+  }
+}
+
+/* ============================================================
+   규칙과 사건 추가
+   ============================================================ */
+let busy=false, blockCount=0;
+const msgEl = document.getElementById('msg');
+function say(text, kind){ msgEl.textContent = text||''; msgEl.className = 'msg' + (text ? ' '+(kind||'info') : ''); }
+const hasRock = () => H.some(e=>e.t==='dep'||e.t==='extr');
+const finished = () => H.length>0 && H[H.length-1].t==='surf';
+function needErosion(){ let need=false; for (const e of H){ if (e.t==='fault'||e.t==='fold'||e.t==='flip') need=true; else if (e.t==='dep'||e.t==='ero'||e.t==='extr') need=false; } return need; }
+function lastNonIntr(){ for (let i=H.length-1;i>=0;i--) if (H[i].t!=='intr') return H[i]; return null; }
+const count = t => H.filter(e=>e.t===t).length;
+function particle(word){ const ch = word.replace(/[^가-힣]/g,'').slice(-1); if (!ch) return '이'; return ((ch.charCodeAt(0)-0xAC00)%28)? '이':'가'; }
+
+let ACT = [];   // 학생이 놓은 순서(블록·사건 이름만). H는 이것을 차례로 적용한 결과
+const fail = (code,msg) => ({code,msg});
+function makeEvent(act){
+  const id = act.id;
+  if (finished()) return fail('finished','지표면은 맨 마지막이에요. 더 쌓으려면 [되돌리기]로 지표면을 지우세요.');
+  if (act.k==='u'){
+    if (id==='granite' && H.length) return fail('granite','화강암은 퇴적층이 아니라 맨 아래의 기반암이에요. 처음 한 번만 놓을 수 있어요.');
+    if (needErosion()) return fail('needEro');
+    const u = UNITS[id];
+    if (!H.length){
+      return {ev:{t:'dep', unit:id, base:0, T: id==='granite'?10:LT, first:true, ae:false,
+        text: id==='granite' ? '화강암(기반암)이 맨 아래에 놓임' : `${u.log}${particle(u.log)} 쌓임`}};
+    }
+    const sf = surfaceArr(H.length), base = Math.max(...sf);
+    if (base+LT > ZLIMIT) return fail('full','단면이 꽉 찼어요. [침식]으로 깎거나 [되돌리기]를 써 보세요.');
+    const prev = lastNonIntr(), ae = !!prev && prev.t==='ero';
+    return {ev:{t:'dep', unit:id, base, T:base+LT, first:false, ae,
+      text: ae ? `침식면 위에 ${u.log}${particle(u.log)} 쌓임. 아래 암석 조각이 섞인 기저역암과 함께 ${prev.kind}${particle(prev.kind)} 생김(깎여 없어진 시간이 있어요)`
+               : `${u.log}${particle(u.log)} 쌓임`}};
+  }
+  if (!hasRock()) return fail('norock','먼저 [지층] 탭에서 층을 하나 이상 쌓아 보세요.');
+  const sf = surfaceArr(H.length), smax = Math.max(...sf), smin = Math.min(...sf);
+  let ev;
+  switch (id){
+    case 'normal': case 'reverse': {
+      const c = count('fault');
+      const o = act.o||{};
+      ev = {t:'fault', dir: id==='normal'?1:-1, x0:[50,40,60][c%3], z0:smax/2, s:o.slip ?? 5, side:o.side ?? 1}; break; }
+    case 'fold': {
+      const o = act.o||{};
+      ev = {t:'fold', A:o.amp ?? 6, len:o.len ?? FOLDL, ph: o.ph ?? (count('fold')%2)*Math.PI}; break; }
+    case 'intr': {
+      const c = count('intr'), xc=[58,42,68][c%3], o = act.o||{}, w = o.w ?? 2.6, sl = 0.22*(o.lean ?? 1);
+      const L = layersAt(xc, H.length);
+      if (!L.length || surfAt(sf,xc) < 4) return fail('thin','관입이 지나갈 층이 너무 얇아요. 층을 더 쌓아 보세요.');
+      const k = Math.max(0, Math.min(L.length-1, act.stop ?? L.length-1)), ly = L[k];
+      if (H[ly.ix] && H[ly.ix].first) ly.lo = Math.max(ly.lo, H[ly.ix].base);
+      let ztop = Math.min(ly.lo + (ly.hi-ly.lo)*0.55, ly.hi - w - 0.6);
+      if (k===L.length-1) ztop = Math.min(ztop, surfAt(sf,xc) - w - 0.8);
+      ztop = Math.max(ztop, ly.lo - w*0.5);
+      const name = layerName(ly.ix);
+      const xen = [], pen = L.slice(0, k+1).reverse();
+      for (let j=0; j<pen.length && xen.length<3; j++){
+        const lo = Math.max(pen[j].lo, ZBOT+1), hi = Math.min(pen[j].hi, ztop-1.2);
+        if (hi-lo < 1.6) continue;
+        const zc = (lo+hi)/2, cxz = xc + sl*(zc-ztop), sgn = xen.length%2 ? -1 : 1;
+        xen.push({x: cxz + sgn*0.7, z: zc + 0.6, r: 1.6 - xen.length*0.15, rot: 0.5 + xen.length*0.9, sx: cxz + sgn*(w+3.2), sz: zc});
+      }
+      ev = {t:'intr', xc, ztop, zb:-24, sl, w, d:1.6, k, nLayers:L.length, xen,
+            text:`관입: 마그마가 ${name}까지 뚫고 들어옴. 주변 암석 조각이 떨어져 들어가 포획암이 되고, 마그마의 열로 닿은 층이 구워져 접촉변성대가 생김`};
+      return {ev}; }
+    case 'extr': {
+      const T = smax+4; if (T>ZLIMIT) return fail('full','단면이 꽉 찼어요. [침식]으로 깎거나 [되돌리기]를 써 보세요.');
+      ev = {t:'extr', xc:[38,62,50][count('extr')%3], w:1.3, d:1.1, surf:sf, base:smin, T}; break; }
+    case 'ero': {
+      const prev = lastNonIntr();
+      if (prev && prev.t==='ero') return fail('twice','방금 깎았어요. 다른 사건이나 지층을 골라 보세요.');
+      const E = Math.max(ZBOT+3, Math.min(smin-1.2, smax-3));
+      ev = {t:'ero', top:smax, E, kind:classify(E)}; break; }
+    case 'flip': {
+      if (needErosion()) return fail('needEroFlip');
+      if (count('dep') + count('extr') < 2) return fail('few','뒤집으려면 층이 두 개 이상 있어야 해요.');
+      ev = {t:'flip', B:-8, S:smax, m:(smax-8)/2, k:0.16}; break; }
+    case 'surf':
+      ev = needErosion() ? {t:'surf', ero:true, top:smax, E:Math.max(ZBOT+3, smin-0.6)} : {t:'surf'}; break;
+  }
+  ev.text = ev.ero ? EVENT_TEXT.surfEro : EVENT_TEXT[id];
+  return {ev};
+}
+/* 세로 한 줄(x)에서 아래→위로 놓인 층 목록(관입암은 뺌) */
+function layersAt(x, n){
+  const out = []; let cur = null;
+  for (let z=ZBOT+VMAX+30; z>=-20; z-=0.25){
+    if (!sample(x,z,n,null) || R_unit==='dike'){ cur=null; continue; }
+    if (R_peb || R_xen) continue;   // 자갈·포획암 조각은 층으로 세지 않음
+    if (!cur || cur.ix!==R_ix){ cur = {ix:R_ix, hi:z, lo:z}; out.push(cur); } else cur.lo = z;
+  }
+  return out.reverse();
+}
+function layerName(ix){ const e = H[ix]; if (!e) return '층'; if (e.t==='extr') return '용암층'; return e.unit==='granite' ? '화강암(기반암)' : UNITS[e.unit].log; }
+
+function tryAdd(act){
+  if (busy || isErrLock()) return;
+  if (MODE!=='free' && act.id==='intr'){ const st = cardStops(); const n = ACT.filter(a=>a.id==='intr').length; if (st[n]!=null) act = {...act, stop:st[n]}; }
+  const fk = FXKEY[act.id];
+  if (fk && !act.o){
+    if (MODE!=='free'){ const fx = card().fx; if (fx && fx[fk]) act = {...act, o: fx[fk]}; }
+    else {                                           // 자유 제작: 놓을 때마다 모양을 무작위로 (순서를 바꿔도 같은 모양 유지)
+      const R = Math.random, pm = () => R()<0.5 ? -1 : 1;
+      act = {...act, o: fk==='fault' ? {side:pm(), slip:+(3.5+R()*3.5).toFixed(1)}
+                     : fk==='fold'  ? {amp:+(4+R()*4).toFixed(1), len:Math.round(45+R()*35), ph: R()<0.5 ? 0 : Math.PI}
+                     :                {lean:pm(), w:+(2+R()*1.2).toFixed(1)}};
+    }
+  }
+  const r = makeEvent(act);
+  if (r.ev){
+    ACT.push(act); H.push(r.ev); blockCount = 0; say(''); hideStamp(); timerStart();
+    VH_FROM = VH; VH = Math.max(VH, targetVH());
+    animate(H.length-1); return;
+  }
+  if (r.code==='needEro'){ blockCount++; return say(blockCount<2 ? HINT.depBlocked1 : HINT.depBlocked2, 'hint'); }
+  if (r.code==='needEroFlip'){ blockCount++; return say(blockCount<2 ? HINT.flipBlocked1 : HINT.flipBlocked2, 'hint'); }
+  say(r.msg,'warn');
+}
+const addUnit = id => tryAdd({k:'u', id});
+const addEvent = id => tryAdd({k:'e', id});
+const actName = a => a.k==='u' ? UNITS[a.id].log : EVENTS.find(e=>e.id===a.id).label;
+
+/* 순서 바꾸기: 새 순서로 처음부터 다시 적용해 보고, 지질학적으로 안 되는 순서면 되돌림 */
+function replay(acts){
+  const old = H; H = [];
+  for (let i=0;i<acts.length;i++){ const r = makeEvent(acts[i]); if (!r.ev){ H = old; return {i, r}; } H.push(r.ev); }
+  return null;
+}
+const REORDER_MSG = {
+  needEro:'그 순서라면 끊기거나 휜 면 위에 침식 없이 바로 쌓이게 돼요.',
+  needEroFlip:'그 순서라면 울퉁불퉁한 윗면을 깎기 전에 뒤집게 돼요.',
+  finished:'지표면은 맨 마지막에만 둘 수 있어요.',
+  granite:'화강암(기반암)은 맨 아래에만 둘 수 있어요.',
+  norock:'사건은 그 앞에 지층이 있어야 일어날 수 있어요.',
+  twice:'침식이 두 번 연달아 오게 돼요.',
+  few:'역전 앞에 층이 두 개 이상 있어야 해요.',
+  thin:'관입 앞에 층이 너무 얇아요.',
+  full:'단면이 너무 높아져요.'
+};
+function moveAct(from, to){
+  if (busy || from===to || from<0 || to<0 || to>=ACT.length) return false;
+  const acts = ACT.slice(); const [m] = acts.splice(from,1); acts.splice(to,0,m);
+  const bad = replay(acts);
+  if (bad){ say('그 순서로는 옮길 수 없어요. ' + (REORDER_MSG[bad.r.code] || bad.r.msg), 'warn'); return false; }
+  ACT = acts; blockCount = 0; VH = VH_FROM = targetVH(); render(1,null); updateUI();
+  say(`${actName(m)}${particle(actName(m))==='이'?'을':'를'} ${NUM[to]||to+1}번째로 옮겼어요. 사건 기록도 새 순서로 바뀌었어요.`, 'info');
+  return true;
+}
+
+function classify(E){
+  for (let i=H.length-1;i>=0;i--){ const e=H[i]; if (e.t==='ero') break; if (e.t==='fold'||e.t==='flip') return '경사부정합'; }
+  let g=0, tot=0;
+  for (let x=2.5;x<100;x+=5){ if (sample(x,E-0.6,H.length,null)){ tot++; if (R_unit==='granite') g++; } }
+  if (tot && g/tot>0.5) return '난정합';
+  return '평행부정합';
+}
+
+function targetVH(){
+  if (!hasRock()) return VMIN;
+  const sf = surfaceArr(H.length);
+  return Math.max(VMIN, Math.min(VMAX, Math.max(...sf) - ZBOT + 18));
+}
+
+
+const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function animate(idx){
+  const dur = reduceMotion ? 0 : (H[idx].t==='surf' && !H[idx].ero ? 0 : (H[idx].t==='intr'||H[idx].t==='extr') ? 2000 : 950);
+  if (!dur){ render(1,null); updateUI(); return; }
+  busy = true; const t0 = performance.now();
+  const ease = p => p<0.5 ? 4*p*p*p : 1-Math.pow(-2*p+2,3)/2;
+  const step = now => {
+    const p = Math.min(1,(now-t0)/dur);
+    if (p<1){ render(0.5,{idx, a:ease(p)}); requestAnimationFrame(step); }
+    else { render(1,null); busy=false; updateUI(); }
+  };
+  requestAnimationFrame(step);
+}
+
+/* ---------- 화면 갱신 ---------- */
+const NUM = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳';
+const logEl = document.getElementById('log');
+function updateUI(){
+  document.getElementById('undo').disabled = !H.length; resetBtn.disabled = !H.length;
+  logEl.innerHTML = '';
+  if (!H.length){ const li=document.createElement('li'); li.innerHTML='<span class="empty">아직 아무것도 없어요. 서랍에서 맨 아래에 놓을 지층부터 골라 보세요.</span>'; li.style.display='block'; logEl.appendChild(li); }
+  H.forEach((e,i)=>{
+    const li=document.createElement('li'); li.dataset.i=i;
+    const b=document.createElement('b'); b.textContent = NUM[i] || (i+1)+'.';
+    const s=document.createElement('span'); s.textContent=logText(e);
+    const h=document.createElement('button'); h.type='button'; h.className='handle';
+    h.setAttribute('aria-label', `${NUM[i]||i+1} ${actName(ACT[i])} 순서 옮기기. 위아래 화살표 키로 옮겨요`);
+    h.innerHTML='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 6h8M6 10h8M6 14h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    h.addEventListener('keydown', ev=>{
+      const d = ev.key==='ArrowUp' ? -1 : ev.key==='ArrowDown' ? 1 : 0; if (!d) return;
+      ev.preventDefault(); if (moveAct(i, i+d)) logEl.querySelector(`li[data-i="${i+d}"] .handle`)?.focus();
+    });
+    h.addEventListener('pointerdown', ev=>logDragStart(ev, i, li));
+    li.append(b,s,h); logEl.appendChild(li);
+  });
+  cvs.setAttribute('aria-label', H.length ? '지층 단면. 층을 길게 누른 채 끌면 순서를 바꿀 수 있어요. 사건 기록: ' + H.map(logText).join(' → ') : '아직 아무것도 쌓지 않은 빈 단면');
+  if (MODE==='free'){ try { localStorage.setItem('stratify-free-v2', JSON.stringify(ACT)); } catch(_){} }
+}
+
+/* 레벨 3(시나리오)에서는 확인하기 전까지 부정합 종류 같은 판정을 가림 */
+let logOpen = true;
+function logText(e){
+  if (logOpen || MODE==='free' || LEVELS[LV].kind!=='text') return e.text;
+  if (e.t==='dep' && e.ae) return e.text.replace(/기저역암과 함께 .+? 생김\(깎여 없어진 시간이 있어요\)/, '기저역암이 생김. 부정합의 종류는 확인한 뒤에 알려 줄게요');
+  return e.text;
+}
+
+/* 사건 기록에서 손잡이를 끌어 순서 바꾸기 */
+let ld = null;
+function logDragStart(ev, i, li){
+  if (busy) return;
+  ev.preventDefault(); ev.currentTarget.setPointerCapture(ev.pointerId);
+  ld = {i, li, y0:ev.clientY, to:i}; li.classList.add('dragging');
+  const h = ev.currentTarget;
+  const move = e=>{
+    if (!ld) return;
+    ld.li.style.transform = `translateY(${e.clientY-ld.y0}px)`;
+    const items = [...logEl.querySelectorAll('li[data-i]')];
+    let to = ld.i;
+    items.forEach(it=>{ it.classList.remove('drop-before','drop-after'); });
+    for (const it of items){ const r = it.getBoundingClientRect(); const k=+it.dataset.i; if (k===ld.i) continue;
+      if (e.clientY>=r.top && e.clientY<=r.bottom){ to=k; it.classList.add(k<ld.i?'drop-before':'drop-after'); } }
+    ld.to = to;
+  };
+  const up = ()=>{
+    h.removeEventListener('pointermove',move); h.removeEventListener('pointerup',up); h.removeEventListener('pointercancel',up);
+    if (!ld) return; const {i:from, to} = ld; ld.li.style.transform=''; ld.li.classList.remove('dragging');
+    logEl.querySelectorAll('li').forEach(it=>it.classList.remove('drop-before','drop-after')); ld = null;
+    if (to!==from) moveAct(from, to);
+  };
+  h.addEventListener('pointermove',move); h.addEventListener('pointerup',up); h.addEventListener('pointercancel',up);
+}
+
+/* 단면에서 층(또는 관입암·용암)을 끌어 다른 층 자리로 옮기기 */
+const chip = document.getElementById('chip');
+let cd = null;
+function pickAt(e){
+  const r = cvs.getBoundingClientRect(), fx=(e.clientX-r.left)/r.width, fy=(e.clientY-r.top)/r.height;
+  const x = 50 - VH*ASP/2 + fx*VH*ASP, z = ZBOT + VH - fy*VH;
+  if (fx<0||fx>1||fy<0||fy>1) return -2;
+  return sample(x,z,H.length,null) ? R_ix : -1;   // -1: 하늘
+}
+cvs.addEventListener('pointerdown', e=>{
+  if (isErrLock()){ errTap(e); return; }
+  if (busy || !H.length) return;
+  const ix = pickAt(e); if (ix<0) return;
+  cd = {ix, x0:e.clientX, y0:e.clientY, on:false, to:ix, mouse: e.pointerType==='mouse', id:e.pointerId};
+  if (cd.mouse) cvs.setPointerCapture(e.pointerId);
+  const ev0 = {clientX:e.clientX, clientY:e.clientY};
+  cd.timer = setTimeout(()=>{ if (cd && !cd.on) cdStart(cd.last || ev0); }, 320);
+});
+function cdStart(e){
+  cd.on = true; cvs.style.cursor='grabbing'; chip.hidden=false; HL={src:cd.ix,to:cd.ix};
+  try { cvs.setPointerCapture(cd.id); } catch(_){}
+  try { navigator.vibrate && navigator.vibrate(15); } catch(_){}
+  cdMove(e); render(0.5,null);
+}
+cvs.addEventListener('touchmove', e=>{ if (cd && cd.on) e.preventDefault(); }, {passive:false});
+cvs.addEventListener('contextmenu', e=>{ if (H.length) e.preventDefault(); });
+function cdMove(e){
+  const fr = cvs.parentElement.getBoundingClientRect();
+  let to = pickAt(e); if (to===-1) to = ACT.length-1; if (to<0) to = cd.ix;
+  const changed = to!==cd.to; cd.to = to;
+  const nm = actName(ACT[cd.ix]);
+  chip.textContent = to===cd.ix ? `${nm} 옮기는 중` : `${nm} → ${actName(ACT[to])}보다 ${to>cd.ix?'나중(위)':'먼저(아래)'}`;
+  const w = chip.offsetWidth;
+  chip.style.left = Math.max(w/2+4, Math.min(fr.width-w/2-4, e.clientX-fr.left))+'px'; chip.style.top = (e.clientY-fr.top)+'px';
+  if (changed && HL){ HL.to = to; render(0.5,null); }
+}
+cvs.addEventListener('pointermove', e=>{
+  if (!cd) return;
+  cd.last = {clientX:e.clientX, clientY:e.clientY};
+  if (!cd.on && Math.hypot(e.clientX-cd.x0, e.clientY-cd.y0)>8){
+    if (cd.mouse){ clearTimeout(cd.timer); cdStart(e); }      // 마우스는 바로 끌기
+    else cdEnd(true);                                          // 손가락으로 바로 밀면 화면 스크롤
+  }
+  else if (cd.on) cdMove(e);
+});
+function cdEnd(cancel){
+  if (!cd) return; clearTimeout(cd.timer);
+  const {ix, to, on} = cd; cd = null; chip.hidden = true; cvs.style.cursor='';
+  if (HL){ HL = null; render(1,null); }
+  if (cancel) return;
+  if (!on){ say(`${NUM[ix]||ix+1} ${actName(ACT[ix])}. 길게 누른 채 다른 층 자리로 끌어 놓으면 순서가 바뀌어요.`,'info'); return; }
+  if (to!==ix) moveAct(ix, to);
+}
+cvs.addEventListener('pointerup', ()=>cdEnd(false));
+cvs.addEventListener('pointercancel', ()=>cdEnd(true));
+
+document.getElementById('undo').addEventListener('click', ()=>{
+  if (busy || !H.length) return;
+  hideStamp(); H.pop(); ACT.pop(); blockCount=0; VH = VH_FROM = targetVH(); render(1,null); updateUI(); say('마지막 기록을 지웠어요.','info');
+});
+let armTimer=null; const resetBtn = document.getElementById('reset');
+resetBtn.addEventListener('click', ()=>{
+  if (busy) return;
+  if (!resetBtn.classList.contains('armed')){
+    if (!H.length) return;
+    resetBtn.classList.add('armed'); resetBtn.textContent='한 번 더 누르면 모두 지워요';
+    armTimer = setTimeout(()=>{ resetBtn.classList.remove('armed'); resetBtn.textContent='처음부터'; }, 3000);
+    return;
+  }
+  clearTimeout(armTimer); resetBtn.classList.remove('armed'); resetBtn.textContent='처음부터';
+  H = []; ACT = []; blockCount=0; VH = VH_FROM = VMIN; render(1,null); updateUI(); say('');
+});
+
+/* ============================================================
+   미션(레벨 카드) 데이터: 아래→위 순서, ^는 사건. stop은 관입이 멈출 층(아래에서 0부터)
+   ============================================================ */
+const P = str => str.trim().split(/\s+/).map(t => t[0]==='^' ? {k:'e', id:t.slice(1)} : {k:'u', id:t});
+const LEVELS = {
+  1: { name:'지층 누중', kind:'pic', events:['surf'],
+       intro:'그림과 똑같은 단면을 아래층부터 쌓으세요. 마지막에 [사건] 탭의 지표면을 놓으면 완성이에요.',
+       cards:['graded tri','ripple mud','tri amm','cross numm mamm','shale dino sand',
+              'graded amm ripple','tri mud cong numm','sand cross dino mamm','graded tri ripple amm numm','cong shale mud dino mamm'
+             ].map(c=>({s:c+' ^surf'})) },
+  2: { name:'사건 더하기', kind:'pic',
+       intro:'그림과 똑같은 단면을 만드세요. 끊기고, 휘고, 깎이고, 마그마가 들어온 곳은 [사건]으로 만들어요.',
+       cards:[ {s:'shale tri ^fold ^ero amm ^surf', fx:{fold:{amp:8, len:50}}},                // 습곡 → 경사부정합
+               {s:'tri sand ^normal ^ero dino ^surf', fx:{fault:{side:-1, slip:6}}},              // 정단층
+               {s:'granite ^ero amm numm ^surf'},                   // 난정합
+               {s:'tri sand ^intr ^ero numm ^surf', fx:{intr:{lean:1, w:3.2}}},                // 관입 → 침식
+               {s:'tri sand ^normal ^intr ^ero numm ^surf', fx:{fault:{side:1, slip:4}, intr:{lean:-1, w:2.4}}},        // 단층을 가로지르는 관입
+               {s:'cross sand ^reverse ^ero amm ^surf', fx:{fault:{side:-1, slip:6}}},            // 역단층
+               {s:'granite ^ero tri amm ^intr ^surf', stop:[2], fx:{intr:{lean:-1, w:2.2}}},    // 난정합 위 관입
+               {s:'sand shale ^fold ^ero tri amm ^normal ^surf', fx:{fold:{amp:4.5, len:75, ph:Math.PI}, fault:{side:1, slip:5}}},       // 부정합까지 끊은 단층
+               {s:'tri ^ero amm dino ^surf'},                       // 평행부정합
+               {s:'tri ^extr amm ^surf'} ] },                       // 분출
+  3: { name:'시나리오 조립', kind:'text',
+       intro:'글을 읽고, 그 역사 그대로 지층과 사건을 놓으세요.',
+       cards:[
+         {t:'고생대 바다에서 삼엽충이 사는 층이 쌓였다. 그 뒤 정단층이 생겼고, 윗부분이 깎여 나갔다. 깎인 땅 위로 공룡이 걸어 다닌 층이 쌓였다.', s:'tri ^normal ^ero dino ^surf', fx:{fault:{side:1, slip:7}}},
+         {t:'얕은 바다에서 사암과 셰일이 차례로 쌓였다. 양쪽에서 미는 힘을 받아 지층이 휘어졌고, 그 윗부분이 깎였다. 그 뒤 신생대 바다에서 화폐석이 사는 층이 쌓였다.', s:'sand shale ^fold ^ero numm ^surf', fx:{fold:{amp:7, len:60, ph:Math.PI}}},
+         {t:'삼엽충이 살던 바다에 층이 쌓이고, 그 위로 모래가 쌓여 사암층이 되었다. 그 뒤 마그마가 올라왔지만 삼엽충층 안에서 멈추어 굳었다.', s:'tri sand ^intr ^surf', stop:[0], fx:{intr:{lean:-1}}},
+         {t:'아주 오래된 화강암이 오랫동안 깎여 땅 위에 드러났다. 그 위에 중생대 바다의 암모나이트층이 쌓였고, 바다가 물러난 뒤 공룡이 걸어 다닌 층이 쌓였다.', s:'granite ^ero amm dino ^surf'},
+         {t:'사층리가 있는 층과 셰일층이 쌓인 뒤, 양쪽에서 미는 힘으로 단층이 생겨 위쪽 덩어리가 올라갔다. 윗부분이 깎이고, 그 위에 매머드가 살던 시대의 층이 쌓였다.', s:'cross shale ^reverse ^ero mamm ^surf', fx:{fault:{side:1, slip:5}}},
+         {t:'고생대 바다의 삼엽충층 위로 마그마가 땅 밖까지 흘러나와 용암이 덮었다. 그 뒤 다시 바다가 되어 암모나이트층이 쌓였다.', s:'tri ^extr amm ^surf'},
+         {t:'물결 자국이 남은 얕은 물가의 층이 쌓였고, 물이 마르며 갈라진 층이 그 위에 쌓였다. 그 뒤 신생대 바다가 되어 화폐석층이 쌓였다.', s:'ripple mud numm ^surf'},
+         {t:'점이층리가 있는 층과 셰일층이 쌓인 뒤, 아주 강한 힘을 받아 지층이 뒤집혔다. 윗부분이 깎이고, 그 위에 삼엽충이 사는 바다의 층이 쌓였다.', s:'graded shale ^flip ^ero tri ^surf'},
+         {t:'연흔이 있는 층과 셰일층이 쌓인 뒤 지층이 뒤집혔다. 윗부분이 깎이고 삼엽충층이 쌓였다. 그 뒤 마그마가 모든 층을 뚫고 올라와 맨 위 삼엽충층 안에서 굳었다.', s:'ripple shale ^flip ^ero tri ^intr ^surf', fx:{intr:{lean:1, w:2.2}}},
+         {t:'삼엽충층과 사암층이 쌓인 뒤 지층이 휘어지고 깎였다. 그 위에 암모나이트층이 쌓였고, 이번에는 정단층이 모든 층을 끊었다. 다시 윗부분이 깎이고 화폐석층이 쌓였다.', s:'tri sand ^fold ^ero amm ^normal ^ero numm ^surf', fx:{fold:{amp:5, len:70}, fault:{side:-1, slip:5}}}
+       ] }
+};
+LEVELS[4] = { name:'오류 찾기', kind:'err',
+  intro:'이 단면에는 자연에서 생길 수 없는 곳이 있을 수도, 없을 수도 있어요. 법칙에 어긋난 곳을 찾아 탭하세요.',
+  cards:[
+    {s:'tri numm amm ^surf', err:[1,2], law:'fauna', fix:'tri amm numm ^surf',
+     hint:'아래층부터 화석이 어느 시대의 것인지 차례로 떠올려 보세요.',
+     e:'화폐석(신생대)층이 암모나이트(중생대)층보다 아래에 있어요. 퇴적 구조로 볼 때 뒤집힌 흔적도 없으니 동물군 천이의 법칙에 어긋나요.'},
+    {s:'tri sand amm ^intr ^surf', stop:[1], fake:{xenFrom:2}, err:[3], xenHit:true, law:'intr',
+     hint:'관입암이 어디까지 올라왔는지, 그 속에 든 조각이 어느 층의 것인지 비교해 보세요.',
+     e:'포획암은 마그마가 지나오면서 뜯어낸 주변 암석 조각이에요. 이 관입암은 사암층에서 멈췄는데, 닿지도 않은 위쪽 암모나이트층의 조각이 들어 있어요.'},
+    {s:'tri ripple numm ^flip ^surf', none:true,
+     hint:'거기는 법칙에 어긋나지 않아요. 화석만 보지 말고 연흔의 방향도 함께 보세요.',
+     e:'화석 순서는 거꾸로지만 연흔의 뾰족한 마루가 아래를 향해 있어요. 지층이 통째로 뒤집힌 역전이라 자연에서 만들어질 수 있어요. 화석만 보고 오류라고 판단하면 안 돼요.'},
+    {s:'tri sand ^intr ^ero amm ^surf', fake:{bake:4}, fx:{intr:{lean:-1}}, err:[4], law:'intr',
+     hint:'관입암이 침식면에서 어떻게 끝나는지, 그 위층 바닥에 무엇이 있는지 보세요.',
+     e:'관입암이 침식면에서 잘려 있으니 관입 → 침식 → 암모나이트층 순서예요. 그런데 나중에 쌓인 암모나이트층 바닥이 구워져 있어요. 이미 식어서 깎인 관입암은 그 위에 나중에 쌓인 층을 구울 수 없어요.'},
+    {s:'tri sand amm ^intr ^surf', fake:{nohalo:2}, err:[2,3], law:'intr',
+     hint:'관입암이 뚫고 지나간 층들을 하나씩 비교해 보세요. 모두 똑같이 구워졌나요?',
+     e:'관입암이 맨 위 암모나이트층까지 뚫었으니 그 층은 관입보다 먼저 있었어요. 그렇다면 마그마의 열로 구워진 접촉변성대가 있어야 하는데, 이 층에만 없어요.'},
+    {s:'tri ^extr amm ^surf', fake:{bakeAll:2}, err:[2], law:'intr',
+     hint:'용암층의 아래와 위를 비교해 보세요. 어디가 구워져 있나요?',
+     e:'용암이 분출하면 그 아래층만 구워져요. 위층은 식은 용암 위에 나중에 쌓이니 구워질 수 없어요. 위층까지 구워져 있다면 분출한 용암이 아니라 나중에 층 사이로 들어온 관입암이어야 해요.'},
+    {s:'tri sand ^ero numm ^surf', fake:{basalBelow:true}, err:[1,3], law:'unconf',
+     hint:'자갈(기저역암)이 침식면의 위와 아래 중 어디에 있는지 보세요.',
+     e:'기저역암은 깎인 면 위에 새 층이 쌓이기 시작할 때 생기므로 침식면 바로 위에 있어야 해요. 이 단면은 자갈이 침식면 아래(사암층 꼭대기)에 있어요.'},
+    {s:'tri sand ^normal ^ero amm ^surf', fake:{line:true}, fx:{fault:{side:-1, slip:6}}, err:[4], lineHit:true, law:'cut',
+     hint:'단층선이 어디까지 이어지는지, 그 층들이 실제로 어긋나 있는지 보세요.',
+     e:'단층선이 맨 위 암모나이트층까지 지나가는데 그 층은 어긋나지 않았어요. 단층이 그 층을 끊었다면 양쪽이 어긋나 있어야 해요. 단층은 침식면에서 멈춰야 맞아요.'},
+    {s:'tri shale sand ^fold ^surf', fake:{taper:9}, fx:{fold:{amp:6, len:55}}, err:[0], law:'cut',
+     hint:'휘어진 층과 휘지 않은 층이 어떤 순서로 놓여 있는지 보세요.',
+     e:'습곡은 그때까지 쌓인 층을 함께 휘게 해요. 그래서 습곡 뒤에 쌓인 휘지 않은 층은 휜 층의 위쪽에 있어야 해요. 이 단면처럼 가장 오래된 맨 아래층만 수평이면, 지사학의 법칙으로는 순서를 설명할 수 없어요.'},
+    {s:'tri graded sand ^surf', fake:{inv:1}, err:[1], law:'struct',
+     hint:'점이층리에서 굵은 알갱이가 어느 쪽에 있는지 보세요.',
+     e:'점이층리는 굵은 알갱이가 아래에 있어야 하는데, 가운데 층만 굵은 알갱이가 위에 있어요. 지층이 뒤집힐 때는 위아래 층이 함께 뒤집혀야 하니, 한 층만 뒤집힐 수는 없어요.'}
+  ].map(c=>({...c, t:'이 단면에서 법칙에 어긋난 곳을 찾아 탭하세요. 이상한 곳이 없을 수도 있어요.'})) };
+const LAWS = [
+  ['super','지층 누중의 법칙','아래층이 먼저'],
+  ['fauna','동물군 천이의 법칙','화석의 시대 순서'],
+  ['intr','관입의 법칙','변성대·포획암'],
+  ['unconf','부정합의 법칙','침식면·기저역암'],
+  ['cut','자른 것이 나중','단층·습곡'],
+  ['struct','퇴적 구조와 역전','위아래 판단']
+];
+function errHist(c){
+  const h = buildHist(withOpts(P(c.s), c)), f = c.fake||{};
+  if (f.bake!=null){ const d = h.find(e=>e.t==='intr'), E = h.find(e=>e.t==='ero').E; h[f.bake].bake = {x: d.xc + d.sl*(Math.min(E,d.ztop)-d.ztop), half: d.w+7}; }
+  if (f.nohalo!=null) h[f.nohalo].nohalo = true;
+  if (f.xenFrom!=null){ const d = h.find(e=>e.t==='intr'), L = h[f.xenFrom], X = d.xen[0];
+    if (X){ X.sz = L.base + 4; X.sx = 53.1; X.r = 2.4; X.rot = 0.3; X.x = d.xc + d.sl*(X.z - d.ztop); } }
+  if (f.bakeAll!=null) h[f.bakeAll].bakeAll = true;
+  if (f.inv!=null) h[f.inv].inv = true;
+  if (f.taper!=null) h.find(e=>e.t==='fold').taper = f.taper;
+  if (f.line){ const fl = h.find(e=>e.t==='fault'); h.fakeLine = {x0:fl.x0, z0:fl.z0, side:fl.side}; }
+  if (f.basalBelow){ const ei = h.findIndex(e=>e.t==='ero'); h[ei-1].basalTop = h[ei].E; h[ei+1].ae = false; }
+  return h;
+}
+const ERA = {tri:'고생대', amm:'중생대', dino:'중생대', numm:'신생대', mamm:'신생대'};
+const ERA_N = {고생대:0, 중생대:1, 신생대:2};
+const ERA_LONG = {tri:'고생대', amm:'중생대', dino:'중생대', numm:'신생대 팔레오기', mamm:'신생대 제4기'};
+const EVNAME = Object.fromEntries(EVENTS.map(e=>[e.id,e.label]));
+
+let MODE = 'free', LV = 1, CI = 0, tries = 0;
+let PROG = {solved:{}, last:{}, mode:'1'};
+try { const g = JSON.parse(localStorage.getItem('stratify-progress-v1')||'null'); if (g && g.solved) PROG = Object.assign(PROG, g); } catch(_){}
+const saveProg = () => { try { localStorage.setItem('stratify-progress-v1', JSON.stringify(PROG)); } catch(_){} };
+
+const card = () => LEVELS[LV].cards[CI];
+const cardStops = () => (MODE==='free' ? [] : (card().stop || []));
+const FXKEY = {normal:'fault', reverse:'fault', fold:'fold', intr:'intr'};
+function withOpts(acts, c){
+  const st = c.stop || []; let n = 0;
+  return acts.map(a => { let b = a;
+    if (a.id==='intr') b = {...b, stop: st[n++]};
+    const k = FXKEY[a.id]; if (k && c.fx && c.fx[k]) b = {...b, o: c.fx[k]};
+    return b; });
+}
+function targetActs(){ return withOpts(P(card().s), card()); }
+function buildHist(acts){
+  const old = H; H = [];
+  try { for (const a of acts){ const r = makeEvent(a); if (!r.ev) throw new Error(r.code); H.push(r.ev); } return H; }
+  finally { H = old; }
+}
+function withHist(hist, fn){ const old = H; H = hist; try { return fn(); } finally { H = old; } }
+function renderHist(hist, canvas){
+  const dpr = Math.min(2, window.devicePixelRatio||1), w = Math.max(120, Math.round((canvas.clientWidth||300)*dpr));
+  canvas.width = w; canvas.height = Math.round(w/ASP);
+  const sv = {H, VH, VH_FROM, DW, DH, ctx};
+  H = hist; VH = VH_FROM = targetVH(); DW = w; DH = canvas.height; ctx = canvas.getContext('2d');
+  try { render(1, null); } finally { ({H, VH, VH_FROM, DW, DH, ctx} = sv); }
+}
+
+/* 채점: 순서를 글자 그대로 비교하지 않고, 만들어진 단면의 모습이 같은지 비교 */
+function signature(hist){
+  return withHist(hist, ()=>{
+    const out = [];
+    for (let z=-3; z<=76; z+=1) for (let x=4; x<=96; x+=2){
+      out.push(sample(x,z,H.length,null) ? R_unit + (R_ae && R_v>=0 && R_v<1.8 ? 'b':'') + (R_halo?'h':'') + (R_fl?'f':'') + Math.floor(R_v/2) : '.');
+    }
+    return out;
+  });
+}
+let LAST_DIFF = 0;
+function sameSection(h1, h2){
+  const a = signature(h1), b = signature(h2); let d = 0;
+  for (let i=0;i<a.length;i++) if (a[i]!==b[i]) d++;
+  LAST_DIFF = d; return d <= 3;
+}
+
+/* 틀렸을 때: 정답은 보여 주지 않고, 어긋난 법칙과 볼 곳만 알려 줌 */
+const isDepAct = a => a.k==='u' || a.id==='extr';
+const nameOf = a => a.k==='u' ? UNITS[a.id].log : (a.id==='extr' ? '용암층' : EVNAME[a.id]);
+const FLIP_MSG = '퇴적 구조의 위아래를 살펴보세요. 연흔, 건열, 사층리, 점이층리는 원래 어느 쪽이 위일까요?';
+function diagnose(stu, tgt){
+  const key = a => a.k+':'+a.id;
+  const ds = stu.filter(isDepAct).map(key), dt = tgt.filter(isDepAct).map(key);
+  const fi = tgt.findIndex(a=>a.id==='flip');
+  if (fi>=0 && !stu.some(a=>a.id==='flip')){
+    const nb = tgt.slice(0,fi).filter(isDepAct).length;
+    if (dt.slice(0,nb).reverse().concat(dt.slice(nb)).join()===ds.join()) return FLIP_MSG;
+  }
+  const cnt = arr => { const m={}; arr.forEach(a=>{ const k=key(a); m[k]=(m[k]||0)+1; }); return m; };
+  const cs = cnt(stu), ct = cnt(tgt);
+  let missU=false, extraU=false, missE=false, extraE=false;
+  for (const k of new Set([...Object.keys(cs), ...Object.keys(ct)])){
+    const d = (ct[k]||0)-(cs[k]||0); if (!d || k==='e:surf') continue;
+    const u = k.startsWith('u:');
+    if (d>0){ if (u) missU=true; else missE=true; } else { if (u) extraU=true; else extraE=true; }
+  }
+  if (missU && extraU) return '지층의 종류가 달라요. 화석과 퇴적 구조의 무늬를 하나씩 다시 비교해 보세요.';
+  if (missU) return '빠진 지층이 있어요. 층의 수와 종류를 하나씩 다시 세어 보세요.';
+  if (extraU) return '필요 없는 지층이 들어 있어요. 층의 수와 종류를 하나씩 다시 세어 보세요.';
+  if (missE && extraE) return '사건의 종류를 다시 보세요. 단층은 위쪽 덩어리가 내려갔는지 올라갔는지로, 마그마는 땅 위까지 나왔는지 아닌지로 구분해요.';
+  if (missE) return '빠진 사건이 있어요. 층이 끊기거나, 휘거나, 깎이거나, 마그마가 들어온 흔적을 찾아보세요.';
+  if (extraE) return '필요 없는 사건이 들어 있어요. 그 흔적이 정말 있는지 다시 보세요.';
+  if (ds.join()!==dt.join()){
+    let i=0; while (ds[i]===dt[i]) i++;
+    const sd = stu.filter(isDepAct), td = tgt.filter(isDepAct);
+    const fossil = ERA[sd[i]?.id] && td.filter(a=>ERA[a.id]).length>=2;
+    return `지층 누중의 법칙에 어긋나요. 아래에서 ${i+1}번째에 놓은 ${nameOf(sd[i])}의 자리를 다시 보세요.` + (fossil ? ' 화석의 시대 순서(동물군 천이의 법칙)도 함께 확인해 보세요.' : '');
+  }
+  const place = arr => { const out={}, occ={}; let nd=0;
+    arr.forEach(a=>{ if (isDepAct(a)){ nd++; return; } const o = occ[a.id] = (occ[a.id]||0)+1; out[a.id+'#'+o] = {nd, a}; }); return out; };
+  const ps = place(stu), pt = place(tgt);
+  for (const k of Object.keys(pt)){
+    const t = pt[k], u = ps[k]; if (!u) continue; const id = t.a.id;
+    if (id==='surf') continue;
+    if (id==='intr'){ if (t.a.stop!=null && u.nd < t.a.stop+1) return '관입의 법칙: 관입암에 뚫린 층은 관입보다 먼저 있었어요. 접촉변성대가 생긴 층과 관입암 속 포획암을 살펴보세요.'; continue; }
+    if (u.nd===t.nd) continue;
+    const early = u.nd < t.nd;
+    if (id==='normal'||id==='reverse') return early ? '단층은 끊긴 층이 모두 쌓인 뒤에 생겨요. 단층선에 끊긴 층이 몇 개인지 세어 보세요.' : '단층 뒤에 쌓인 층은 끊기지 않아요. 단층선이 어디에서 멈추는지 보세요.';
+    if (id==='fold') return early ? '습곡은 휜 층이 모두 쌓인 뒤에 일어나요. 휘어진 층이 몇 개인지 세어 보세요.' : '습곡 뒤에 쌓인 층은 휘지 않아요. 어느 층부터 휘지 않았는지 보세요.';
+    if (id==='flip') return FLIP_MSG + ' 뒤집힌 층은 어디까지일까요?';
+    if (id==='ero') return '부정합의 법칙: 기저역암(자갈)이 어디에 있는지, 그 속 자갈이 어떤 암석인지 보세요.';
+  }
+  const evs = arr => arr.filter(a=>!isDepAct(a)).map(key).join();
+  if (evs(stu)!==evs(tgt)) return '사건의 순서를 다시 보세요. 어느 쪽이 다른 쪽을 자르거나 덮고 있나요?';
+  return '목표와 다른 곳이 있어요. 층과 사건을 하나씩 비교해 보세요.';
+}
+
+/* 맞혔을 때 보여 줄 해설: 이 단면에 쓰인 법칙만 골라서 */
+/* 해설: [법칙 이름, 핵심 한 문장, 이 단면에서 볼 증거] */
+/* ---------- 오개념 주의 상자: 짧은 글 + 작은 도식 ---------- */
+const SVG_BASAL = (()=>{ const panel = (gx, gravel) => {
+    const wave = `M${gx+5},60 Q${gx+20},52 ${gx+35},60 T${gx+65},60 T${gx+95},60 T${gx+125},60 T${gx+155},60`;
+    let g = `<rect x="${gx+5}" y="22" width="150" height="80" fill="#F3F0D2"/>
+      <path d="${wave} L${gx+155},102 L${gx+5},102 Z" fill="#D8B9BE"/>
+      <path d="M${gx+5},74 H${gx+155} M${gx+5},88 H${gx+155}" stroke="#A07F86" stroke-width="2"/>
+      <path d="${wave}" fill="none" stroke="#3C2B22" stroke-width="2.5"/>`;
+    if (gravel) for (let x=gx+12; x<gx+152; x+=11) g += `<ellipse cx="${x}" cy="${54 + (x%3)}" rx="5" ry="3.2" fill="#E9D9C4" stroke="#8F725C" stroke-width="1.2"/>`;
+    return g + `<rect x="${gx+5}" y="22" width="150" height="80" fill="none" stroke="#3C2B22" stroke-width="1.5"/>`; };
+  return `<svg viewBox="0 0 330 132" role="img" aria-label="기저역암이 있는 부정합과 없는 부정합">${panel(0,true)}${panel(165,false)}
+    <text x="80" y="16" text-anchor="middle" font-size="13" font-weight="700" fill="#4A3200">기저역암 있음</text>
+    <text x="245" y="16" text-anchor="middle" font-size="13" font-weight="700" fill="#4A3200">기저역암 없음</text>
+    <text x="165" y="124" text-anchor="middle" font-size="13" font-weight="700" fill="#C8321E">둘 다 부정합이에요</text></svg>`; })();
+const SVG_FLIP = (()=>{ const cx = 150, cy = 66, L = [[38,'#F3F0D2'],[26,'#BCC3C8'],[14,'#D8B9BE']];
+  let g = '';
+  for (const [r,c] of L) g += `<path d="M14,${cy-r} H${cx} A${r} ${r} 0 0 1 ${cx},${cy+r} H14" fill="none" stroke="${c}" stroke-width="11"/><path d="M14,${cy-r-5.5} H${cx} A${r+5.5} ${r+5.5} 0 0 1 ${cx},${cy+r+5.5} H14" fill="none" stroke="#3C2B22" stroke-width="1"/>`;
+  const lg = (x,c,t) => `<rect x="${x}" y="120" width="14" height="10" fill="${c}" stroke="#3C2B22" stroke-width="1"/><text x="${x+18}" y="129" font-size="12" fill="#4A3200">${t}</text>`;
+  return `<svg viewBox="0 0 340 136" role="img" aria-label="과습곡에서 아래쪽 날개가 뒤집힌 모습">${g}
+    <path d="M196,28 H222" stroke="#3C2B22" stroke-width="1.5"/><text x="226" y="32" font-size="12.5" font-weight="700" fill="#2E3561">위쪽 날개: 바로 섬</text>
+    <path d="M196,104 H222" stroke="#3C2B22" stroke-width="1.5"/><text x="226" y="108" font-size="12.5" font-weight="700" fill="#C8321E">아래쪽 날개: 뒤집힘</text>
+    ${lg(14,'#D8B9BE','오래됨')}${lg(84,'#BCC3C8','')}${lg(110,'#F3F0D2','젊음')}</svg>`; })();
+const SVG_SILL = (()=>{ const panel = (gx, sill) => {
+    const id = sill ? 'hs' : 'hl';
+    return `<defs><pattern id="${id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="transparent"/><line x1="0" y1="0" x2="0" y2="6" stroke="#2B1E1E" stroke-width="2"/></pattern></defs>
+      <rect x="${gx+5}" y="24" width="150" height="30" fill="#F3F0D2"/><rect x="${gx+5}" y="66" width="150" height="34" fill="#D8B9BE"/>
+      <rect x="${gx+5}" y="54" width="150" height="14" fill="${sill ? '#FF8C69' : '#57545C'}"/>
+      ${sill ? `<rect x="${gx+5}" y="46" width="150" height="8" fill="url(#${id})"/>` : ''}
+      <rect x="${gx+5}" y="68" width="150" height="8" fill="url(#${id})"/>
+      <rect x="${gx+5}" y="24" width="150" height="76" fill="none" stroke="#3C2B22" stroke-width="1.5"/>`; };
+  return `<svg viewBox="0 0 330 132" role="img" aria-label="암상은 위아래를 굽고 용암은 아래만 굽는다">${panel(0,true)}${panel(165,false)}
+    <text x="80" y="16" text-anchor="middle" font-size="13" font-weight="700" fill="#4A3200">암상 (관입)</text>
+    <text x="245" y="16" text-anchor="middle" font-size="13" font-weight="700" fill="#4A3200">용암 (분출)</text>
+    <text x="80" y="122" text-anchor="middle" font-size="12.5" font-weight="700" fill="#C8321E">위·아래 모두 구움</text>
+    <text x="245" y="122" text-anchor="middle" font-size="12.5" font-weight="700" fill="#C8321E">아래만 구움</text></svg>`; })();
+const CAUTION = {
+  basal: {tag:'실제와 달라요', head:'기저역암이 없는 부정합도 많아요', text:'이 게임은 부정합마다 기저역암을 그려요. 기저역암이 없다고 부정합이 아닌 건 아니에요.', svg:SVG_BASAL},
+  halo:  {tag:'이 게임의 약속', head:'닿은 층에는 변성대가 생긴다고 약속해요', text:'실제로는 암맥이 얇으면 변성대가 아주 얇아서 잘 안 보이기도 해요.', svg:''},
+  flip:  {tag:'더 알아 두기', head:'역전은 과습곡이나 충상 단층으로 생겨요', text:'게임은 지층 덩어리를 통째로 뒤집어 간단히 나타냈어요. 실제로는 크게 휘어 넘어간 습곡의 아래쪽 날개가 뒤집혀요.', svg:SVG_FLIP},
+  sill:  {tag:'더 알아 두기', head:'관입암은 층과 나란히 들어가기도 해요(암상)', text:'이 게임에는 비스듬한 암맥만 나와요. 층 사이의 암석이 관입인지 분출인지는 위층이 구워졌는지로 구별해요.', svg:SVG_SILL}
+};
+function cautionHTML(k){
+  const c = CAUTION[k]; if (!c) return '';
+  PROG.seenC = PROG.seenC || {};
+  if (PROG.seenC[k]) return `<details class="caution"><summary>⚠ ${c.head}</summary><p class="ctext">${c.text}</p>${c.svg ? `<div class="csvg">${c.svg}</div>` : ''}</details>`;
+  PROG.seenC[k] = true; saveProg();      // 처음 볼 때만 크게 펼쳐 보여 주고, 다음부터는 한 줄로 접어 둠
+  return `<div class="caution"><span class="ctag">⚠ ${c.tag}</span><b class="chead">${c.head}</b><p class="ctext">${c.text}</p>${c.svg ? `<div class="csvg">${c.svg}</div>` : ''}</div>`;
+}
+
+function explain(hist, acts){
+  const L = [], deps = acts.filter(isDepAct);
+  if (deps.length>=2) L.push(['지층 누중의 법칙', '아래에 있는 층일수록 먼저 쌓였어요.', '']);
+  const fos = []; acts.forEach(a=>{ if (ERA[a.id] && !fos.includes(a.id)) fos.push(a.id); });
+  if (fos.length>=2) L.push(['동물군 천이의 법칙', '화석은 시대 순서대로 나타나요.', fos.map(f=>`${UNITS[f].label}(${ERA_LONG[f]})`).join(' → ')]);
+  if (acts.some(a=>a.id==='normal'||a.id==='reverse')) L.push(['단층', '단층은 자기가 끊은 층보다 나중이에요.', '단층 뒤에 쌓인 층은 끊기지 않아요. 단층면 위쪽 덩어리(상반)가 내려가면 정단층, 올라가면 역단층이에요. 단층면이 어느 쪽으로 기울었는지 먼저 보세요.']);
+  if (acts.some(a=>a.id==='fold')) L.push(['습곡', '습곡은 자기가 휜 층보다 나중이에요.', '습곡 뒤에 쌓인 층은 휘지 않아요.']);
+  const er = hist.find(e=>e.t==='ero');
+  if (er) L.push(['부정합의 법칙', '침식면 위아래 사이에는 깎여 없어진 시간이 있어요.', `이 단면은 ${er.kind}이에요. 기저역암 속 아래 암석 자갈은 아래 암석이 더 오래되었다는 증거예요.`, 'basal']);
+  if (acts.some(a=>a.id==='intr')) L.push(['관입의 법칙', '관입암은 자기가 뚫은 층보다 나중이에요.', '증거: 닿은 층의 접촉변성대, 관입암 속 포획암', 'halo']);
+  if (acts.some(a=>a.id==='extr')) L.push(['분출', '용암은 아래층만 구워요.', '용암층 아래만 구워지고 바로 위층은 구워지지 않았다면 분출이에요.', 'sill']);
+  if (acts.some(a=>a.id==='flip')) L.push(['역전', '퇴적 구조가 거꾸로면 지층이 뒤집힌 거예요.', '뒤집힌 부분은 위에 있는 층이 더 오래되었어요.', 'flip']);
+  return L;
+}
+/* 사건 기록을 짧게: [제목, 덧붙임, 사건인가] */
+function shortStory(e){
+  if (e.t==='dep'){
+    const nm = e.unit==='granite' ? '화강암(기반암)' : UNITS[e.unit].log;
+    return [`${nm} 쌓임`, e.ae ? '바닥에 기저역암' : '', false];
+  }
+  if (e.t==='extr') return ['분출', '용암층이 덮고 아래층을 구움', true];
+  if (e.t==='ero') return ['침식', `깎여 없어진 시간 → ${e.kind}`, true];
+  if (e.t==='intr') return ['관입', (e.text.match(/마그마가 (.+)까지/)||[])[1] ? `${e.text.match(/마그마가 (.+)까지/)[1]}까지 뚫음` : '', true];
+  if (e.t==='fault') return [e.dir>0 ? '정단층' : '역단층', e.dir>0 ? '위쪽 덩어리가 내려감' : '위쪽 덩어리가 올라감', true];
+  if (e.t==='fold') return ['습곡', '층이 휘어짐', true];
+  if (e.t==='flip') return ['역전', '층이 뒤집힘', true];
+  if (e.t==='surf') return ['지표면', e.ero ? '솟은 곳이 깎인 뒤 흙과 식물이 덮음' : '흙과 식물이 덮음', true];
+  return [e.text, '', false];
+}
+
+const ov = document.getElementById('overlay');
+function openOverlay(title, html, showNext){
+  document.getElementById('ovTitle').textContent = title;
+  document.getElementById('ovBody').innerHTML = html;
+  document.getElementById('ovNext').hidden = !showNext;
+  ov.hidden = false; document.getElementById(showNext ? 'ovNext' : 'ovClose').focus();
+}
+const closeOverlay = () => { ov.hidden = true; };
+document.getElementById('ovClose').addEventListener('click', closeOverlay);
+ov.addEventListener('click', e=>{ if (e.target===ov) closeOverlay(); });
+document.addEventListener('keydown', e=>{ if (e.key==='Escape' && !ov.hidden) closeOverlay(); });
+document.getElementById('ovNext').addEventListener('click', ()=>{ closeOverlay(); if (CI < LEVELS[LV].cards.length-1){ CI++; loadCard(); } else say('이 레벨의 마지막 카드예요. 위에서 다음 레벨을 골라 보세요.','info'); });
+const esc = t => t.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- 시간 기록 ---------- */
+const fmt = ms => { const t = Math.max(0, Math.round(ms/1000)); return `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`; };
+const SET = () => (PROG.set = Object.assign({timer:'off', limit:120}, PROG.set||{}));
+let T0 = null, TIV = null, tElapsed = 0, timeUp = false;
+function timerStop(){ clearInterval(TIV); TIV = null; if (T0!=null){ tElapsed = performance.now()-T0; T0 = null; } }
+function timerReset(){ clearInterval(TIV); TIV = null; T0 = null; tElapsed = 0; timeUp = false; timerShow(); }
+function timerStart(){ if (MODE==='free' || (isErr() && errStep!==1) || SET().timer==='off' || T0!=null || timeUp || tElapsed>0) return; T0 = performance.now(); TIV = setInterval(timerShow, 250); timerShow(); }
+function timerShow(){
+  const el = document.getElementById('timer'), st = SET();
+  el.hidden = MODE==='free' || st.timer==='off' || timeUp && st.timer!=='limit';
+  if (el.hidden) return;
+  const ms = T0!=null ? performance.now()-T0 : tElapsed;
+  if (st.timer==='limit'){
+    const left = st.limit*1000 - ms; el.textContent = '⏱ ' + fmt(left); el.classList.toggle('low', left<15000);
+    if (left<=0 && T0!=null && !timeUp){ timerStop(); timeUp = true; el.textContent = '⏱ 0:00';
+      openOverlay('시간이 끝났어요', `<p>제한 시간 ${fmt(st.limit*1000)} 안에 완성하지 못했어요. 처음부터 다시 도전하거나, 시간 기록 없이 이어서 풀 수 있어요.</p>
+        <div class="qopts"><button type="button" class="tool primary" data-t="retry">처음부터 다시 도전</button><button type="button" class="tool" data-t="go">시간 없이 이어서 풀기</button></div>`, false); }
+  } else { el.textContent = '⏱ ' + fmt(ms); el.classList.remove('low'); }
+}
+
+/* ---------- 설정 ---------- */
+document.getElementById('settingsBtn').addEventListener('click', ()=>{
+  const st = SET(), opt = v => st.limit===v ? 'selected' : '';
+  openOverlay('설정', `
+    <div class="setgrp"><h3>미션 시간</h3>
+      <label><input type="radio" name="tm" value="off" ${st.timer==='off'?'checked':''}> 재지 않기</label>
+      <label><input type="radio" name="tm" value="record" ${st.timer==='record'?'checked':''}> 걸린 시간 기록하기</label>
+      <label><input type="radio" name="tm" value="limit" ${st.timer==='limit'?'checked':''}> 제한 시간 두기
+        <select id="limitSel" aria-label="제한 시간"><option value="60" ${opt(60)}>1분</option><option value="120" ${opt(120)}>2분</option><option value="180" ${opt(180)}>3분</option><option value="300" ${opt(300)}>5분</option></select></label>
+      <p style="margin:.2rem 0 0;color:var(--muted)">시간은 첫 블록을 놓을 때부터 재요. 바꾼 설정은 다음 카드부터 적용돼요.</p></div>
+    <div class="setgrp"><h3>기록</h3><button type="button" class="tool" data-t="wipe">푼 카드와 최고 기록 모두 지우기</button></div>`, false);
+});
+document.getElementById('ovBody').addEventListener('change', e=>{
+  const st = SET();
+  if (e.target.name==='tm') st.timer = e.target.value;
+  if (e.target.id==='limitSel') st.limit = +e.target.value;
+  saveProg();
+});
+function clearMission(tH, tA){
+  timerStop(); logOpen = true; updateUI();
+  const st = SET(), key = `${LV}-${CI}`, first = !PROG.solved[key];
+  PROG.solved[key] = true; PROG.best = PROG.best||{};
+  let rec = '';
+  if (st.timer!=='off' && !timeUp && tElapsed>0){
+    const prev = PROG.best[key], isNew = !prev || tElapsed < prev;
+    if (isNew) PROG.best[key] = tElapsed;
+    rec = `<p class="record"><span><small>걸린 시간</small>${fmt(tElapsed)}</span><span><small>최고 기록</small>${fmt(PROG.best[key])}</span>${isNew && prev ? '<b class="new">새 기록!</b>' : ''}</p>`;
+  }
+  saveProg(); updateMission();
+  document.getElementById('stampTime').textContent = rec ? fmt(tElapsed) : (tries===1 ? '한 번에 성공' : '');
+  document.getElementById('stamp').hidden = false; cvs.parentElement.classList.add('cleared');
+  const laws = explain(tH, tA).map(([n,m,ev,ck])=>`<li class="law"><b>${esc(n)}</b><span>${esc(m)}</span>${ev?`<small>${esc(ev)}</small>`:''}${cautionHTML(ck)}</li>`).join('');
+  const story = H.map((e,i)=>{ const [t,sub,isEv] = shortStory(e);
+    return `<li class="${isEv?'ev':''}"><i>${i+1}</i><div><span>${esc(t)}</span>${sub?`<small>${esc(sub)}</small>`:''}</div></li>`; }).join('');
+  const pic = LEVELS[LV].kind==='text' ? '<h3>이야기 속 단면</h3><canvas id="ovPic"></canvas>' : '';
+  const Q = card().q, quiz = Q ? `<div class="quiz"><h3>한 걸음 더</h3><p>${esc(Q.q)}</p><div class="qopts">${Q.o.map((o,i)=>`<button type="button" class="tool" data-q="${i}">${esc(o)}</button>`).join('')}</div><p class="qres" role="status"></p></div>` : '';
+  const html = `${rec}${quiz}${pic}<h3>이 단면에 쓰인 법칙</h3><ul class="laws">${laws}</ul><h3>내가 만든 역사 <small>지층처럼 위로 갈수록 최근이에요</small></h3><ol class="story">${story}</ol>`;
+  setTimeout(()=>{
+    openOverlay(tries===1 ? '미션 클리어! 한 번에 성공했어요' : '미션 클리어!', html, true);
+    const c = document.getElementById('ovPic'); if (c) renderHist(tH, c);
+  }, reduceMotion ? 0 : 1300);
+}
+/* ---------- 레벨 4: 오류 찾기 ---------- */
+const isErr = () => MODE!=='free' && LEVELS[LV].kind==='err';
+const isErrLock = () => isErr() && errStep < 3;
+let errStep = 1, marks = [];
+function drawMarks(){
+  for (const m of marks){
+    ctx.save(); ctx.lineWidth = Math.max(3, DW/160); ctx.strokeStyle = m.ok ? '#C8321E' : 'rgba(30,35,39,.55)';
+    ctx.setLineDash(m.ok ? [] : [6,5]); ctx.beginPath(); ctx.arc(m.x*DW, m.y*DH, DW*0.055, 0, TAU); ctx.stroke(); ctx.restore();
+  }
+}
+function errSetup(){
+  errStep = 1; marks = [];
+  document.getElementById('estep').innerHTML = '<b>1</b>단면에서 법칙에 어긋난 곳을 탭하세요';
+  document.getElementById('lawopts').hidden = true;
+  const nb = document.getElementById('noErr'); nb.hidden = false; nb.disabled = false;
+}
+function errTap(e){
+  if (errStep!==1 || busy) return;
+  const r = cvs.getBoundingClientRect(), fx = (e.clientX-r.left)/r.width, fy = (e.clientY-r.top)/r.height;
+  const ix = pickAt(e), c = card();
+  const ok = !c.none && ix>=0 && (c.err.includes(ix) || (c.lineHit && R_fl) || (c.xenHit && R_xen));
+  tries++;
+  marks = marks.filter(m=>m.ok); marks.push({x:fx, y:fy, ok});
+  render(1,null); drawMarks();
+  if (!ok){ say(c.none ? c.hint : (ix<0 ? '하늘이에요. 지층에서 찾아보세요.' : '거기는 법칙에 어긋나지 않아요. ' + c.hint), 'hint'); return; }
+  errStep = 2; say('');
+  document.getElementById('estep').innerHTML = '<b>2</b>찾았어요! 어떤 법칙에 어긋날까요?';
+  document.getElementById('noErr').hidden = true;
+  const box = document.getElementById('lawopts');
+  box.innerHTML = LAWS.map(([k,n,d])=>`<button type="button" class="tool" data-law="${k}">${n}<small>${d}</small></button>`).join('');
+  box.hidden = false; box.querySelector('button').focus();
+}
+document.getElementById('lawopts').addEventListener('click', e=>{
+  const b = e.target.closest('[data-law]'); if (!b || errStep!==2) return;
+  tries++;
+  if (b.dataset.law!==card().law){ b.classList.add('wrong'); b.disabled = true; say('다시 골라 보세요. ' + card().hint, 'hint'); return; }
+  startFix();
+});
+document.getElementById('noErr').addEventListener('click', ()=>{
+  if (errStep!==1 || busy) return;
+  tries++;
+  if (!card().none){ say('이상한 곳이 있어요. ' + card().hint, 'hint'); return; }
+  errStep = 3; say(''); clearErr();
+});
+/* 3단계: 같은 지층과 사건으로, 자연에서 만들어질 수 있게 직접 다시 쌓기 */
+function startFix(){
+  errStep = 3; marks = []; say('');
+  document.body.classList.remove('errmode');
+  document.getElementById('lawopts').hidden = true; document.getElementById('noErr').hidden = true;
+  document.getElementById('estep').innerHTML = '<b>3</b>같은 지층과 사건으로, 자연에서 만들어질 수 있게 다시 쌓으세요';
+  const tb = document.getElementById('thumbBtn'); tb.hidden = false;
+  document.getElementById('mtext').textContent = '왼쪽 그림이 고칠 단면이에요. 같은 지층과 사건을 모두 쓰되, 놓는 순서를 바르게 정하세요. 마지막에 지표면을 놓고 [확인하기]를 누르세요.';
+  renderHist(errHist(card()), document.getElementById('thumb'));
+  ACT = []; H = []; VH = VH_FROM = VMIN; applyDrawer(); render(1,null); updateUI();
+  window.scrollTo({top:0, behavior: reduceMotion ? 'auto' : 'smooth'});
+}
+function checkFix(){
+  if (!H.length) return say('먼저 단면을 쌓아 보세요.','warn');
+  if (H[H.length-1].t!=='surf') return say('마지막에 지금의 땅, [사건] 탭의 지표면을 놓아야 완성이에요.','hint');
+  tries++;
+  const key = a => a.k+':'+a.id, cnt = arr => { const m = {}; arr.filter(a=>a.id!=='surf').forEach(a=>{ m[key(a)] = (m[key(a)]||0)+1; }); return m; };
+  const want = cnt(P(card().s)), got = cnt(ACT);
+  const ks = new Set([...Object.keys(want), ...Object.keys(got)]);
+  const miss = [...ks].filter(k=>(want[k]||0) > (got[k]||0)), extra = [...ks].filter(k=>(got[k]||0) > (want[k]||0));
+  const nm = k => { const [t,id] = k.split(':'); return t==='u' ? UNITS[id].label : EVNAME[id]; };
+  if (miss.length || extra.length){
+    return say('고칠 단면과 같은 지층과 사건만, 같은 개수로 쓰세요.' + (miss.length ? ` 빠진 것: ${miss.map(nm).join(', ')}.` : '') + (extra.length ? ` 더 들어간 것: ${extra.map(nm).join(', ')}.` : ''), 'hint');
+  }
+  // 엔진은 단층·관입·부정합 순서가 맞는 단면만 그리므로, 남은 검사는 화석의 시대 순서
+  const eras = H.filter(e=>e.t==='dep' && ERA[e.unit]).map(e=>ERA_N[ERA[e.unit]]);
+  for (let i=1;i<eras.length;i++) if (eras[i] < eras[i-1]) return say('동물군 천이의 법칙에 어긋나요. 먼저 쌓인 층일수록 더 오래된 시대의 화석이 들어 있어야 해요.','hint');
+  say(''); clearErr();
+}
+
+function clearErr(){
+  timerStop();
+  const c = card(), st = SET(), key = `${LV}-${CI}`;
+  PROG.solved[key] = true; PROG.best = PROG.best||{};
+  let rec = '';
+  if (st.timer!=='off' && !timeUp && tElapsed>0){
+    const prev = PROG.best[key], isNew = !prev || tElapsed < prev;
+    if (isNew) PROG.best[key] = tElapsed;
+    rec = `<p class="record"><span><small>걸린 시간</small>${fmt(tElapsed)}</span><span><small>최고 기록</small>${fmt(PROG.best[key])}</span>${isNew && prev ? '<b class="new">새 기록!</b>' : ''}</p>`;
+  }
+  saveProg(); updateMission();
+  document.getElementById('stampTime').textContent = rec ? fmt(tElapsed) : (tries<=2 ? '한 번에 성공' : '');
+  document.getElementById('stamp').hidden = false; cvs.parentElement.classList.add('cleared');
+  const law = c.none ? null : LAWS.find(l=>l[0]===c.law);
+  const head = c.none ? ['함정 카드였어요', '이 단면은 자연에서 만들어질 수 있어요.'] : [law[1], '이 단면은 자연에서 만들어질 수 없어요.'];
+  const cmp = c.none ? '' : `<h3>비교해 보기</h3><div class="cmp"><figure><figcaption>이상한 단면</figcaption><canvas id="cmpA"></canvas></figure><figure><figcaption>내가 고친 단면</figcaption><canvas id="cmpB"></canvas></figure></div>`;
+  const f = c.fake||{}, ck = f.nohalo!=null ? 'halo' : f.bakeAll!=null ? 'sill' : f.basalBelow ? 'basal' : (c.none || f.inv!=null) ? 'flip' : '';
+  const html = `${rec}<h3>무엇이 문제였을까</h3><ul class="laws"><li class="law"><b>${esc(head[0])}</b><span>${esc(head[1])}</span><small>${esc(c.e)}</small>${cautionHTML(ck)}</li></ul>${cmp}`;
+  setTimeout(()=>{
+    openOverlay(c.none ? '미션 클리어! 함정을 피했어요' : '미션 클리어! 오류를 찾아 고쳤어요', html, true);
+    if (!c.none){ renderHist(errHist(c), document.getElementById('cmpA')); renderHist(H.slice(), document.getElementById('cmpB')); }
+  }, reduceMotion ? 0 : 1300);
+}
+
+function hideStamp(){ document.getElementById('stamp').hidden = true; cvs.parentElement.classList.remove('cleared'); }
+
+function checkAnswer(){
+  if (busy) return;
+  if (isErr()) return errStep===3 ? checkFix() : undefined;
+  if (!H.length) return say('먼저 단면을 만들어 보세요.','warn');
+  if (H[H.length-1].t!=='surf') return say('마지막에 지금의 땅, [사건] 탭의 지표면을 놓아야 완성이에요.','hint');
+  const tA = targetActs(), tH = buildHist(tA);
+  tries++;
+  if (sameSection(H, tH)){
+    say(''); clearMission(tH, tA);
+  } else {
+    say(diagnose(ACT, tA), 'hint');
+  }
+}
+document.getElementById('check').addEventListener('click', checkAnswer);
+document.getElementById('ovBody').addEventListener('click', e=>{
+  const tb = e.target.closest('[data-t]');
+  if (tb){
+    if (tb.dataset.t==='retry'){ closeOverlay(); loadCard(); }
+    if (tb.dataset.t==='go'){ closeOverlay(); say('시간 기록 없이 이어서 풀어 보세요.','info'); }
+    if (tb.dataset.t==='wipe'){ PROG.solved={}; PROG.best={}; PROG.seenC={}; saveProg(); updateMission(); tb.textContent='모두 지웠어요'; tb.disabled=true; }
+    return;
+  }
+  const b = e.target.closest('[data-q]'); if (!b) return;
+  const Q = card().q, i = +b.dataset.q, res = b.closest('.quiz').querySelector('.qres');
+  if (i===Q.a){ b.classList.add('right'); b.closest('.qopts').querySelectorAll('button').forEach(x=>x.disabled=true); res.textContent = '맞아요. ' + Q.e; res.className='qres ok'; }
+  else { b.classList.add('wrong'); b.disabled = true; res.textContent = '다시 골라 보세요. 층의 화석과 퇴적 구조가 어떤 환경에서 생기는지 떠올려 보세요.'; res.className='qres no'; }
+});
+
+function updateMission(){
+  document.querySelectorAll('.modes button').forEach(b=>b.setAttribute('aria-current', String(b.dataset.mode===String(MODE))));
+  document.body.classList.toggle('inmission', MODE!=='free');
+  const m = document.getElementById('mission'); m.hidden = MODE==='free';
+  if (MODE==='free') return;
+  const lv = LEVELS[LV], n = lv.cards.length;
+  const bst = (PROG.best||{})[`${LV}-${CI}`];
+  document.getElementById('mtitle').textContent = `레벨 ${LV} 카드 ${CI+1} / ${n}` + (PROG.solved[`${LV}-${CI}`] ? ' ✓' : '') + (bst && SET().timer!=='off' ? ` 최고 ${fmt(bst)}` : '');
+  document.getElementById('prevCard').disabled = CI===0;
+  document.getElementById('nextCard').disabled = CI===n-1;
+  const pic = lv.kind==='pic';
+  document.getElementById('thumbBtn').hidden = !pic;
+  document.getElementById('mtext').textContent = pic ? lv.intro : card().t;
+}
+function applyDrawer(){
+  const allow = MODE==='free' ? null : LEVELS[LV].events;
+  document.querySelectorAll('[data-ev]').forEach(b=>{ b.hidden = !!allow && !allow.includes(b.dataset.ev); });
+}
+function loadCard(){
+  logOpen = false;
+  ACT = []; H = []; tries = 0; blockCount = 0; hideStamp(); timerReset();
+  PROG.last[LV] = CI; PROG.mode = String(LV); saveProg();
+  const err = LEVELS[LV].kind==='err';
+  document.body.classList.toggle('errmode', err); document.getElementById('errp').hidden = !err;
+  if (err){ ACT = P(card().s); H = errHist(card()); VH = VH_FROM = targetVH(); updateMission(); render(1,null); updateUI(); errSetup(); say(''); revealCard(); setTimeout(timerStart, 50); return; }
+  VH = VH_FROM = VMIN; updateMission(); applyDrawer(); render(1,null); updateUI();
+  if (LEVELS[LV].kind==='pic') requestAnimationFrame(()=>renderHist(buildHist(targetActs()), document.getElementById('thumb')));
+  say(LEVELS[LV].kind==='text' ? LEVELS[LV].intro : '');
+  revealCard();
+}
+
+/* ---------- 카드 등장 연출: 전체 화면에서 카드가 뒤집혀 목표가 보이고, 줄어들며 미션 칸으로 들어감 ---------- */
+let revealRun = 0;
+function revealCard(){
+  const run = ++revealRun;
+  if (document.getElementById('intro')){ setTimeout(()=>{ if (run===revealRun) revealCard(); }, 400); return; }
+  const rv = document.getElementById('reveal'), rc = document.getElementById('rcard'), front = rc.querySelector('.rfront');
+  const pic = LEVELS[LV].kind==='pic', n = LEVELS[LV].cards.length;
+  const st = rv.querySelector('.rstage');
+  rc.getAnimations().forEach(a=>a.cancel()); st.getAnimations().forEach(a=>a.cancel()); rv.classList.remove('leaving');
+  document.getElementById('rlv').textContent = `레벨 ${LV} · 카드 ${CI+1}`;
+  document.getElementById('rtitle').textContent = `레벨 ${LV} 카드 ${CI+1} / ${n}`;
+  document.getElementById('rpicwrap').hidden = !pic;
+  document.getElementById('rtext').textContent = pic ? LEVELS[LV].intro : card().t;
+  front.classList.toggle('textonly', !pic);
+  rv.hidden = false;
+  if (pic) renderHist(buildHist(targetActs()), document.getElementById('rpic'));
+  const target = document.getElementById(pic ? 'thumbBtn' : 'mission');
+  let done = false, flip = null, fly = null;
+  const end = () => {
+    if (done || run!==revealRun) return; done = true;
+    flip?.cancel(); fly?.cancel(); st.getAnimations().forEach(x=>x.cancel()); rv.hidden = true; rv.classList.remove('leaving');
+    rv.removeEventListener('click', skip);
+  };
+  const skip = () => { if (fly) end(); else goFly(); };
+  rv.addEventListener('click', skip);
+  if (reduceMotion){ rc.style.transform = 'rotateY(180deg)'; setTimeout(end, 1400); return; }
+  rc.style.transform = '';
+  st.animate([{opacity:0},{opacity:1}], {duration:400, easing:'ease-out'});
+  flip = rc.animate([
+    {transform:'scale(.6) rotateY(0deg)', offset:0},
+    {transform:'scale(1) rotateY(0deg)', offset:.3},
+    {transform:'scale(1) rotateY(0deg)', offset:.42},
+    {transform:'scale(1.04) rotateY(90deg)', offset:.72},
+    {transform:'scale(1) rotateY(180deg)', offset:1}
+  ], {duration:1300, easing:'ease-in-out', fill:'forwards'});
+  let holdT = null;
+  flip.onfinish = () => { if (run===revealRun && !done) holdT = setTimeout(goFly, pic ? 1500 : 2600); };
+  function goFly(){
+    if (fly || done || run!==revealRun) return;
+    clearTimeout(holdT); flip.finish?.();
+    // 미션 칸이 보이도록 맨 위로
+    window.scrollTo({top:0});
+    const a = rc.getBoundingClientRect(), b = target.getBoundingClientRect();
+    const src = pic ? document.getElementById('rpicwrap').getBoundingClientRect() : a;
+    const k = b.width / src.width;
+    const dx = (b.left + b.width/2) - (src.left + src.width/2), dy = (b.top + b.height/2) - (src.top + src.height/2);
+    // 카드 중심 기준으로 비례 이동(그림 부분이 썸네일에 정확히 겹치도록)
+    const cx = a.left + a.width/2, cy = a.top + a.height/2, sx = src.left + src.width/2, sy = src.top + src.height/2;
+    const tx = dx + (sx - cx)*(1-k), ty = dy + (sy - cy)*(1-k);
+    rv.classList.add('leaving');
+    fly = rc.animate([
+      {transform:'translate(0,0) scale(1) rotateY(180deg)'},
+      {transform:`translate(${tx}px,${ty}px) scale(${k}) rotateY(180deg)`}
+    ], {duration:750, easing:'cubic-bezier(.55,.05,.3,1)', fill:'forwards'});
+    st.animate([{opacity:1},{opacity:1, offset:.8},{opacity:0}], {duration:900, fill:'forwards'});
+    fly.finished.then(()=>new Promise(r=>setTimeout(r,150))).then(()=>{ if (run===revealRun){ end(); target.animate([{boxShadow:'0 0 0 4px #F2C14E'},{boxShadow:'0 0 0 0 rgba(242,193,78,0)'}], {duration:700}); } }).catch(()=>{});
+  }
+}
+function setMode(m){
+  if (busy) return;
+  closeOverlay();
+  if (m==='free'){
+    MODE = 'free'; PROG.mode = 'free'; saveProg(); hideStamp(); timerReset(); logOpen = true;
+    revealRun++; document.getElementById('reveal').hidden = true;
+    document.body.classList.remove('errmode'); document.getElementById('errp').hidden = true;
+    ACT = []; H = [];
+    try { const s = JSON.parse(localStorage.getItem('stratify-free-v2')||'[]'); if (Array.isArray(s) && s.every(a=>a && (a.k==='u'&&UNITS[a.id] || a.k==='e'&&EVENTS.some(x=>x.id===a.id))) && !replay(s)) ACT = s; } catch(_){}
+    if (!ACT.length) H = [];
+    VH = VH_FROM = targetVH(); updateMission(); applyDrawer(); render(1,null); updateUI();
+    say('마음대로 쌓아 보세요. 놓은 순서가 곧 이 땅의 역사예요.','info');
+    return;
+  }
+  MODE = +m; LV = +m; CI = Math.min(PROG.last[LV]||0, LEVELS[LV].cards.length-1); loadCard();
+}
+document.querySelectorAll('.modes button').forEach(b=>b.addEventListener('click', ()=>setMode(b.dataset.mode)));
+document.getElementById('prevCard').addEventListener('click', ()=>{ if (!busy && CI>0){ CI--; loadCard(); } });
+document.getElementById('nextCard').addEventListener('click', ()=>{ if (!busy && CI<LEVELS[LV].cards.length-1){ CI++; loadCard(); } });
+document.getElementById('thumbBtn').addEventListener('click', ()=>{
+  const fx = isErr();
+  openOverlay(fx ? '고칠 단면' : '목표 그림', `<canvas id="ovPic"></canvas><p style="margin:.6rem 0 0">${fx ? '이 단면의 지층과 사건을 그대로 쓰되, 자연에서 만들어질 수 있는 순서로 다시 쌓아 보세요.' : '이 그림과 똑같은 단면을 만들어 보세요.'}</p>`, false);
+  renderHist(fx ? errHist(card()) : buildHist(targetActs()), document.getElementById('ovPic'));
+});
+
+/* ---------- 서랍 만들기 ---------- */
+const ICONS = {
+  normal:'<path d="M3 9h17M3 16h20.5M3 23h24"/><path d="M22 13h19M25.5 20h15.5M29 27h12"/><path class="f" d="M17 3 29 27"/>',
+  reverse:'<path d="M3 9h17M3 16h20.5M3 23h24"/><path d="M18 5h23M21.5 12h19.5M25 19h16"/><path class="f" d="M17 3 29 27"/>',
+  fold:'<path d="M3 11q9.5-8 19 0t19 0M3 17q9.5-8 19 0t19 0M3 23q9.5-8 19 0t19 0"/>',
+  intr:'<path d="M3 9h38M3 16h38M3 23h38"/><path class="o" d="M21 29 19 13q2-6 6-3l3 19z"/>',
+  extr:'<path d="M3 13h38M3 20h38M3 27h38"/><path class="d" d="M3 5h38v4H3z"/><path class="d" d="M20 9h3v19h-3z"/>',
+  ero:'<path class="g" d="M3 6h38M3 11h38"/><path d="M3 15q4-3 8 0t8 0 8 0 8 0 8 0M3 21h38M3 27h38"/>',
+  flip:'<path d="M3 13h38M3 19h38"/><path d="M10 9a12 6 0 0 1 22-1"/><path d="M29 5l3 3-4 1"/><path d="M34 23a12 6 0 0 1-22 1"/><path d="M15 27l-3-3 4-1"/>',
+  surf:'<path d="M3 22h38"/><path class="d" d="M3 22h38v6H3z" style="opacity:.35"/><path d="M22 22v-7"/><path class="t" d="M22 6a5 5 0 1 1 0 10 5 5 0 1 1 0-10z"/>'
+};
+function svgIcon(id){
+  return `<svg viewBox="0 0 44 30" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICONS[id]}</g></svg>`
+    .replace(/class="f"/g,'stroke-width="3"').replace(/class="o"/g,'fill="#FF8C69"').replace(/class="d"/g,'fill="#57545C" stroke="none"')
+    .replace(/class="g"/g,'stroke-dasharray="2 3" opacity=".5"').replace(/class="t"/g,'fill="#5E8C2A" stroke="none"');
+}
+function swatch(id){
+  const c = document.createElement('canvas'); const dpr = Math.min(2, window.devicePixelRatio||1);
+  c.width = 48*dpr; c.height = 38*dpr; const x = c.getContext('2d');
+  const fy = {tri:2.4, dino:2.6}[id] ?? 4, fx = {dino:3.6}[id] ?? 3.125;
+  const k = 48*dpr/6; x.scale(k,k); x.translate(-(fx-3), -(fy-38/48*3)); paintTile(x,id); return c;
+}
+function buildDrawer(){
+  const pu = document.getElementById('panel-units');
+  for (const [g,title] of GROUPS){
+    const sec = document.createElement('div'); sec.className='group';
+    sec.innerHTML = `<h3>${title}</h3>`; const grid = document.createElement('div'); grid.className='grid';
+    for (const [id,u] of Object.entries(UNITS)){ if (u.group!==g) continue;
+      const b = document.createElement('button'); b.type='button'; b.className='blk';
+      b.append(swatch(id)); const s=document.createElement('span'); s.textContent=u.label;
+      if (u.sub){ const sm=document.createElement('small'); sm.textContent=u.sub; s.append(sm); }
+      b.append(s); b.setAttribute('aria-label', u.label+' 층 올리기'); b.addEventListener('click', ()=>addUnit(id)); grid.append(b); }
+    sec.append(grid); pu.append(sec);
+  }
+  const pe = document.getElementById('panel-events');
+  const grid = document.createElement('div'); grid.className='grid'; grid.style.marginTop='12px';
+  for (const ev of EVENTS){ const b=document.createElement('button'); b.type='button'; b.className='blk';
+    b.innerHTML = svgIcon(ev.id) + `<span>${ev.label}</span>`; b.setAttribute('aria-label', ev.label+' 사건 놓기');
+    b.dataset.ev = ev.id; b.addEventListener('click', ()=>addEvent(ev.id)); grid.append(b); }
+  pe.append(grid);
+  const tabs = [...document.querySelectorAll('.tab')];
+  tabs.forEach(t=>t.addEventListener('click', ()=>{
+    tabs.forEach(x=>{ const on = x===t; x.setAttribute('aria-selected', on); document.getElementById(x.getAttribute('aria-controls')).hidden = !on; });
+  }));
+}
+
+/* ---------- 시작 ---------- */
+function resize(){
+  const dpr = Math.min(2, window.devicePixelRatio||1), w = Math.round(cvs.clientWidth*dpr);
+  if (!w || w===DW) return;
+  DW = w; DH = Math.round(w/ASP); cvs.width = DW; cvs.height = DH; buildTiles(DW/(VMIN*ASP)); render(1,null); if (isErrLock()) drawMarks();
+}
+buildDrawer();
+new ResizeObserver(()=>resize()).observe(cvs);
+resize();
+setMode(PROG.mode==='free' ? 'free' : (LEVELS[PROG.mode] ? PROG.mode : '1'));
+
+/* ---------- 시작 화면 ---------- */
+(function intro(){
+  const box = document.getElementById('intro'), icv = document.getElementById('introCv');
+  let done = false, raf = 0;
+  const finish = () => { if (done) return; done = true; cancelAnimationFrame(raf); box.classList.add('out'); setTimeout(()=>box.remove(), 750); };
+  const showTitle = () => { box.classList.add('titled'); document.getElementById('introStart')?.focus(); };
+  document.getElementById('introStart').addEventListener('click', finish);
+  document.getElementById('introSkip').addEventListener('click', ()=>{ cancelAnimationFrame(raf); showTitle(); });
+  if (reduceMotion){ showTitle(); return; }
+  let IH; try { IH = buildHist(P('graded tri cross amm dino ripple numm mamm ^surf')); } catch(_){ showTitle(); return; }
+  const nDep = IH.length-1, PER = 520, ZOOM = 1500, t0 = performance.now();
+  const dpr = Math.min(1.5, window.devicePixelRatio||1);
+  const mainTiles = tiles; buildTiles(36); const introTiles = tiles; tiles = mainTiles;
+  const ease = p => p<0.5 ? 2*p*p : 1-Math.pow(-2*p+2,2)/2;
+  function frame(now){
+    const t = Math.max(0, now - t0), W = Math.round(innerWidth*dpr), Hh = Math.round(innerHeight*dpr);
+    if (icv.width!==W || icv.height!==Hh){ icv.width = W; icv.height = Hh; }
+    const sv = {H, VH, VH_FROM, DW, DH, ctx, ASP, CAMZ, tiles};
+    try {
+      ASP = W/Hh; DW = W; DH = Hh; ctx = icv.getContext('2d'); tiles = introTiles;
+      let n, anim, q = 0.5;
+      const vh0 = Math.max(22, 19/ASP);
+      if (t < nDep*PER){
+        const i = Math.floor(t/PER), a = ease((t - i*PER)/PER), e = IH[i];
+        const top = e.first ? (ZBOT-4)+(e.T-(ZBOT-4))*a : e.base+(e.T-e.base)*a;
+        n = i+1; anim = {idx:i, a}; VH = VH_FROM = vh0; CAMZ = top - vh0*0.62;
+      } else {
+        const p = Math.min(1, (t - nDep*PER)/ZOOM), a = ease(p), topAll = IH[nDep-1].T;
+        const vh1 = (topAll - ZBOT + 14)*Math.max(1, 1.1/ASP*0.5);
+        n = IH.length; anim = null; VH = VH_FROM = vh0 + (vh1-vh0)*a;
+        CAMZ = (topAll - vh0*0.62)*(1-a) + (ZBOT - (VH - (topAll-ZBOT+14))*0.5)*a; q = p<1 ? 0.5 : 1;
+        if (p>=1){ H = IH.slice(0,n); render(1, null); showTitle(); return; }
+      }
+      H = IH.slice(0, n); render(q, anim);
+    } catch(_){ showTitle(); return; } finally { ({H, VH, VH_FROM, DW, DH, ctx, ASP, CAMZ, tiles} = sv); }
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
