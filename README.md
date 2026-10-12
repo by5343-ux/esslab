@@ -11,11 +11,15 @@ sims/               시뮬레이션 파일
   cyclone-sim.html          중위도 저기압 시뮬레이션만 [12지구01-03]  (워크북 준비 중)
   enso.html                 ENSO 탐구 (워크북)          [12지구01-05]
   enso-sim.html             ENSO 시뮬레이션만
+  dating-sim.html           상대 연령과 절대 연령 시뮬레이션 [12지구02-01]
+  stratify.html             Stratify 지사학의 달인 게임 [12지구02-01]
+  hr-diagram-sim.html       별의 물리량과 H-R도 시뮬레이션 [12지구03-02]
   geodex.html               GEODEX 게임                 [12지구02-05]
   geodex-workbook-1.html    GEODEX 인쇄용 워크북 1부
   geodex-workbook-2.html    GEODEX 인쇄용 워크북 2부
   plate-tectonics.html      판구조론 탐구 (워크북)      [12지시01-03]
   plate-tectonics-sim.html  판구조론 시뮬레이션만
+  seismic-interior.html     지진파와 지구 내부 구조 시뮬레이션 [12지시01-05]
   exoplanet.html            외계행성 탐사 연구소        [12행우01-05]
   exoplanet-sim.html        외계행성 시뮬레이션만
   cheongu-game.html         천구 레이저 관측대 게임     [12지실03-01]

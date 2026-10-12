@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>기압과 바람 시뮬레이션 (시뮬레이션만)</title>
+<style>
+:root {
+  --bg: #F6F3EC;
+  --ink: #1F2A37;
+  --high: #D98E4A;
+  --low: #3E7CB1;
+  --accent: #C84B31;
+  --success: #4F8A6D;
+  --card: #FFFDF8;
+  --soft: #EFEAE0;
+  --line: #E3DED2;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #EDE8DC; font-family: -apple-system, "Apple SD Gothic Neo", "Pretendard", "Malgun Gothic", system-ui, sans-serif; }
+#shell { max-width: 880px; margin: 0 auto; padding: 16px; }
+#app-box { background: var(--bg); border-radius: 24px; overflow: hidden; min-height: 700px; }
+
+/* 헤더 / 진행바 */
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 12px; }
+#progress { display: flex; align-items: center; gap: 4px; padding: 12px 4px; overflow-x: auto; flex: 1; }
+.stage-dot { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; min-width: 44px; min-height: 44px; padding: 2px; flex-shrink: 0; }
+.stage-dot:disabled { cursor: not-allowed; }
+.dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: #E3DED2; color: #9C9586; }
+.dot.done { background: var(--ink); color: #fff; }
+.dot-label { font-size: 11px; font-weight: 500; color: #9C9586; white-space: nowrap; }
+.dot-label.active { color: var(--ink); }
+.dot-line { flex: 1; height: 2px; background: var(--line); margin-bottom: 16px; min-width: 12px; }
+.dot-line.filled { background: var(--ink); }
+#resetAllBtn { flex-shrink: 0; font-size: 11px; padding: 6px 10px; color: var(--ink); opacity: 0.5; background: none; border: none; cursor: pointer; min-height: 44px; }
+h1.title { text-align: center; font-size: 18px; font-weight: 800; color: var(--ink); padding-bottom: 8px; margin: 0; }
+
+/* 공용 */
+.stage-wrap { display: flex; flex-direction: column; gap: 20px; padding: 16px 20px 28px; max-width: 700px; margin: 0 auto; }
+.stage-wrap.narrow { max-width: 520px; }
+.stage-wrap.center { align-items: center; }
+.card { background: var(--card); border-radius: 18px; padding: 16px; }
+.card.full { width: 100%; }
+.card.soft-bg { background: var(--soft); }
+.card-title { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 10px; }
+.lead { font-size: 14px; color: var(--ink); margin: 0; }
+.dim-text { font-size: 12px; color: var(--ink); opacity: 0.6; margin: 0; }
+.dim-text.center { text-align: center; }
+.note { font-size: 11px; color: var(--ink); opacity: 0.6; margin: 8px 0 0; }
+.tiny-label { font-size: 11px; font-weight: 700; color: var(--ink); opacity: 0.7; margin: 0 0 4px; }
+.italic-text { font-size: 14px; font-style: italic; color: var(--ink); margin: 0; }
+.q-label { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 10px; }
+.q-label.leading { line-height: 1.7; }
+.small-label { font-size: 12px; font-weight: 600; color: var(--ink); opacity: 0.7; display: block; margin: 4px 0 4px; }
+
+.btn-primary { background: var(--ink); color: #fff; font-weight: 700; border: none; border-radius: 16px; padding: 12px 16px; min-height: 44px; cursor: pointer; font-size: 14px; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary.full { width: 100%; }
+.btn-primary.accent { background: var(--accent); }
+.btn-primary.flex1 { flex: 1; }
+.btn-soft { background: var(--soft); color: var(--ink); font-weight: 700; border: none; border-radius: 16px; padding: 12px 16px; min-height: 44px; cursor: pointer; font-size: 14px; }
+.btn-dark { background: var(--ink); color: #fff; font-weight: 700; border: none; border-radius: 12px; padding: 10px 12px; min-height: 44px; cursor: pointer; font-size: 12px; }
+.row { display: flex; }
+.row.gap { gap: 12px; }
+.flex1 { flex: 1; }
+
+/* Engage */
+.balloon-holder { width: 230px; margin: 0 auto; cursor: pointer; touch-action: none; user-select: none; }
+.balloon-svg-lg { width: 100%; height: auto; display: block; }
+.balloon-mini { width: 110px; margin: 0 auto 4px; }
+.balloon-mini .balloon-svg-lg { width: 110px; }
+.lead.center { text-align: center; }
+.choice-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.choice-btn { text-align: left; padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-size: 14px; background: var(--soft); color: var(--ink); min-height: 44px; }
+.choice-btn.active { background: var(--ink); color: #fff; }
+.choice-btn.small { padding: 10px 12px; font-size: 13px; flex: none; }
+.choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.textarea { width: 100%; border: none; outline: none; resize: none; border-radius: 12px; padding: 12px; font-size: 14px; background: var(--soft); color: var(--ink); font-family: inherit; }
+.textarea.transparent { background: transparent; }
+
+/* Explore */
+.slider-block { margin-bottom: 12px; }
+.slider-head { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+input[type=range] { width: 100%; height: 28px; cursor: pointer; -webkit-appearance: none; appearance: none; background: transparent; }
+input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 6px; background: var(--line); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; border-radius: 50%; background: currentColor; cursor: pointer; margin-top: -10px; border: 3px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+input[type=range]::-moz-range-track { height: 6px; border-radius: 6px; background: var(--line); }
+input[type=range]::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: currentColor; cursor: pointer; border: 3px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+.mini-label { font-size: 12px; font-weight: 700; color: var(--ink); opacity: 0.6; margin: 12px 0 4px; }
+.tube-svg { width: 100%; height: 80px; border-radius: 12px; display: block; }
+.hint-center { font-size: 12px; text-align: center; color: var(--ink); margin: 8px 0 0; }
+.table-wrap { overflow-x: auto; }
+.data-table { width: 100%; font-size: 12px; color: var(--ink); border-collapse: collapse; font-family: monospace; }
+.data-table th { text-align: left; opacity: 0.6; font-weight: 600; padding: 4px 6px; }
+.data-table td { padding: 4px 6px; border-top: 1px solid var(--line); }
+
+/* Explain */
+.inline-select { margin: 0 4px; padding: 4px 8px; border-radius: 8px; font-size: 14px; font-weight: 700; background: var(--soft); border: none; }
+.feedback { font-size: 14px; font-weight: 600; margin: 10px 0 0; }
+.axis-unit { font-size: 10px; color: var(--ink); opacity: 0.5; margin: 0 0 4px; }
+.chart-row { display: flex; gap: 8px; }
+.y-ticks { display: flex; flex-direction: column; justify-content: space-between; height: 160px; padding-right: 4px; text-align: right; font-family: monospace; font-size: 10px; color: var(--ink); opacity: 0.55; }
+.chart-area { flex: 1; position: relative; height: 160px; border-left: 1px solid var(--line); }
+.grid-line { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line); }
+.bars { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 12px; padding: 0 4px; }
+.bar-col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
+.bar { width: 100%; border-radius: 8px 8px 0 0; transition: height 0.2s ease; }
+.bar-val { font-size: 10px; font-weight: 700; color: var(--ink); font-family: monospace; }
+.x-labels { display: flex; gap: 12px; padding-left: 40px; margin-top: 4px; }
+.bar-label { flex: 1; text-align: center; font-size: 10px; color: var(--ink); opacity: 0.6; font-family: monospace; }
+
+/* Elaborate */
+.tab-row { display: flex; gap: 8px; }
+.tab-btn { flex: 1; padding: 10px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; background: var(--soft); color: var(--ink); min-height: 44px; }
+.tab-btn.active { background: var(--ink); color: #fff; }
+.circ-svg { width: 100%; border-radius: 12px; display: block; background: linear-gradient(to top, #BFD6E8, #EAF2F8); }
+.info-box { background: var(--soft); border-radius: 12px; padding: 12px; margin-top: 10px; }
+.info-title { font-size: 14px; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+.info-text { font-size: 14px; color: var(--ink); margin: 0 0 4px; }
+.info-sub { font-size: 12px; font-weight: 600; color: var(--accent); margin: 0; }
+.info-sub.center { text-align: center; color: var(--ink); font-weight: 500; }
+.hl-compare { display: flex; gap: 10px; margin-top: 6px; }
+.hl-compare-col { flex: 1; }
+.hl-compare-emoji { font-size: 24px; text-align: center; margin: 0 0 4px; }
+
+/* Evaluate */
+.compare-row { display: flex; flex-direction: column; gap: 12px; }
+.compare-box { flex: 1; border-radius: 12px; padding: 12px; }
+.compare-box.soft { background: var(--soft); }
+.compare-box.green { background: #EAF2EC; }
+.quiz-item { background: var(--soft); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.quiz-q-idx { font-size: 11px; font-weight: 700; color: var(--ink); opacity: 0.6; margin: 0 0 2px; }
+.quiz-q { font-size: 14px; font-weight: 600; color: var(--ink); margin: 0 0 8px; }
+.quiz-opts { display: flex; flex-direction: column; gap: 8px; }
+.quiz-opt { text-align: left; padding: 10px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; min-height: 44px; }
+.quiz-feedback { font-size: 12px; font-weight: 600; margin: 8px 0 0; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+.tag { font-size: 11px; padding: 4px 8px; border-radius: 8px; background: var(--accent); color: #fff; }
+
+/* Toast */
+#toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%) translateY(20px); max-width: 90vw; background: var(--accent); color: #fff; padding: 12px 16px; border-radius: 16px; font-size: 13px; box-shadow: 0 4px 14px rgba(0,0,0,0.2); opacity: 0; pointer-events: none; transition: opacity 0.25s ease, transform 0.25s ease; z-index: 50; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (min-width: 640px) {
+  .slider-row { display: flex; gap: 16px; }
+  .slider-row .slider-block { flex: 1; margin-bottom: 12px; }
+  .compare-row { flex-direction: row; }
+}
+
+/* Intro / Student Info */
+.text-input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 8px; font-size: 15px; font-family: inherit; color: var(--ink); background: #fff; outline: none; margin-top: 2px; }
+.text-input:focus { border-color: var(--low); }
+
+/* Student badge */
+.student-badge { display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:12px; font-weight:600; color:var(--ink); opacity:0.7; padding:6px 16px 4px; border-bottom:1px solid var(--line); }
+
+</style>
+</head>
+<body>
+<div id="shell">
+  <div id="app-box">
+    <div class="topbar">
+      <div id="progress"></div>
+      <button id="resetAllBtn">초기화</button>
+    </div>
+    <h1 class="title">기압과 바람 시뮬레이션</h1>
+    <div id="student-badge"></div>
+    <div id="app"></div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+/* ===========================================================
+   기압과 바람 5E 시뮬레이션 - 순수 JavaScript (프레임워크 없음)
+   =========================================================== */
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "gibang-baram-sim-only-v1";
+  var SIM_ONLY = true;
+  var STAGES = ["engage", "explore", "explain", "elaborate", "evaluate"];
+  var STAGE_LABEL = { engage: "동기유발", explore: "탐구", explain: "설명", elaborate: "정교화", evaluate: "평가" };
+
+  /* ── 구글 스프레드시트 연동 설정 ──
+     교사가 Apps Script 배포 후 아래 두 줄을 채워주세요.
+     SUBMIT_URL : Apps Script 웹앱 URL  (POST 요청 수신)
+     READ_URL   : 시트 CSV 공개 URL     (GET 요청 - 학생 답 조회용)
+     비워두면 공유 기능 비활성 상태로 동작합니다. */
+  var SUBMIT_URL = "";
+  var READ_URL = "";
+
+  var HEX = { ink: "#1F2A37", high: "#D98E4A", low: "#3E7CB1", accent: "#C84B31", success: "#4F8A6D", soft: "#EFEAE0", line: "#E3DED2" };
+
+  var ENGAGE_CHOICES = [
+    { id: "a", label: "압력이 낮아진 반대쪽으로 공기가 밀려가서, 그쪽이 부풀어 오른다", trap: false },
+    { id: "b", label: "풍선 속 공기의 양 자체가 늘어나서 반대쪽이 부풀어 오른다", trap: true },
+    { id: "c", label: "손가락이 누른 힘이 그대로 반대쪽까지 전달되어 밀려난다", trap: true },
+    { id: "d", label: "공기는 풍선 모양을 원래대로 유지하려는 '목적'을 갖고 그쪽으로 이동한다", trap: true }
+  ];
+
+  var ZONES = [
+    { id: "eq", label: "적도", lat: "0°", angle: 0, pressure: "L" },
+    { id: "sub", label: "중위도", lat: "30°N", angle: 30, pressure: "H" },
+    { id: "polarlow", label: "고위도", lat: "60°N", angle: 60, pressure: "L" },
+    { id: "polar", label: "극", lat: "90°N", angle: 90, pressure: "H" }
+  ];
+  var WIND_SEGMENTS = [
+    { id: "trade", from: "sub", to: "eq", name: "무역풍" },
+    { id: "westerlies", from: "sub", to: "polarlow", name: "편서풍" },
+    { id: "polareast", from: "polar", to: "polarlow", name: "극동풍" }
+  ];
+  var PROVERBS = [
+    { id: "p1", text: "\u201c제비가 낮게 날면 비가 온다\u201d", answer: "L", explain: "공기 중 습도가 높고 기압이 낮아지면 벌레가 낮게 날아서 제비도 낮게 날아요. 저기압이 다가올 때의 신호예요." },
+    { id: "p2", text: "\u201c아침에 거미줄에 이슬이 많이 맺히면 그날은 날씨가 좋다\u201d", answer: "H", explain: "공기가 안정되고 바람이 약한 고기압의 영향을 받을 때 이슬이 잘 맺혀요." }
+  ];
+
+  var SCENE_WEATHER_OPTIONS = ["맑고 건조함", "맑지만 무더움", "흐리고 비", "흐림/소나기 가능"];
+
+  var SCENES = [
+    { id: "winter", title: "장면 1 · 겨울 시베리아 고기압", type: "H", cx: 75, cy: 75, rings: [25, 45, 65], ringColor: "#E3C9A6",
+      desc: "찬 대륙에서 만들어진 고기압이 우리나라 서북쪽에서 발달해 다가오고 있어요.",
+      correct: "맑고 건조함",
+      explain: "대륙 고기압은 차고 건조해서, 이 기압이 우리나라를 덮으면 춥고 맑은 날씨가 이어져요. (겨울철 한파의 원인!)" },
+    { id: "spring_low", title: "장면 2 · 이동성 저기압", type: "L", cx: 175, cy: 130, rings: [20, 34, 48], ringColor: "#AFC6DA",
+      desc: "중국 쪽에서 만들어진 저기압이 우리나라 쪽으로 이동해오고 있어요.",
+      correct: "흐리고 비",
+      explain: "저기압이 다가오면 상승 기류가 활발해져 구름과 비가 만들어져요. 봄·가을에 날씨가 며칠 만에 바뀌는 것도 이런 저기압들이 통과하기 때문이에요." },
+    { id: "pacific_center", title: "장면 3 · 북태평양 고기압 (중심부)", type: "H", cx: 220, cy: 265, rings: [22, 40, 60], ringColor: "#E3C9A6",
+      desc: "북태평양 고기압의 중심부가 우리나라를 직접 덮고 있어요.",
+      correct: "맑지만 무더움",
+      explain: "고기압 중심부는 공기가 천천히 가라앉으며 안정돼서 구름이 잘 안 생겨요. 한여름 폭염처럼 뜨겁고 맑은 날이 이어지는 이유예요." },
+    { id: "pacific_edge", title: "장면 4 · 북태평양 고기압 (가장자리)", type: "H", cx: 330, cy: 280, rings: [30, 55, 85, 115], ringColor: "#E3C9A6",
+      desc: "이번엔 같은 북태평양 고기압인데, 중심은 멀리 있고 가장자리(경계 부근)만 우리나라에 살짝 걸쳐 있어요.",
+      correct: "흐림/소나기 가능",
+      explain: "같은 '고기압'이라도 가장자리는 다른 공기와 부딪혀 불안정해지기 쉬워요. 그래서 한여름에도 소나기가 내리거나 흐려질 수 있어요. '고기압=항상 맑음'이 아니라는 걸 보여주는 핵심 장면이에요!" }
+  ];
+
+  var QUIZ = [
+    { id: "q1", tag: "단순 공기이동 오개념", q: "바람에 대한 설명으로 가장 정확한 것은?",
+      options: ["공기가 그냥 스스로 움직이는 현상이다", "기압 차이로 공기가 고기압에서 저기압으로 이동하는 현상이다", "더운 공기가 무조건 위로 솟아오르는 현상이다", "지구가 자전해서 생기는 현상일 뿐이다"], answer: 1 },
+    { id: "q2", tag: "저기압 단독 원인론", q: "바람을 만드는 직접적인 원인은?",
+      options: ["저기압이 공기를 끌어당겨서", "고기압이 공기를 밀어내서", "고기압과 저기압의 '기압 차이' 때문에", "바람은 원인이 없다"], answer: 2 },
+    { id: "q3", tag: "고기압/저기압 날씨 단정 오개념", q: "고기압과 날씨의 관계로 가장 정확한 것은?",
+      options: ["고기압 지역은 어디든 항상 맑다", "저기압 지역은 항상 폭우가 쏟아진다", "고기압 중심부는 맑기 쉽지만, 가장자리는 흐릴 수 있다", "기압과 날씨는 서로 전혀 관련이 없다"], answer: 2 },
+    { id: "q4", tag: "방향=힘 오해", q: "기압이 왼쪽 80hPa, 오른쪽 20hPa일 때 공기는 어느 방향으로 이동할까?",
+      options: ["오른쪽에서 왼쪽으로", "왼쪽에서 오른쪽으로", "양쪽에서 가운데로 모인다", "이동하지 않는다"], answer: 1 },
+    { id: "q5", tag: "위도별 바람 이해", q: "그림에서 중위도(고기압, 30°N)와 적도(저기압, 0°) 사이, 지표면에는 어떤 바람이 만들어질까?",
+      options: ["무역풍", "편서풍", "극동풍", "바람이 생기지 않는다"], answer: 0 }
+  ];
+
+  /* ---------------- 상태 ---------------- */
+  var state = loadState() || {
+    stage: "intro",
+    studentSchool: "",
+    studentName: "",
+    studentId: "",
+    completion: {},
+    engageChoice: "",
+    engageReason: "",
+    trials: [],
+    circulationProgress: {},
+    weatherAnswers: {},
+    quizAnswers: {},
+    afterReflection: "",
+    afterEngageChoice: ""
+  };
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function setState(patch) {
+    Object.assign(state, patch);
+    saveState();
+    render();
+  }
+
+  function engagePredictionText() {
+    var c = ENGAGE_CHOICES.filter(function (x) { return x.id === state.engageChoice; })[0];
+    if (!c) return "";
+    return state.engageReason && state.engageReason.trim()
+      ? c.label + " — " + state.engageReason.trim()
+      : c.label;
+  }
+
+  function niceCeil(n) {
+    if (n <= 0) return 10;
+    var exp = Math.floor(Math.log(n) / Math.LN10);
+    var base = Math.pow(10, exp);
+    var frac = n / base;
+    var niceFrac = frac <= 1 ? 1 : frac <= 2 ? 2 : frac <= 5 ? 5 : 10;
+    return niceFrac * base;
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  /* ---------------- 토스트 ---------------- */
+  var toastTimer = null;
+  function showToast(msg, tone) {
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.style.background = tone === "success" ? "var(--success)" : "var(--accent)";
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove("show"); }, 5000);
+  }
+
+  /* ================= INTRO (학생 정보 입력) ================= */
+  function renderIntro() {
+    var hasShare = SUBMIT_URL !== "";
+    return (
+      '<div class="stage-wrap narrow center" style="padding-top:28px">' +
+      '<p class="dim-text center" style="margin-bottom:24px">시작 전, 아래 정보를 입력해줘!</p>' +
+      '<div class="card full">' +
+      '<label class="small-label">학교명</label>' +
+      '<input id="introSchool" class="text-input" type="text" placeholder="예) ○○중학교" value="' + esc(state.studentSchool) + '"/>' +
+      '<label class="small-label" style="margin-top:12px">이름</label>' +
+      '<input id="introName" class="text-input" type="text" placeholder="예) 홍길동" value="' + esc(state.studentName) + '"/>' +
+      '<label class="small-label" style="margin-top:12px">학번 (학년-반-번호)</label>' +
+      '<input id="introId" class="text-input" type="text" placeholder="예) 3-2-15" value="' + esc(state.studentId) + '"/>' +
+      (hasShare ? (
+        '<div class="info-box" style="margin-top:16px;background:#EAF2F8">' +
+        '<p class="info-text" style="font-size:12px">✅ 선생님이 공유 기능을 켜두셨어요. 각 단계에서 답을 제출하면 선생님 화면과 공유됩니다.</p>' +
+        '</div>'
+      ) : '') +
+      '</div>' +
+      '<button class="btn-primary full" id="introNext" style="margin-top:16px">시작하기 →</button>' +
+      '</div>'
+    );
+  }
+
+  function bindIntro() {
+    var nextBtn = document.getElementById("introNext");
+    if (nextBtn) nextBtn.onclick = function () {
+      var school = (document.getElementById("introSchool").value || "").trim();
+      var name = (document.getElementById("introName").value || "").trim();
+      var id = (document.getElementById("introId").value || "").trim();
+      if (!school || !name || !id) {
+        showToast("학교명, 이름, 학번을 모두 입력해줘!"); return;
+      }
+      state.studentSchool = school;
+      state.studentName = name;
+      state.studentId = id;
+      state.stage = "engage";
+      saveState();
+      render();
+    };
+  }
+
+  /* ================= 공유 기능 ================= */
+  var shareViewVisible = false;
+  var shareViewData = [];
+  var shareViewLoading = false;
+  var shareViewError = "";
+
+  function shareAnswers(extra) {
+    if (!SUBMIT_URL) return;
+    var payload = {
+      school: state.studentSchool,
+      name: state.studentName,
+      id: state.studentId,
+      engageChoice: state.engageChoice,
+      engageReason: state.engageReason,
+      trialCount: state.trials.length,
+      afterReflection: state.afterReflection,
+      quizScore: Object.keys(state.quizAnswers).length
+    };
+    if (extra) Object.assign(payload, extra);
+    try {
+      fetch(SUBMIT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {}
+  }
+
+  function loadSharedAnswers(callback) {
+    if (!READ_URL) { callback([], "공유 기능이 비활성 상태입니다."); return; }
+    fetch(READ_URL)
+      .then(function (r) { return r.text(); })
+      .then(function (csv) {
+        var rows = csv.trim().split("\n").slice(1).map(function (row) {
+          var cols = row.split(",");
+          return { id: cols[2] || "", reason: cols[5] || "", reflection: cols[7] || "" };
+        }).filter(function (r) { return r.reason || r.reflection; });
+        callback(rows, "");
+      })
+      .catch(function () { callback([], "답변을 불러오는 데 실패했어요."); });
+  }
+
+  function renderSharePanel() {
+    if (!SUBMIT_URL) return "";
+    var togBtnLabel = shareViewVisible ? "🔼 닫기" : "👥 친구들 생각 보기";
+    var panel = '<button class="btn-soft full" id="shareToggleBtn" style="margin-top:12px">' + togBtnLabel + '</button>';
+    if (shareViewVisible) {
+      if (shareViewLoading) {
+        panel += '<div class="info-box" style="margin-top:8px"><p class="info-text">불러오는 중...</p></div>';
+      } else if (shareViewError) {
+        panel += '<div class="info-box" style="margin-top:8px"><p class="info-text" style="color:var(--accent)">' + esc(shareViewError) + '</p></div>';
+      } else if (shareViewData.length === 0) {
+        panel += '<div class="info-box" style="margin-top:8px"><p class="info-text">아직 공유된 답변이 없어요.</p></div>';
+      } else {
+        var items = shareViewData.map(function (r) {
+          return '<div class="card soft-bg" style="margin-bottom:8px">' +
+            '<p class="tiny-label">학번 ' + esc(r.id) + '</p>' +
+            (r.reason ? '<p class="info-text" style="margin-top:4px">' + esc(r.reason) + '</p>' : '') +
+            (r.reflection ? '<p class="dim-text" style="font-size:12px;margin-top:4px">📝 ' + esc(r.reflection) + '</p>' : '') +
+            '</div>';
+        }).join("");
+        panel += '<div style="margin-top:8px">' + items + '</div>';
+      }
+    }
+    return panel;
+  }
+
+  function bindSharePanel() {
+    var btn = document.getElementById("shareToggleBtn");
+    if (!btn) return;
+    btn.onclick = function () {
+      shareViewVisible = !shareViewVisible;
+      if (shareViewVisible) {
+        shareViewLoading = true;
+        shareViewError = "";
+        render();
+        loadSharedAnswers(function (data, err) {
+          shareViewLoading = false;
+          shareViewData = data;
+          shareViewError = err;
+          render();
+        });
+      } else {
+        render();
+      }
+    };
+  }
+
+  /* ---------------- 상단 진행바 ---------------- */
+  function renderProgress() {
+    var idx = STAGES.indexOf(state.stage);
+    var html = "";
+    STAGES.forEach(function (s, i) {
+      var unlocked = i === 0 || state.completion[STAGES[i - 1]];
+      html += '<button class="stage-dot" data-jump="' + s + '" ' + (unlocked ? "" : "disabled") + '>' +
+        '<span class="dot ' + (i <= idx ? "done" : "") + '">' + (state.completion[s] ? "✓" : i + 1) + '</span>' +
+        '<span class="dot-label ' + (i <= idx ? "active" : "") + '">' + STAGE_LABEL[s] + '</span></button>';
+      if (i < STAGES.length - 1) {
+        html += '<span class="dot-line ' + (i < idx ? "filled" : "") + '"></span>';
+      }
+    });
+    document.getElementById("progress").innerHTML = html;
+  }
+
+  /* ================= ENGAGE ================= */
+  var engageShowQuestion = false;
+  var engageAnim = { pressFrac: 0, target: 0, raf: null, hasReachedFull: false, hasCycled: false };
+  var ENGAGE_PARTICLES = [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (i) {
+    return { lag: 0.72 + (i % 5) * 0.09, dy: (i - 4) * 11 };
+  });
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function clamp01(t) { return t < 0 ? 0 : t > 1 ? 1 : t; }
+
+  function balloonOutlinePath(cx, cy, rxL, rxR, ry) {
+    var k = 0.552;
+    var top = cy - ry, bottom = cy + ry;
+    var leftX = cx - rxL, rightX = cx + rxR;
+    return (
+      "M " + leftX + " " + cy +
+      " C " + leftX + " " + (cy - ry * k) + " " + (cx - rxL * 0.5) + " " + top + " " + cx + " " + top +
+      " C " + (cx + rxR * 0.5) + " " + top + " " + rightX + " " + (cy - ry * k) + " " + rightX + " " + cy +
+      " C " + rightX + " " + (cy + ry * k) + " " + (cx + rxR * 0.5) + " " + bottom + " " + cx + " " + bottom +
+      " C " + (cx - rxL * 0.5) + " " + bottom + " " + leftX + " " + (cy + ry * k) + " " + leftX + " " + cy +
+      " Z"
+    );
+  }
+
+  function renderEngageBalloon(pressFrac, target) {
+    var cx = 130, cy = 88, ry = 56;
+    var rxL = 56 - 20 * pressFrac;
+    var rxR = 56 + 20 * pressFrac;
+    var d = balloonOutlinePath(cx, cy, rxL, rxR, ry);
+    var leftBound = cx - rxL * 0.55;
+    var rightBound = cx + rxR * 0.55;
+
+    var particles = ENGAGE_PARTICLES.map(function (p) {
+      var t = clamp01(pressFrac * p.lag);
+      var x = lerp(leftBound + 10, rightBound - 10, t);
+      var y = cy + p.dy * (ry / 56);
+      return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="4.2" fill="' + HEX.ink + '" opacity="0.55"/>';
+    }).join("");
+
+    var diff = target - pressFrac;
+    var arrowOpacity = Math.min(1, Math.abs(diff) * 6);
+    var arrowHtml = "";
+    if (arrowOpacity > 0.05) {
+      var dir = diff > 0 ? 1 : -1; // 1: 누르는 중(오른쪽으로), -1: 떼는 중(왼쪽으로)
+      var ax1 = dir === 1 ? cx - 16 : cx + 16;
+      var ax2 = dir === 1 ? cx + 16 : cx - 16;
+      arrowHtml = '<g opacity="' + arrowOpacity.toFixed(2) + '">' +
+        '<line x1="' + ax1 + '" y1="' + cy + '" x2="' + ax2 + '" y2="' + cy + '" stroke="' + HEX.accent + '" stroke-width="4" stroke-linecap="round"/>' +
+        '<path d="M ' + ax2 + ' ' + cy + ' l ' + (-10 * dir) + ' -7 l 0 14 Z" fill="' + HEX.accent + '"/>' +
+        '</g>';
+    }
+
+    return (
+      '<svg id="balloonSvg" viewBox="0 0 260 190" class="balloon-svg-lg">' +
+      '<defs><radialGradient id="balloonGrad" cx="35%" cy="28%" r="75%">' +
+      '<stop offset="0%" stop-color="#F6CE9C"/><stop offset="55%" stop-color="' + HEX.high + '"/><stop offset="100%" stop-color="#B8702E"/>' +
+      '</radialGradient></defs>' +
+      '<ellipse cx="' + cx + '" cy="' + (cy + ry + 8) + '" rx="' + (Math.max(rxL, rxR) * 0.5) + '" ry="7" fill="#000" opacity="0.08"/>' +
+      '<path d="' + d + '" fill="url(#balloonGrad)" stroke="#B8702E" stroke-width="2"/>' +
+      particles +
+      arrowHtml +
+      '<rect x="' + (cx - 9) + '" y="' + (cy + ry - 4) + '" width="18" height="15" rx="3" fill="#8C5A26"/>' +
+      '<path d="M ' + (cx - 2) + ' ' + (cy + ry + 11) + ' q 11 13 -3 25" stroke="#8C5A26" stroke-width="2" fill="none"/>' +
+      '<ellipse cx="' + (cx - rxL * 0.35) + '" cy="' + (cy - ry * 0.42) + '" rx="13" ry="8" fill="#fff" opacity="0.4"/>' +
+      "</svg>"
+    );
+  }
+
+  function engagePhaseLabel() {
+    if (engageAnim.target === 1 && engageAnim.pressFrac < 0.95) return "누르는 중... 압력이 높아진 쪽에서 반대쪽으로 공기가 밀려가요 →";
+    if (engageAnim.target === 1) return "계속 누르고 있는 중이에요. 이제 손을 떼볼까?";
+    if (engageAnim.target === 0 && engageAnim.pressFrac > 0.04) return "← 손을 떼는 중... 압력이 높았던 반대쪽에서 공기가 다시 돌아와요";
+    return "풍선의 왼쪽을 마우스(또는 손가락)로 누르고 있다가, 손을 떼보자!";
+  }
+
+  function updateEngageDOM() {
+    var holder = document.getElementById("balloonHolder");
+    if (holder) holder.innerHTML = renderEngageBalloon(engageAnim.pressFrac, engageAnim.target);
+    var hint = document.getElementById("engageHint");
+    if (hint) hint.textContent = engagePhaseLabel();
+  }
+
+  function engageStep() {
+    var diff = engageAnim.target - engageAnim.pressFrac;
+    if (Math.abs(diff) < 0.004) {
+      engageAnim.pressFrac = engageAnim.target;
+      updateEngageDOM();
+      engageAnim.raf = null;
+      if (engageAnim.target === 0 && engageAnim.hasReachedFull && !engageAnim.hasCycled) {
+        engageAnim.hasCycled = true;
+        render();
+      }
+      return;
+    }
+    engageAnim.pressFrac += diff * 0.18;
+    updateEngageDOM();
+    engageAnim.raf = requestAnimationFrame(engageStep);
+  }
+  function startEnginePress() {
+    engageAnim.target = 1;
+    if (!engageAnim.raf) engageAnim.raf = requestAnimationFrame(engageStep);
+  }
+  function endEnginePress() {
+    if (engageAnim.target !== 1) return;
+    if (engageAnim.pressFrac > 0.9) engageAnim.hasReachedFull = true;
+    engageAnim.target = 0;
+    if (!engageAnim.raf) engageAnim.raf = requestAnimationFrame(engageStep);
+  }
+
+  function renderEngage() {
+    if (!engageShowQuestion) {
+      return (
+        '<div class="stage-wrap narrow center">' +
+        '<div id="balloonHolder" class="balloon-holder">' + renderEngageBalloon(engageAnim.pressFrac, engageAnim.target) + '</div>' +
+        '<p class="lead center" id="engageHint">' + engagePhaseLabel() + '</p>' +
+        '<button class="btn-primary full" id="toQuestionBtn" ' + (engageAnim.hasCycled ? "" : "disabled") + '>' +
+        (engageAnim.hasCycled ? "다음 질문으로 →" : "누르고 손을 떼서 공기 이동을 관찰해보세요") + '</button>' +
+        '</div>'
+      );
+    }
+    var choicesHtml = ENGAGE_CHOICES.map(function (c) {
+      var active = state.engageChoice === c.id;
+      return '<button class="choice-btn ' + (active ? "active" : "") + '" data-engage-choice="' + c.id + '">' + esc(c.label) + '</button>';
+    }).join("");
+
+    return (
+      '<div class="stage-wrap narrow center">' +
+      '<div class="balloon-mini" style="pointer-events:none">' + renderEngageBalloon(1, 1) + '</div>' +
+      '<div class="card full">' +
+      '<label class="q-label">Q. 풍선 왼쪽을 누르니 오른쪽이 더 부풀었어. 그 안의 공기는 왜, 어떻게 이동했을까?</label>' +
+      '<div class="choice-list">' + choicesHtml + '</div>' +
+      '<label class="small-label">그렇게 생각한 이유를 적어줄래? (선택)</label>' +
+      '<textarea id="engageReason" class="textarea" rows="2" placeholder="정답은 없어, 떠오르는 생각을 자유롭게 적어줘!">' + esc(state.engageReason) + '</textarea>' +
+      '</div>' +
+      '<button class="btn-primary full" id="engageNext" ' + (!state.engageChoice ? "disabled" : "") + '>내 생각 저장하고 탐구 시작! →</button>' +
+      '</div>'
+    );
+  }
+  function bindEngage() {
+    var holder = document.getElementById("balloonHolder");
+    if (holder) {
+      holder.onpointerdown = function (e) { e.preventDefault(); startEnginePress(); };
+    }
+    if (!window.__engageWindowBound) {
+      window.addEventListener("pointerup", endEnginePress);
+      window.addEventListener("pointercancel", endEnginePress);
+      window.__engageWindowBound = true;
+    }
+    var toQ = document.getElementById("toQuestionBtn");
+    if (toQ) toQ.onclick = function () { if (engageAnim.hasCycled) { engageShowQuestion = true; render(); } };
+    document.querySelectorAll("[data-engage-choice]").forEach(function (btn) {
+      btn.onclick = function () { setState({ engageChoice: btn.getAttribute("data-engage-choice") }); };
+    });
+    var reasonEl = document.getElementById("engageReason");
+    if (reasonEl) reasonEl.oninput = function () { state.engageReason = reasonEl.value; saveState(); };
+    var nextBtn = document.getElementById("engageNext");
+    if (nextBtn) nextBtn.onclick = function () {
+      state.completion.engage = true; state.stage = "explore"; saveState(); render();
+    };
+  }
+
+  /* ================= EXPLORE ================= */
+  var N_PARTICLES = 24;
+  function freshParticles() {
+    var arr = [];
+    for (var i = 0; i < N_PARTICLES; i++) {
+      arr.push({ id: i, x: 50 + Math.random() * 200, row: i, jitter: 0.7 + Math.random() * 0.6 });
+    }
+    return arr;
+  }
+  var explore = {
+    left: 50, right: 50, running: false, probeAnswer: null,
+    particles: freshParticles(), raf: null, start: 0
+  };
+
+  function renderExplore() {
+    var diff = explore.left - explore.right;
+    var rowsHtml = state.trials.map(function (t) {
+      return '<tr><td>' + t.left + '</td><td>' + t.right + '</td><td>' + t.diff + '</td><td>' + t.speed + ' km/h</td><td>' + t.direction + '</td></tr>';
+    }).join("");
+
+    return (
+      '<div class="stage-wrap">' +
+      '<p class="lead">왼쪽·오른쪽 용기의 기압을 직접 설정하고 <b>실험하기</b>를 눌러봐. 공기 입자가 어디로, 얼마나 빠르게 움직이는지 잘 관찰해보자.</p>' +
+      '<div class="info-box" style="margin:0">' +
+      '<p class="info-title" style="margin-bottom:4px">💡 hPa(헥토파스칼)이 뭐야?</p>' +
+      '<p class="info-text">기압의 세기를 나타내는 단위야. 숫자가 클수록 그 지점을 누르는 공기의 압력이 더 세다는 뜻이야. (우리가 보통 숨 쉬는 평소 대기압은 약 1013hPa 정도야!) 이 실험에서는 이해하기 쉽게 0~100 사이의 값으로 단순화했어.</p>' +
+      '</div>' +
+      '<div class="card">' +
+      '<div class="slider-row">' +
+      sliderHtml("왼쪽 용기", "left", explore.left, "var(--high)") +
+      sliderHtml("오른쪽 용기", "right", explore.right, "var(--low)") +
+      '</div>' +
+      '<p class="mini-label">위에서 본 모습 (bird\'s-eye view)</p>' +
+      svgTop(explore) +
+      '<p class="mini-label" style="margin-top:10px">옆에서 본 모습 (단면도) — 같은 실험을 다른 각도에서 본 것</p>' +
+      svgSide(explore) +
+      '<p class="note">💡 실제 공기 알갱이는 사방으로 무작위로 움직이지만, 여기서는 전체 흐름의 방향(고기압→저기압)이 잘 보이도록 단순하게 표현했어요. 그래서 입자들이 통 전체 높이에 퍼져서 같은 방향으로 흘러가요.</p>' +
+      '<div class="row gap">' +
+      '<button class="btn-primary flex1 accent" id="runBtn" ' + (explore.running ? "disabled" : "") + '>' + (explore.running ? "실험 중..." : "실험하기 ▶") + '</button>' +
+      '<button class="btn-soft" id="resetBtn">다시 실험</button>' +
+      '</div>' +
+      (diff === 0 && !explore.running ? '<p class="hint-center">지금은 양쪽 기압이 같아요. 공기가 이동할까요? 슬라이더 값을 다르게 바꿔보세요.</p>' : "") +
+      '</div>' +
+      (state.trials.length > 0 ? (
+        '<div class="card"><h3 class="card-title">실험 기록</h3><div class="table-wrap"><table class="data-table">' +
+        '<thead><tr><th>왼쪽</th><th>오른쪽</th><th>기압차</th><th>풍속(가상)</th><th>방향</th></tr></thead>' +
+        '<tbody>' + rowsHtml + '</tbody></table></div></div>'
+      ) : "") +
+      (state.trials.length > 0 ? (
+        '<div class="card"><p class="q-label">바람을 만든 건 저기압일까요, 고기압일까요, 아니면 둘 다일까요?</p>' +
+        '<div class="choice-row">' + ["저기압만", "고기압만", "둘 다(기압차)", "잘 모르겠음"].map(function (opt) {
+          return '<button class="choice-btn small ' + (explore.probeAnswer === opt ? "active" : "") + '" data-probe="' + esc(opt) + '">' + esc(opt) + '</button>';
+        }).join("") + '</div></div>'
+      ) : "") +
+      '<button class="btn-primary full" id="exploreNext" ' + (state.trials.length < 2 ? "disabled" : "") + '>' +
+      (state.trials.length < 2 ? "실험을 2번 이상 해보세요" : "설명 단계로 →") + '</button>' +
+      '</div>'
+    );
+  }
+
+  function sliderHtml(label, key, value, color) {
+    return (
+      '<div class="slider-block">' +
+      '<div class="slider-head"><span>' + label + '</span><span style="color:' + color + ';font-family:monospace">' + value + ' hPa</span></div>' +
+      '<input type="range" min="0" max="100" value="' + value + '" data-slider="' + key + '" style="accent-color:' + color + '" />' +
+      '</div>'
+    );
+  }
+
+  function svgTop(ex) {
+    var circles = ex.particles.map(function (p) {
+      var y = 14 + (p.row / N_PARTICLES) * 52;
+      return '<circle cx="' + p.x + '" cy="' + y + '" r="5" fill="' + HEX.ink + '" stroke="#fff" stroke-width="1"/>';
+    }).join("");
+    return (
+      '<svg viewBox="0 0 300 80" class="tube-svg" style="background:' + HEX.soft + '">' +
+      '<rect x="0" y="10" width="40" height="60" fill="' + HEX.high + '" opacity="' + (0.35 + ex.left / 250) + '"/>' +
+      '<rect x="260" y="10" width="40" height="60" fill="' + HEX.low + '" opacity="' + (0.35 + ex.right / 250) + '"/>' +
+      '<rect x="40" y="10" width="220" height="60" fill="#E5DECF"/>' +
+      circles + '</svg>'
+    );
+  }
+  function svgSide(ex) {
+    var circles = ex.particles.map(function (p) {
+      var y = 12 + (p.row / N_PARTICLES) * 48;
+      return '<circle cx="' + p.x + '" cy="' + y + '" r="5" fill="' + HEX.ink + '" stroke="#fff" stroke-width="1"/>';
+    }).join("");
+    return (
+      '<svg viewBox="0 0 300 80" class="tube-svg" style="background:linear-gradient(0deg,#EFEAE0,#DCEAF5)">' +
+      '<rect x="0" y="60" width="300" height="20" fill="#C9BFA8"/>' +
+      '<rect x="0" y="10" width="40" height="50" fill="' + HEX.high + '" opacity="' + (0.35 + ex.left / 250) + '"/>' +
+      '<rect x="260" y="10" width="40" height="50" fill="' + HEX.low + '" opacity="' + (0.35 + ex.right / 250) + '"/>' +
+      circles +
+      '<text x="20" y="74" font-size="8" text-anchor="middle" fill="' + HEX.ink + '">지면</text></svg>'
+    );
+  }
+
+  function bindExplore() {
+    document.querySelectorAll("[data-slider]").forEach(function (input) {
+      input.oninput = function () {
+        explore[input.getAttribute("data-slider")] = Number(input.value);
+        updateSvgOnly();
+        updateSliderLabel(input);
+      };
+    });
+    var runBtn = document.getElementById("runBtn");
+    if (runBtn) runBtn.onclick = runExperiment;
+    var resetBtn = document.getElementById("resetBtn");
+    if (resetBtn) resetBtn.onclick = function () {
+      explore.running = false; explore.probeAnswer = null;
+      if (explore.raf) cancelAnimationFrame(explore.raf);
+      explore.particles = freshParticles();
+      render();
+    };
+    document.querySelectorAll("[data-probe]").forEach(function (btn) {
+      btn.onclick = function () {
+        explore.probeAnswer = btn.getAttribute("data-probe");
+        render();
+        var choice = explore.probeAnswer;
+        if (choice === "저기압만" || choice === "고기압만") {
+          showToast("방금 실험을 떠올려봐! 고기압 쪽 슬라이더를 0으로 내려도 바람 세기가 똑같을지 다시 실험해볼까요?");
+        } else if (choice === "둘 다(기압차)") {
+          showToast("정확해요! 기압 차이가 클수록 바람이 세지는 걸 데이터에서도 확인할 수 있어요. 👍", "success");
+        } else {
+          showToast("괜찮아요, 슬라이더를 여러 조합으로 바꿔보며 다시 실험해보세요!");
+        }
+      };
+    });
+    var nextBtn = document.getElementById("exploreNext");
+    if (nextBtn) nextBtn.onclick = function () {
+      state.completion.explore = true; state.stage = "explain"; saveState(); render();
+    };
+  }
+
+  // 슬라이더 드래그 중에는 전체 re-render 대신 SVG/라벨만 갱신 (부드러운 조작감)
+  function updateSvgOnly() {
+    var wrap = document.querySelector(".stage-wrap");
+    if (!wrap) return;
+    var svgs = wrap.querySelectorAll(".tube-svg");
+    if (svgs[0]) svgs[0].outerHTML = svgTop(explore);
+    if (svgs[1]) svgs[1].outerHTML = svgSide(explore);
+  }
+  function updateSliderLabel(input) {
+    var head = input.previousElementSibling;
+    if (!head) return;
+    var key = input.getAttribute("data-slider");
+    var span = head.querySelector("span:last-child");
+    if (span) span.textContent = explore[key] + " hPa";
+  }
+
+  function runExperiment() {
+    if (explore.raf) cancelAnimationFrame(explore.raf);
+    explore.running = true;
+    render();
+    explore.start = performance.now();
+    var diff = explore.left - explore.right;
+    var speed = diff === 0 ? 0 : (Math.abs(diff) / 100) * 1.6;
+    function step(now) {
+      var elapsed = now - explore.start;
+      explore.particles.forEach(function (p) {
+        if (diff === 0) return;
+        var nx = p.x + (diff > 0 ? speed : -speed) * p.jitter;
+        if (nx > 290) nx = 10;
+        if (nx < 10) nx = 290;
+        p.x = nx;
+      });
+      updateSvgOnly();
+      if (elapsed < 3000) {
+        explore.raf = requestAnimationFrame(step);
+      } else {
+        explore.running = false;
+        var speedKmh = Math.round(Math.abs(diff) * 0.6);
+        state.trials.push({
+          id: Date.now(), left: explore.left, right: explore.right, diff: diff, speed: speedKmh,
+          direction: diff === 0 ? "없음" : diff > 0 ? "고압→저압 (왼→오)" : "고압→저압 (오→왼)"
+        });
+        saveState();
+        render();
+      }
+    }
+    explore.raf = requestAnimationFrame(step);
+  }
+
+  /* ================= EXPLAIN ================= */
+  var explain = { blank1: "", blank2: "", checked: false, attempts: 0 };
+  function renderExplain() {
+    var isCorrect = explain.blank1 === "고기압" && explain.blank2 === "저기압";
+    var graph = "";
+    if (state.trials.length > 0) {
+      graph = '<p class="axis-unit">세로축 단위: km/h (가상)</p>' + barChart(state.trials);
+    } else {
+      graph = '<p class="dim-text">탐구 단계에서 실험을 하면 여기에 막대그래프가 그려져요.</p>';
+    }
+    return (
+      '<div class="stage-wrap">' +
+      '<div class="card soft-bg">' +
+      '<p class="tiny-label">Q. 풍선 왼쪽을 누르니 오른쪽이 더 부풀었어. 그 안의 공기는 왜, 어떻게 이동했을까?</p>' +
+      '<p class="tiny-label" style="margin-top:8px;opacity:0.5">내가 처음에 적은 답</p>' +
+      '<p class="italic-text">"' + esc(engagePredictionText() || "(입력 없음)") + '"</p>' +
+      '</div>' +
+      '<div class="card">' +
+      '<p class="q-label leading">문장을 완성해보자: 바람은 ' +
+      selectHtml("blank1", explain.blank1, "var(--high)") + ' 에서 ' +
+      selectHtml("blank2", explain.blank2, "var(--low)") + ' 으로 공기가 이동하는 것이다.</p>' +
+      '<button class="btn-primary" id="checkBtn" ' + (!explain.blank1 || !explain.blank2 ? "disabled" : "") + '>확인하기</button>' +
+      (explain.checked ?
+        '<p class="feedback" style="color:' + (isCorrect ? "var(--success)" : "var(--accent)") + '">' +
+        (isCorrect ? "맞아요! 공기는 항상 고기압에서 저기압으로 이동해요." :
+          explain.attempts >= 2 ? "정답은 '고기압'에서 '저기압'이에요. 탐구 단계의 표를 다시 보면 입자가 항상 압력이 높은 쪽에서 낮은 쪽으로 움직였죠?" :
+            "음... 아까 입자가 어느 슬라이더 쪽에서 어느 쪽으로 움직였는지 표를 다시 살펴볼까요?") +
+        '</p>' : "") +
+      '</div>' +
+      '<div class="card"><h3 class="card-title">기압차 vs 풍속(가상) 그래프</h3>' + graph +
+      '<p class="dim-text" style="margin-top:8px">막대가 높을수록 풍속이 빨랐다는 뜻이에요. 기압차(Δ)가 클수록 막대도 높아지나요?</p></div>' +
+      '<button class="btn-primary full" id="explainNext" ' + (!isCorrect ? "disabled" : "") + '>' +
+      (!isCorrect ? "문장을 정확히 완성해야 다음으로 갈 수 있어요" : "정교화 단계로 →") + '</button>' +
+      '</div>'
+    );
+  }
+  function selectHtml(key, value, color) {
+    var opts = ["고기압", "저기압"].map(function (o) {
+      return '<option value="' + o + '" ' + (value === o ? "selected" : "") + '>' + o + '</option>';
+    }).join("");
+    return '<select data-blank="' + key + '" style="color:' + color + '" class="inline-select"><option value="" disabled ' + (!value ? "selected" : "") + '>선택</option>' + opts + '</select>';
+  }
+  function barChart(trials) {
+    var maxSpeed = Math.max.apply(null, trials.map(function (t) { return t.speed; }).concat([1]));
+    var yMax = niceCeil(maxSpeed * 1.15);
+    var ticks = [0, 0.25, 0.5, 0.75, 1].map(function (f) { return Math.round(yMax * f); });
+    var tickHtml = ticks.slice().reverse().map(function (t) { return '<span>' + t + '</span>'; }).join("");
+    var gridHtml = ticks.map(function (t) { return '<div class="grid-line" style="bottom:' + (t / yMax * 100) + '%"></div>'; }).join("");
+    var barsHtml = trials.map(function (t) {
+      var h = Math.max(t.speed / yMax * 100, 2);
+      return '<div class="bar-col"><span class="bar-val">' + t.speed + '</span><div class="bar" style="height:' + h + '%;background:' + (t.diff >= 0 ? "var(--high)" : "var(--low)") + '"></div></div>';
+    }).join("");
+    var labelHtml = trials.map(function (t) { return '<span class="bar-label">Δ' + Math.abs(t.diff) + '</span>'; }).join("");
+    return (
+      '<div class="chart-row"><div class="y-ticks">' + tickHtml + '</div>' +
+      '<div class="chart-area">' + gridHtml + '<div class="bars">' + barsHtml + '</div></div></div>' +
+      '<div class="x-labels">' + labelHtml + '</div>'
+    );
+  }
+  function bindExplain() {
+    document.querySelectorAll("[data-blank]").forEach(function (sel) {
+      sel.onchange = function () { explain[sel.getAttribute("data-blank")] = sel.value; render(); };
+    });
+    var checkBtn = document.getElementById("checkBtn");
+    if (checkBtn) checkBtn.onclick = function () { explain.checked = true; explain.attempts++; render(); };
+    var nextBtn = document.getElementById("explainNext");
+    if (nextBtn) nextBtn.onclick = function () {
+      state.completion.explain = true; state.stage = "elaborate"; saveState(); render();
+    };
+  }
+
+  /* ================= ELABORATE ================= */
+  var elaborate = {
+    tab: "circulation",
+    activeSegment: null,
+    segmentGuess: {},     // segmentId -> "left" | "right" (학생이 고른 방향)
+    proverbAnswers: {},   // proverbId -> "H" | "L"
+    weatherUnlocked: false,
+    sceneIndex: 0
+  };
+
+  function renderElaborate() {
+    var tabsHtml = ['circulation', 'weather'].map(function (key) {
+      var label = key === 'circulation' ? '🌍 대기 순환 지도' : '🗺️ 일기도 읽기';
+      return '<button class="tab-btn ' + (elaborate.tab === key ? "active" : "") + '" data-tab="' + key + '">' + label + '</button>';
+    }).join("");
+
+    var circDone = WIND_SEGMENTS.every(function (s) { return state.circulationProgress[s.id]; });
+    var weatherDone = SCENES.every(function (s) { return state.weatherAnswers[s.id]; });
+
+    var body = elaborate.tab === "circulation" ? renderCirculation() : renderWeatherMap();
+
+    return (
+      '<div class="stage-wrap">' +
+      '<div class="tab-row">' + tabsHtml + '</div>' +
+      '<div class="card">' + body + '</div>' +
+      '<button class="btn-primary full" id="elaborateNext" ' + (!circDone || !weatherDone ? "disabled" : "") + '>' +
+      (!circDone || !weatherDone ? "두 활동을 모두 완료해보세요" : "평가 단계로 →") + '</button>' +
+      '</div>'
+    );
+  }
+
+  function zoneById(id) { return ZONES.filter(function (z) { return z.id === id; })[0]; }
+
+  function polarPt(cx, cy, r, angleDeg) {
+    var rad = (angleDeg * Math.PI) / 180;
+    return { x: cx + r * Math.cos(rad), y: cy - r * Math.sin(rad) };
+  }
+
+  function renderCirculation() {
+    var cx = 36, cy = 222, R = 168;
+
+    var arcStart = polarPt(cx, cy, R, 0);
+    var arcEnd = polarPt(cx, cy, R, 90);
+    var guideArc = '<path d="M ' + arcStart.x.toFixed(1) + ' ' + arcStart.y.toFixed(1) +
+      ' A ' + R + ' ' + R + ' 0 0 0 ' + arcEnd.x.toFixed(1) + ' ' + arcEnd.y.toFixed(1) + '" fill="none" stroke="#BFD6E8" stroke-width="14" stroke-linecap="round"/>';
+
+    var spokes = ZONES.map(function (z) {
+      var p = polarPt(cx, cy, R, z.angle);
+      return '<line x1="' + cx + '" y1="' + cy + '" x2="' + p.x.toFixed(1) + '" y2="' + p.y.toFixed(1) + '" stroke="#D8C9A8" stroke-width="1" stroke-dasharray="3,3"/>';
+    }).join("");
+
+    var zoneMarkers = ZONES.map(function (z) {
+      var p = polarPt(cx, cy, R, z.angle);
+      var labelP = polarPt(cx, cy, R + 32, z.angle);
+      var badgeColor = z.pressure === "H" ? HEX.high : HEX.low;
+      return (
+        '<g>' +
+        '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="19" fill="' + badgeColor + '"/>' +
+        '<text x="' + p.x.toFixed(1) + '" y="' + (p.y + 5).toFixed(1) + '" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">' + z.pressure + '</text>' +
+        '<text x="' + labelP.x.toFixed(1) + '" y="' + (labelP.y - 2).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="700" fill="' + HEX.ink + '">' + z.label + '</text>' +
+        '<text x="' + labelP.x.toFixed(1) + '" y="' + (labelP.y + 12).toFixed(1) + '" text-anchor="middle" font-size="10" fill="' + HEX.ink + '" opacity="0.6">' + z.lat + '</text>' +
+        '</g>'
+      );
+    }).join("");
+
+    var segmentsHtml = WIND_SEGMENTS.map(function (seg) {
+      var fromZ = zoneById(seg.from), toZ = zoneById(seg.to);
+      var lowZ = fromZ.angle < toZ.angle ? fromZ : toZ;   // 적도에 더 가까운 쪽
+      var highZ = fromZ.angle < toZ.angle ? toZ : fromZ;  // 극에 더 가까운 쪽
+      var midAngle = (lowZ.angle + highZ.angle) / 2;
+      var midPt = polarPt(cx, cy, R, midAngle);
+      var correctDir = fromZ.angle < toZ.angle ? "high" : "low"; // 고기압(from)→저기압(to) 방향이 적도쪽인지 극쪽인지
+      var answered = state.circulationProgress[seg.id];
+      var arrow = "";
+      if (answered) {
+        var p1 = polarPt(cx, cy, R, lowZ.angle);
+        var p2 = polarPt(cx, cy, R, highZ.angle);
+        var from = correctDir === "high" ? p1 : p2;
+        var to = correctDir === "high" ? p2 : p1;
+        var dx = to.x - from.x, dy = to.y - from.y;
+        var len = Math.sqrt(dx * dx + dy * dy);
+        var ux = dx / len, uy = dy / len;
+        var sx = from.x + ux * 26, sy = from.y + uy * 26;
+        var ex = to.x - ux * 30, ey = to.y - uy * 30;
+        arrow = '<path d="M ' + sx.toFixed(1) + ' ' + sy.toFixed(1) + ' L ' + ex.toFixed(1) + ' ' + ey.toFixed(1) + '" stroke="' + HEX.success + '" stroke-width="3" marker-end="url(#arrowR)"/>';
+      } else {
+        arrow = '<circle data-segment="' + seg.id + '" cx="' + midPt.x.toFixed(1) + '" cy="' + midPt.y.toFixed(1) + '" r="14" fill="' + (elaborate.activeSegment === seg.id ? HEX.accent : "#fff") + '" stroke="' + HEX.ink + '" stroke-width="1" style="cursor:pointer"/>' +
+          '<text data-segment="' + seg.id + '" x="' + midPt.x.toFixed(1) + '" y="' + (midPt.y + 5).toFixed(1) + '" text-anchor="middle" font-size="14" font-weight="bold" fill="' + (elaborate.activeSegment === seg.id ? "#fff" : HEX.ink) + '" style="cursor:pointer">?</text>';
+      }
+      var nameLabel = "";
+      if (answered) {
+        var labelPt = polarPt(cx, cy, R - 40, midAngle);
+        nameLabel = '<text x="' + labelPt.x.toFixed(1) + '" y="' + labelPt.y.toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="700" fill="' + HEX.success + '">' + seg.name + ' (지표)</text>';
+      }
+      return '<g>' + arrow + nameLabel + '</g>';
+    }).join("");
+
+    var activeSeg = WIND_SEGMENTS.filter(function (s) { return s.id === elaborate.activeSegment; })[0];
+    var promptHtml = "";
+    if (activeSeg && !state.circulationProgress[activeSeg.id]) {
+      var fromZ = zoneById(activeSeg.from), toZ = zoneById(activeSeg.to);
+      var lowLabel = (fromZ.angle < toZ.angle ? fromZ : toZ).label;
+      var highLabel = (fromZ.angle < toZ.angle ? toZ : fromZ).label;
+      promptHtml = (
+        '<div class="info-box">' +
+        '<p class="info-title">' + lowLabel + ' ↔ ' + highLabel + ' 사이, <u>지표면</u>에서 바람은 어디로 불까?</p>' +
+        '<p class="info-text">지표면(땅 위)에서는 바람이 고기압(H)에서 저기압(L)으로 불어요. 그림의 H·L을 보고 방향을 골라봐.</p>' +
+        '<div class="choice-row">' +
+        '<button class="choice-btn small" data-dir="low" data-seg="' + activeSeg.id + '">↓ ' + lowLabel + ' 쪽(적도 방향)으로</button>' +
+        '<button class="choice-btn small" data-dir="high" data-seg="' + activeSeg.id + '">↑ ' + highLabel + ' 쪽(극 방향)으로</button>' +
+        '</div></div>'
+      );
+    }
+
+    return (
+      '<p class="lead">지구의 단면을 적도에서 극까지 곡선으로 표현했어. 위도가 올라갈수록 곡선을 따라 위로 올라간다고 생각하면 돼. 그림 속 H(고기압)·L(저기압)을 보고, 두 지점 사이의 ❓를 눌러 <b>지표면(땅 위)</b>에서 부는 바람의 방향을 직접 예측해보자!</p>' +
+      '<svg viewBox="0 0 260 260" class="circ-svg">' +
+      '<defs><marker id="arrowR" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="' + HEX.success + '"/></marker></defs>' +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="' + HEX.ink + '" opacity="0.4"/>' +
+      '<text x="' + cx + '" y="' + (cy + 16) + '" font-size="9" fill="' + HEX.ink + '" opacity="0.5">지구 중심</text>' +
+      guideArc + spokes + zoneMarkers + segmentsHtml +
+      '</svg>' +
+      promptHtml +
+      '<div class="info-box" style="margin-top:8px;background:#FBEDE8">' +
+      '<p class="info-text" style="font-weight:700;margin-bottom:2px">💡 무역풍·편서풍·극동풍은 모두 <u>지표면(땅 위, 바다 위)</u>에서 부는 바람이야!</p>' +
+      '<p class="info-text" style="font-size:12px">대기 대순환에서 공기가 위아래로 움직이는 것까지 합쳐서 "이 바람"이라고 부르는 게 아니라, 땅과 가까운 표면을 따라 부는 바람만을 가리키는 이름이라는 걸 꼭 기억해!</p>' +
+      '</div>' +
+      '<p class="dim-text center" style="margin-top:8px">정답을 맞히면 초록 화살표와 지표면 바람 이름(무역풍·편서풍·극동풍)이 나타나요.</p>'
+    );
+  }
+
+  function renderEastAsiaMap() {
+    // 한반도·일본 본토(혼슈+규슈+시코쿠) 윤곽은 실제 백지도(동북아시아.jpg)에서
+    // OpenCV로 해안선을 추적해 추출한 좌표를 기반으로 합니다.
+    var china = '<path d="M 19.5 42.4 L 71.9 30.5 L 72.6 26.8 L 78.0 20.1 L 80.0 17.9 L 90.8 22.3 L 100.2 26.0 L 107.6 38.7 L 112.3 22.3 L 115.6 21.6 L 119.7 20.8 L 127.7 14.9 L 128.4 14.9 L 118.3 38.0 L 121.0 37.2 L 224.5 14.9 L 219.8 25.3 L 209.7 43.9 L 219.2 78.9 L 205.7 80.4 L 192.3 90.8 L 177.5 99.0 L 162.7 103.4 L 170 140 L 165 180 L 155 220 L 148 260 L 145 285 L 197.0 292.5 L 192.9 295.4 L 188.9 296.2 L 184.9 296.2 L 180.8 299.2 L 176.8 293.2 L 172.8 302.9 L 168.7 303.6 L 164.7 304.4 L 160.7 305.9 L 151.9 305.9 L 147.9 306.6 L 143.9 302.9 L 139.8 305.9 L 134.5 304.4 L 124.4 294.0 L 108.9 296.2 L 98.2 303.6 L 86.7 304.4 L 42.4 291.0 L 36.3 296.2 L 32.3 291.0 L 28.2 291.0 L 24.2 290.2 L 20.2 301.4 L 16.1 299.9 L 12.1 292.5 L 8.1 301.4 L 4.0 305.1 L 0.0 305.9 L 0 260 L 0 160 L 0 80 Z" ' +
+      'fill="#E4E0D2" stroke="#BDB69E" stroke-width="1.2"/>' +
+      '<text x="70" y="160" text-anchor="middle" font-size="11" fill="' + HEX.ink + '" opacity="0.55">중국</text>';
+
+    var peninsula = '<path d="M 205.7 157.0 L 205.7 160.7 L 207.1 162.2 L 213.1 163.0 L 214.5 164.5 L 215.1 171.9 L 217.8 171.9 L 217.8 170.4 L 221.2 166.7 L 226.6 166.0 L 231.3 168.9 L 234.6 168.2 L 236.0 169.7 L 239.3 170.4 L 238.0 176.4 L 236.6 177.9 L 232.6 177.1 L 227.2 180.1 L 225.9 183.1 L 221.8 186.0 L 217.1 192.0 L 217.1 194.2 L 223.2 198.7 L 224.5 204.7 L 227.2 209.9 L 227.2 212.8 L 229.2 213.6 L 233.9 220.3 L 233.9 230.0 L 229.9 231.4 L 229.9 232.9 L 236.0 234.4 L 237.3 235.9 L 237.3 238.9 L 234.6 241.1 L 234.6 243.3 L 232.6 245.6 L 231.9 248.6 L 245.0 246.0 L 258.0 240.0 L 268.0 233.0 L 275.0 224.0 L 279.0 216.0 L 280.3 213.6 L 279.7 215.8 L 276.3 215.1 L 276.3 212.1 L 279.0 211.3 L 279.7 208.4 L 281.7 208.4 L 281.7 202.4 L 279.7 201.7 L 279.0 196.5 L 275.0 196.5 L 269.6 199.4 L 266.2 199.4 L 265.5 200.9 L 259.5 199.4 L 258.8 193.5 L 260.8 192.7 L 260.8 189.8 L 262.9 185.3 L 262.2 181.6 L 260.8 180.8 L 259.5 176.4 L 261.5 173.4 L 262.9 173.4 L 262.9 170.4 L 259.5 168.9 L 254.8 169.7 L 254.1 168.2 L 252.1 167.4 L 252.1 166.0 L 250.1 165.2 L 250.1 163.0 L 252.8 159.3 L 254.1 152.6 L 251.4 152.6 L 248.7 149.6 L 244.7 149.6 L 237.3 153.3 L 231.3 159.3 L 226.6 160.0 L 225.9 156.3 L 227.2 154.8 L 227.2 150.3 L 228.6 147.3 L 232.6 143.6 L 232.6 140.7 L 228.6 139.9 L 223.2 146.6 L 218.5 148.8 L 213.8 156.3 Z" ' +
+      'fill="#D9D2BE" stroke="#A89C7E" stroke-width="1.5"/>' +
+      '<text x="245" y="160" text-anchor="middle" font-size="10" font-weight="700" fill="' + HEX.ink + '">우리나라</text>';
+
+    var jeju = '<ellipse cx="210" cy="275" rx="12" ry="6.5" fill="#D9D2BE" stroke="#A89C7E" stroke-width="1.2"/>' +
+      '<text x="210" y="291" text-anchor="middle" font-size="9" fill="' + HEX.ink + '">제주도</text>';
+    var busanGeoje = '<path d="M 295.1 198.0 L 293.1 198.7 L 292.4 201.7 L 282.4 209.1 L 284.4 209.1 L 285.0 214.3 L 286.4 215.1 L 286.4 217.3 L 288.4 218.0 L 287.7 225.5 L 291.1 227.7 L 295.1 224.7 L 295.1 207.6 L 293.8 206.1 L 295.1 205.4 L 293.1 203.2 L 293.8 201.7 L 295.1 202.4 L 295.1 200.9 L 294.5 202.4 L 292.4 200.9 Z" fill="#D9D2BE" stroke="#A89C7E" stroke-width="1.2"/>';
+    var ulleungdo = '<circle cx="312" cy="178" r="3.2" fill="#A89C7E"/><text x="318" y="181" font-size="9" fill="' + HEX.ink + '">울릉도</text>';
+    var dokdo = '<circle cx="332" cy="168" r="2.2" fill="#A89C7E"/><text x="337" y="165" font-size="8" fill="' + HEX.ink + '" opacity="0.8">독도</text>';
+
+    var japanMain = '<path d="M 398.7 103.4 L 394.6 102.7 L 391.9 107.2 L 390.6 106.4 L 390.6 104.9 L 388.6 104.9 L 385.2 108.7 L 377.8 104.9 L 367.7 92.3 L 365.0 93.0 L 364.4 95.3 L 362.4 95.3 L 361.7 93.0 L 360.3 93.0 L 361.7 96.7 L 365.0 97.5 L 365.7 103.4 L 365.0 107.9 L 363.0 111.6 L 363.0 115.3 L 361.0 116.1 L 357.0 114.6 L 357.0 118.3 L 352.9 122.0 L 352.9 125.0 L 350.3 125.8 L 350.3 128.0 L 352.3 126.5 L 354.3 128.0 L 353.6 132.5 L 356.3 134.7 L 356.3 138.4 L 353.6 140.7 L 353.6 146.6 L 352.3 148.1 L 354.3 150.3 L 354.3 153.3 L 350.3 164.5 L 346.2 168.2 L 342.2 174.1 L 337.5 175.6 L 336.1 177.1 L 334.8 176.4 L 334.8 174.9 L 336.8 172.7 L 336.8 170.4 L 332.8 171.9 L 332.1 177.9 L 327.4 183.8 L 326.7 188.3 L 324.0 189.0 L 322.0 186.8 L 315.3 189.0 L 306.6 189.0 L 296.5 198.7 L 293.8 199.4 L 293.1 202.4 L 290.4 203.9 L 289.1 206.1 L 287.1 206.9 L 285.7 203.9 L 285.0 205.4 L 286.4 207.6 L 283.7 208.4 L 282.4 210.6 L 285.0 211.3 L 285.7 215.8 L 288.4 219.5 L 288.4 227.0 L 293.1 229.2 L 295.8 226.2 L 297.1 226.2 L 298.5 218.0 L 301.2 214.3 L 301.2 209.1 L 303.2 209.1 L 303.9 212.8 L 305.2 214.3 L 307.2 214.3 L 310.6 208.4 L 316.0 209.9 L 316.6 207.6 L 319.3 205.4 L 320.0 201.7 L 324.0 207.6 L 327.4 207.6 L 329.4 203.2 L 333.4 200.9 L 334.8 198.0 L 342.9 198.0 L 344.2 195.7 L 346.2 198.0 L 350.9 197.2 L 350.9 195.7 L 348.9 195.0 L 349.6 192.7 L 352.3 193.5 L 352.9 195.7 L 357.6 192.7 L 357.6 190.5 L 360.3 188.3 L 359.0 184.6 L 359.0 180.1 L 361.7 175.6 L 361.0 166.0 L 362.4 163.7 L 364.4 163.7 L 365.0 159.3 L 367.7 156.3 L 368.4 150.3 L 367.1 145.1 L 364.4 141.4 L 364.4 134.0 L 361.0 132.5 L 362.4 129.5 L 357.0 124.3 L 359.0 123.5 L 360.3 125.0 L 362.4 125.0 L 366.4 122.8 L 369.7 125.8 L 376.5 128.7 L 377.1 125.0 L 381.2 119.8 L 387.2 119.1 L 395.3 114.6 L 396.0 112.4 L 399.3 111.6 L 398.7 109.4 L 395.3 113.1 L 391.3 114.6 L 389.9 113.9 L 389.9 112.4 L 391.9 111.6 L 391.9 110.1 Z"' +
+      'fill="#E4E0D2" stroke="#BDB69E" stroke-width="1.2"/>';
+    var hokkaido = '<ellipse cx="382" cy="18" rx="20" ry="16" fill="#E4E0D2" stroke="#BDB69E" stroke-width="1.2"/>';
+    var kyushuShikoku = '<path d="M 282 207 C 278 216 280 226 270 232 C 262 238 252 234 250 226 ' +
+      'C 248 218 256 212 264 210 C 270 206 278 203 282 207 Z" ' +
+      'fill="#E4E0D2" stroke="#BDB69E" stroke-width="1.2"/>' +
+      '<path d="M 286 214 C 292 212 300 215 299 222 C 298 228 290 230 285 226 ' +
+      'C 282 222 282 217 286 214 Z" fill="#E4E0D2" stroke="#BDB69E" stroke-width="1.1"/>';
+    var japanLabel = '<text x="350" y="150" text-anchor="middle" font-size="10" fill="' + HEX.ink + '" opacity="0.55">일본</text>';
+
+    var seaLabels = '<text x="150" y="115" font-size="9" fill="' + HEX.ink + '" opacity="0.4">황해</text>' +
+      '<text x="300" y="200" font-size="9" fill="' + HEX.ink + '" opacity="0.4">동해</text>';
+
+    return china + hokkaido + japanMain + kyushuShikoku + japanLabel + seaLabels + peninsula + busanGeoje + jeju + ulleungdo + dokdo;
+  }
+
+  function renderPressureBadge(scene) {
+    var color = scene.type === "H" ? HEX.high : HEX.low;
+    var rings = scene.rings.map(function (r) {
+      return '<circle cx="' + scene.cx + '" cy="' + scene.cy + '" r="' + r + '" fill="none" stroke="' + scene.ringColor + '" stroke-width="1.4"/>';
+    }).join("");
+    var badge = '<circle cx="' + scene.cx + '" cy="' + scene.cy + '" r="17" fill="' + color + '"/>' +
+      '<text x="' + scene.cx + '" y="' + (scene.cy + 5) + '" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">' + scene.type + '</text>';
+    return rings + badge;
+  }
+
+  function renderWeatherMap() {
+    if (!elaborate.weatherUnlocked) {
+      var proverbsHtml = PROVERBS.map(function (pv) {
+        var picked = elaborate.proverbAnswers[pv.id];
+        return (
+          '<div class="info-box">' +
+          '<p class="info-text" style="font-weight:700">' + pv.text + '</p>' +
+          '<div class="choice-row">' +
+          '<button class="choice-btn small ' + (picked === "H" ? "active" : "") + '" data-proverb="' + pv.id + '" data-pv-ans="H">고기압이 다가올 때</button>' +
+          '<button class="choice-btn small ' + (picked === "L" ? "active" : "") + '" data-proverb="' + pv.id + '" data-pv-ans="L">저기압이 다가올 때</button>' +
+          '</div>' +
+          (picked ? '<p class="info-sub" style="color:' + (picked === pv.answer ? "var(--success)" : "var(--accent)") + '">' +
+            (picked === pv.answer ? "맞아요! " : "음, 다시 생각해볼까요? ") + pv.explain + '</p>' : "") +
+          '</div>'
+        );
+      }).join("");
+      var allAnswered = PROVERBS.every(function (pv) { return elaborate.proverbAnswers[pv.id]; });
+      return (
+        '<p class="lead">옛날 사람들은 속담으로 날씨를 예측했어요. 다음 속담은 고기압과 저기압 중 어느 쪽이 다가올 때의 신호일까?</p>' +
+        proverbsHtml +
+        '<button class="btn-primary full" id="unlockWeatherBtn" ' + (!allAnswered ? "disabled" : "") + ' style="margin-top:8px">' +
+        (!allAnswered ? "두 속담 모두 답해보세요" : "이제 실제 일기도로 확인해보기 →") + '</button>'
+      );
+    }
+
+    return renderWeatherScene();
+  }
+
+  function renderWeatherScene() {
+    var idx = elaborate.sceneIndex || 0;
+    var scene = SCENES[idx];
+    var answered = state.weatherAnswers[scene.id];
+    var optionsHtml = SCENE_WEATHER_OPTIONS.map(function (opt) {
+      var active = answered === opt;
+      return '<button class="choice-btn small ' + (active ? "active" : "") + '" data-scene-opt="' + esc(opt) + '">' + opt + '</button>';
+    }).join("");
+    var feedbackHtml = "";
+    if (answered) {
+      var isMatch = answered === scene.correct;
+      feedbackHtml = '<p class="info-sub" style="color:' + (isMatch ? "var(--success)" : "var(--accent)") + '">' +
+        (isMatch ? "맞아요! " : "음, 다시 한 번 생각해볼까요? ") + scene.explain + '</p>';
+    }
+    var allDone = SCENES.every(function (s) { return state.weatherAnswers[s.id]; });
+    var summaryHtml = allDone ? (
+      '<div class="info-box" style="margin-top:10px">' +
+      '<p class="info-title">정리: 고기압이라고 늘 맑은 건 아니야!</p>' +
+      '<div class="hl-compare">' +
+      '<div class="hl-compare-col"><p class="hl-compare-emoji">☀️</p><p class="info-sub center">장면3 (중심부)<br/>공기가 천천히 가라앉으며 안정돼요 → 맑지만 무더워요</p></div>' +
+      '<div class="hl-compare-col"><p class="hl-compare-emoji">🌥️</p><p class="info-sub center">장면4 (가장자리)<br/>다른 공기와 부딪혀 습해지기 쉬워요 → 흐릴 수 있어요</p></div>' +
+      '</div></div>'
+    ) : "";
+
+    return (
+      '<p class="dim-text" style="margin-bottom:6px">장면 ' + (idx + 1) + ' / ' + SCENES.length + '</p>' +
+      '<p class="q-label">' + scene.title + '</p>' +
+      '<p class="lead" style="margin-bottom:8px">' + scene.desc + '</p>' +
+      '<svg viewBox="0 0 400 320" class="circ-svg" style="background:#EAF2F8">' +
+      renderEastAsiaMap() + renderPressureBadge(scene) +
+      '</svg>' +
+      '<p class="info-text" style="margin-top:8px;font-weight:700">이 기압이 우리나라 쪽에 영향을 줄 때, 우리나라 날씨는 어떨까?</p>' +
+      '<div class="choice-row">' + optionsHtml + '</div>' +
+      feedbackHtml +
+      '<div class="row gap" style="margin-top:10px">' +
+      '<button class="btn-soft" id="scenePrev" ' + (idx === 0 ? "disabled" : "") + '>← 이전 장면</button>' +
+      '<button class="btn-primary flex1" id="sceneNext" ' + (idx === SCENES.length - 1 || !answered ? "disabled" : "") + '>다음 장면 →</button>' +
+      '</div>' +
+      summaryHtml
+    );
+  }
+
+
+  function bindElaborate() {
+    document.querySelectorAll("[data-tab]").forEach(function (btn) {
+      btn.onclick = function () { elaborate.tab = btn.getAttribute("data-tab"); render(); };
+    });
+    document.querySelectorAll("[data-segment]").forEach(function (g) {
+      g.onclick = function () { elaborate.activeSegment = g.getAttribute("data-segment"); render(); };
+    });
+    document.querySelectorAll("[data-dir]").forEach(function (btn) {
+      btn.onclick = function () {
+        var segId = btn.getAttribute("data-seg");
+        var dir = btn.getAttribute("data-dir");
+        var seg = WIND_SEGMENTS.filter(function (s) { return s.id === segId; })[0];
+        var fromZ = zoneById(seg.from), toZ = zoneById(seg.to);
+        var correctDir = fromZ.angle < toZ.angle ? "high" : "low";
+        if (dir === correctDir) {
+          state.circulationProgress[segId] = true;
+          elaborate.activeSegment = null;
+          saveState(); render();
+          showToast(seg.name + "이 맞아요! 지표면에서 고기압(" + fromZ.label + ")에서 저기압(" + toZ.label + ")으로 바람이 불어요.", "success");
+        } else {
+          showToast("음, 그림의 H·L을 다시 보자. 바람은 항상 고기압에서 저기압 쪽으로 불어요!");
+        }
+      };
+    });
+    document.querySelectorAll("[data-proverb]").forEach(function (btn) {
+      btn.onclick = function () {
+        var pvId = btn.getAttribute("data-proverb");
+        elaborate.proverbAnswers[pvId] = btn.getAttribute("data-pv-ans");
+        render();
+      };
+    });
+    var unlockBtn = document.getElementById("unlockWeatherBtn");
+    if (unlockBtn) unlockBtn.onclick = function () { elaborate.weatherUnlocked = true; render(); };
+    document.querySelectorAll("[data-scene-opt]").forEach(function (btn) {
+      btn.onclick = function () {
+        var idx = elaborate.sceneIndex || 0;
+        var scene = SCENES[idx];
+        var opt = btn.getAttribute("data-scene-opt");
+        state.weatherAnswers[scene.id] = opt;
+        saveState(); render();
+        if (scene.id === "pacific_edge" && opt !== scene.correct && (opt === "맑고 건조함" || opt === "맑지만 무더움")) {
+          showToast("고기압이라고 해서 항상 날씨가 좋은 건 아니에요. 장면3(중심부)과 비교해보면 어떻게 다를까요?");
+        }
+      };
+    });
+    var scenePrev = document.getElementById("scenePrev");
+    if (scenePrev) scenePrev.onclick = function () { elaborate.sceneIndex = Math.max(0, (elaborate.sceneIndex || 0) - 1); render(); };
+    var sceneNext = document.getElementById("sceneNext");
+    if (sceneNext) sceneNext.onclick = function () { elaborate.sceneIndex = Math.min(SCENES.length - 1, (elaborate.sceneIndex || 0) + 1); render(); };
+    var nextBtn = document.getElementById("elaborateNext");
+    if (nextBtn) nextBtn.onclick = function () {
+      state.completion.elaborate = true; state.stage = "evaluate"; saveState(); render();
+    };
+  }
+
+  /* ================= EVALUATE ================= */
+  function renderEvaluate() {
+    var answeredCount = Object.keys(state.quizAnswers).length;
+    var correctCount = QUIZ.filter(function (q) { return state.quizAnswers[q.id] === q.answer; }).length;
+    var wrongTags = QUIZ.filter(function (q) { return state.quizAnswers[q.id] !== undefined && state.quizAnswers[q.id] !== q.answer; }).map(function (q) { return q.tag; });
+
+    var quizHtml = QUIZ.map(function (item, i) {
+      var picked = state.quizAnswers[item.id];
+      var isAnswered = picked !== undefined;
+      var isCorrect = picked === item.answer;
+      var optsHtml = item.options.map(function (opt, oi) {
+        var pickedThis = picked === oi;
+        var bg = pickedThis ? (isCorrect ? "var(--success)" : "var(--accent)") : "#fff";
+        var color = pickedThis ? "#fff" : "var(--ink)";
+        return '<button class="quiz-opt" style="background:' + bg + ';color:' + color + '" data-quiz="' + item.id + '" data-opt="' + oi + '">' + esc(opt) + '</button>';
+      }).join("");
+      return (
+        '<div class="quiz-item">' +
+        '<p class="quiz-q-idx">Q' + (i + 1) + '</p>' +
+        '<p class="quiz-q">' + esc(item.q) + '</p>' +
+        '<div class="quiz-opts">' + optsHtml + '</div>' +
+        (isAnswered ? '<p class="quiz-feedback" style="color:' + (isCorrect ? "var(--success)" : "var(--accent)") + '">' +
+          (isCorrect ? "잘 이해한 개념이에요 ✓" : "다시 살펴볼 개념: " + item.tag) + '</p>' : "") +
+        '</div>'
+      );
+    }).join("");
+
+    var resultHtml = "";
+    if (answeredCount === QUIZ.length) {
+      resultHtml = (
+        '<div class="card" style="background:' + (wrongTags.length ? "#FBEDE8" : "#EAF2EC") + '">' +
+        '<h3 class="card-title">결과: ' + correctCount + ' / ' + QUIZ.length + ' 개념 확인</h3>' +
+        (wrongTags.length === 0
+          ? '<p class="feedback" style="color:var(--success)">모든 개념을 잘 이해했어요! 대단해요 🎉</p>'
+          : (
+            '<p class="feedback" style="color:var(--accent)">아직 다시 살펴볼 개념이 있어요:</p>' +
+            '<div class="tag-row">' + wrongTags.map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join("") + '</div>' +
+            '<div class="row gap" style="margin-top:10px">' +
+            '<button class="btn-dark" data-revisit="explore">탐구 단계 다시보기</button>' +
+            '<button class="btn-dark" data-revisit="elaborate">정교화 단계 다시보기</button>' +
+            '</div>'
+          )) +
+        '</div>'
+      );
+    }
+
+    var afterChoiceHtml = ENGAGE_CHOICES.map(function (c) {
+      var active = state.afterEngageChoice === c.id;
+      return '<button class="choice-btn small ' + (active ? "active" : "") + '" data-after-choice="' + c.id + '">' + esc(c.label) + '</button>';
+    }).join("");
+    var changedNote = "";
+    if (state.afterEngageChoice) {
+      changedNote = state.afterEngageChoice === state.engageChoice
+        ? '<p class="info-sub" style="color:var(--accent)">처음과 같은 답을 골랐네요. 탐구했던 실험과 비교해서 다시 한 번 생각해볼까요?</p>'
+        : '<p class="info-sub" style="color:var(--success)">생각이 바뀌었어요! 어떤 탐구 활동이 그 변화에 도움이 됐을까요?</p>';
+    }
+
+    return (
+      '<div class="stage-wrap">' +
+      '<div class="card">' +
+      '<h3 class="card-title">동기유발 때 물었던 질문, 다시 한 번!</h3>' +
+      '<p class="lead" style="margin-bottom:8px">Q. 풍선 왼쪽을 누르니 오른쪽이 더 부풀었어. 그 안의 공기는 왜, 어떻게 이동했을까?</p>' +
+      '<div class="choice-list">' + afterChoiceHtml + '</div>' +
+      changedNote +
+      '</div>' +
+      '<div class="card">' +
+      '<h3 class="card-title">처음 생각 vs 지금 생각 (서술)</h3>' +
+      '<div class="compare-row">' +
+      '<div class="compare-box soft"><p class="tiny-label">학습 전 (Engage)</p><p class="italic-text">"' + esc(engagePredictionText() || "(입력 없음)") + '"</p></div>' +
+      '<div class="compare-box green"><p class="tiny-label">학습 후 (지금)</p>' +
+      '<textarea id="afterReflection" class="textarea transparent" rows="3" placeholder="지금은 바람이 왜 생긴다고 생각해? 처음 생각과 비교해서 적어보자.">' + esc(state.afterReflection) + '</textarea>' +
+      '</div></div>' +
+      '<p class="dim-text" style="margin-top:10px">처음 생각과 비교해보니 어떤 점이 달라졌나요? 그 변화가 바로 오늘 탐구의 결과예요.</p>' +
+      '</div>' +
+      '<div class="card"><h3 class="card-title">진단 퀴즈 (' + answeredCount + '/' + QUIZ.length + ')</h3>' + quizHtml + '</div>' +
+      resultHtml +
+      (answeredCount === QUIZ.length && SUBMIT_URL ? (
+        '<div class="card" style="background:#EAF2F8">' +
+        '<h3 class="card-title">📤 내 답 공유하기</h3>' +
+        '<p class="info-text">내 생각을 익명으로 친구들과 공유하면 조별 토의 자료로 활용할 수 있어요!</p>' +
+        '<button class="btn-primary full" id="submitShareBtn" style="margin-top:8px">✅ 내 답 제출하기</button>' +
+        renderSharePanel() +
+        '</div>'
+      ) : '') +
+      '</div>'
+    );
+  }
+  function bindEvaluate() {
+    var ref = document.getElementById("afterReflection");
+    if (ref) ref.oninput = function () { state.afterReflection = ref.value; saveState(); };
+    document.querySelectorAll("[data-after-choice]").forEach(function (btn) {
+      btn.onclick = function () { state.afterEngageChoice = btn.getAttribute("data-after-choice"); saveState(); render(); };
+    });
+    document.querySelectorAll("[data-quiz]").forEach(function (btn) {
+      btn.onclick = function () {
+        state.quizAnswers[btn.getAttribute("data-quiz")] = Number(btn.getAttribute("data-opt"));
+        saveState(); render();
+      };
+    });
+    document.querySelectorAll("[data-revisit]").forEach(function (btn) {
+      btn.onclick = function () { state.stage = btn.getAttribute("data-revisit"); saveState(); render(); };
+    });
+    var submitBtn = document.getElementById("submitShareBtn");
+    if (submitBtn) submitBtn.onclick = function () {
+      shareAnswers({ afterReflection: state.afterReflection, afterEngageChoice: state.afterEngageChoice });
+      submitBtn.textContent = "✅ 제출 완료!";
+      submitBtn.disabled = true;
+      showToast("답을 제출했어요! 잠시 후 '친구들 생각 보기'를 눌러봐요.", "success");
+    };
+    bindSharePanel();
+  }
+
+  /* ================= 메인 렌더 ================= */
+  /* ================= 시뮬레이션만 모드 ================= */
+  var simTab = "balloon";
+  function renderSimOnly() {
+    var tabs = [["balloon", "🎈 풍선 실험"], ["explore", "💨 기압차 실험"], ["circ", "🌍 대기 순환"], ["weather", "🗺️ 일기도"]];
+    var tabHtml = '<div class="tab-row">' + tabs.map(function (t) {
+      return '<button class="tab-btn ' + (simTab === t[0] ? "active" : "") + '" data-sim-tab="' + t[0] + '">' + t[1] + '</button>';
+    }).join("") + '</div>';
+    var body = "";
+    if (simTab === "balloon") {
+      body = '<div class="stage-wrap narrow center">' +
+        '<p class="lead center">풍선의 한쪽을 누르고 있다가 손을 떼 보세요. 안의 공기가 어떻게 움직이는지 관찰해요.</p>' +
+        '<div id="balloonHolder" class="balloon-holder">' + renderEngageBalloon(engageAnim.pressFrac, engageAnim.target) + '</div>' +
+        '<p class="lead center" id="engageHint">' + engagePhaseLabel() + '</p></div>';
+    } else if (simTab === "explore") {
+      var full = renderExplore();
+      var cut = full.indexOf('<div class="card"><p class="q-label">바람을 만든 건');
+      if (cut < 0) cut = full.indexOf('<button class="btn-primary full" id="exploreNext"');
+      body = (cut > 0 ? full.slice(0, cut) : full) + '</div>';
+    } else if (simTab === "circ") {
+      body = '<div class="stage-wrap"><div class="card">' + renderCirculation() + '</div></div>';
+    } else {
+      elaborate.weatherUnlocked = true;
+      body = '<div class="stage-wrap"><div class="card">' + renderWeatherMap() + '</div></div>';
+    }
+    return '<div class="stage-wrap"><p class="dim-text" style="margin:0;font-size:13px;opacity:.8">워크북의 질문 없이 <b>시뮬레이션만</b> 모은 페이지예요.</p>' + tabHtml + '</div>' + body;
+  }
+  function bindSimOnly() {
+    document.querySelectorAll("[data-sim-tab]").forEach(function (btn) {
+      btn.onclick = function () { simTab = btn.getAttribute("data-sim-tab"); render(); };
+    });
+    if (simTab === "balloon") bindEngage();
+    else if (simTab === "explore") bindExplore();
+    else bindElaborate();
+  }
+
+  function render() {
+    if (SIM_ONLY) {
+      var tb = document.querySelector(".topbar"); if (tb) tb.style.display = "none";
+      var bd = document.getElementById("student-badge"); if (bd) bd.innerHTML = "";
+      document.getElementById("app").innerHTML = renderSimOnly();
+      bindSimOnly();
+      return;
+    }
+    // 학생 배지
+    var badge = document.getElementById("student-badge");
+    if (badge) {
+      if (state.stage !== "intro" && state.studentName) {
+        badge.innerHTML = '<div class="student-badge">' +
+          '<span>🏫 ' + esc(state.studentSchool) + '</span>' +
+          '<span style="margin-left:10px">👤 ' + esc(state.studentName) + '</span>' +
+          '<span style="margin-left:10px">🔢 ' + esc(state.studentId) + '</span>' +
+          '<button class="btn-soft" id="changeStudentBtn" style="margin-left:12px;padding:2px 8px;font-size:11px">수정</button>' +
+          '</div>';
+        var changeBtn = document.getElementById("changeStudentBtn");
+        if (changeBtn) changeBtn.onclick = function () { state.stage = "intro"; saveState(); render(); };
+      } else {
+        badge.innerHTML = "";
+      }
+    }
+    if (state.stage === "intro") {
+      document.getElementById("progress").innerHTML = "";
+      document.getElementById("app").innerHTML = renderIntro();
+      bindIntro();
+      return;
+    }
+    renderProgress();
+    var html = "";
+    if (state.stage === "engage") html = renderEngage();
+    else if (state.stage === "explore") html = renderExplore();
+    else if (state.stage === "explain") html = renderExplain();
+    else if (state.stage === "elaborate") html = renderElaborate();
+    else if (state.stage === "evaluate") html = renderEvaluate();
+    document.getElementById("app").innerHTML = html;
+
+    document.querySelectorAll("[data-jump]").forEach(function (btn) {
+      btn.onclick = function () { state.stage = btn.getAttribute("data-jump"); saveState(); render(); };
+    });
+
+    if (state.stage === "engage") bindEngage();
+    else if (state.stage === "explore") bindExplore();
+    else if (state.stage === "explain") bindExplain();
+    else if (state.stage === "elaborate") bindElaborate();
+    else if (state.stage === "evaluate") bindEvaluate();
+  }
+
+  function init() {
+    document.getElementById("resetAllBtn").onclick = function () {
+      if (!window.confirm("모든 진행 상황을 초기화할까요?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      state = { stage: "intro", studentSchool: state.studentSchool || "", studentName: state.studentName || "", studentId: state.studentId || "", completion: {}, engageChoice: "", engageReason: "", trials: [], circulationProgress: {}, weatherAnswers: {}, quizAnswers: {}, afterReflection: "", afterEngageChoice: "" };
+      engageShowQuestion = false;
+      engageAnim = { pressFrac: 0, target: 0, raf: null, hasReachedFull: false, hasCycled: false };
+      explore = { left: 50, right: 50, running: false, probeAnswer: null, particles: freshParticles(), raf: null, start: 0 };
+      explain = { blank1: "", blank2: "", checked: false, attempts: 0 };
+      elaborate = { tab: "circulation", activeSegment: null, segmentGuess: {}, proverbAnswers: {}, weatherUnlocked: false, sceneIndex: 0 };
+      render();
+    };
+    render();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+</script>
+</body>
+</html>

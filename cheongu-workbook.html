@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>천구 레이저 관측대 워크북</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --ink:#16202e; --muted:#5b6778; --line:#b9c2cf; --soft:#eef2f7; --paper:#ffffff; --desk:#dfe4ea;
+  --hor:#c77a0a; --hor-soft:#fdf1df; --eq:#0a7fa8; --eq-soft:#e2f4fb; --adv:#6a4bc4; --adv-soft:#efeafc; --ans:#d2334a;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--desk);color:var(--ink);font-family:var(--sans);font-size:10.5pt;line-height:1.55}
+.toolbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;padding:10px 16px;background:#1b2536;color:#fff}
+.toolbar b{font-weight:600;margin-right:6px}
+.toolbar button{font:inherit;font-size:14px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:7px 14px;cursor:pointer}
+.toolbar button.primary{background:#74ff9c;color:#06210f;border-color:#74ff9c;font-weight:700}
+.toolbar button[aria-pressed="true"]{background:#ffd6dc;color:#5a0d19;border-color:#ffd6dc}
+.pages{padding:20px 16px 40px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.page{width:210mm;max-width:100%;min-height:297mm;background:var(--paper);padding:14mm 15mm 12mm;box-shadow:0 4px 18px rgba(0,0,0,.15);position:relative;display:flex;flex-direction:column;gap:9px}
+.page:after{content:attr(data-foot);position:absolute;left:15mm;right:15mm;bottom:6mm;font-size:8pt;color:var(--muted);display:flex;justify-content:space-between;border-top:1px solid var(--soft);padding-top:3px}
+.phead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;border-bottom:2.5px solid var(--ink);padding-bottom:5px}
+.phead .kicker{font-size:8.5pt;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.phead h2{margin:0;font-size:15pt;letter-spacing:-.01em}
+.phead .who{font-size:9pt;color:var(--muted);white-space:nowrap}
+.phead .who span{display:inline-block;min-width:22mm;border-bottom:1px solid var(--ink);margin-left:3px}
+h1{font-size:23pt;line-height:1.2;margin:4px 0 2px;letter-spacing:-.02em}
+h1 .h{color:var(--hor)} h1 .e{color:var(--eq)}
+h3{font-size:11.5pt;margin:6px 0 2px;display:flex;align-items:center;gap:7px}
+h3 .tag{font-size:8.5pt;font-weight:700;color:#fff;background:var(--ink);border-radius:4px;padding:1px 6px;letter-spacing:.03em}
+h3 .tag.h{background:var(--hor)} h3 .tag.e{background:var(--eq)} h3 .tag.a{background:var(--adv)}
+p{margin:0}
+.lead{color:var(--muted);font-size:10pt}
+.box{border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+.box.h{background:var(--hor-soft);border-color:#e9c58c} .box.e{background:var(--eq-soft);border-color:#9fd3e6} .box.a{background:var(--adv-soft);border-color:#cabdf1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+table{width:100%;border-collapse:collapse;font-size:10pt}
+th,td{border:1px solid var(--line);padding:5px 6px;text-align:center;vertical-align:middle}
+th{background:var(--soft);font-weight:600;font-size:9.5pt}
+th.h{background:var(--hor-soft);color:#7a4a05} th.e{background:var(--eq-soft);color:#055a78} th.a{background:var(--adv-soft);color:#45308a}
+td.l,th.l{text-align:left}
+td.w{height:9mm}
+.blank{display:inline-block;min-width:24mm;border-bottom:1px solid var(--ink);height:1.3em;vertical-align:bottom;text-align:center;position:relative}
+.blank.s{min-width:13mm} .blank.l{min-width:48mm}
+.lines{display:flex;flex-direction:column}
+.lines i{display:block;height:8.5mm;border-bottom:1px solid var(--line)}
+.check{display:inline-block;width:3.6mm;height:3.6mm;border:1.2px solid var(--ink);border-radius:1px;vertical-align:-2px;margin-right:5px}
+ol.q{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+.note{font-size:8.8pt;color:var(--muted)}
+.fig{display:flex;justify-content:center}
+.fig svg{width:100%;max-width:92mm;height:auto}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.steps div{border:1px solid var(--line);border-radius:6px;padding:6px 7px;font-size:9pt;line-height:1.4}
+.steps b{display:block;font-size:9.5pt}
+.figgrid{grid-template-columns:1.2fr 1fr}
+.kind{font-size:8.8pt;color:var(--muted);line-height:1.3}
+.bogi{margin-top:6px;font-size:9.5pt;border:1px dashed var(--line);border-radius:6px;padding:5px 8px}
+.bogi b{margin-right:6px}
+.steps .adv{border-style:dashed;border-color:#b3a3ea;color:#45308a}
+/* 교사용 답안 */
+.ans{display:none;color:var(--ans);font-family:var(--mono);font-size:9.5pt;font-weight:500}
+body.teacher .ans{display:inline}
+body.teacher div.ans,body.teacher p.ans{display:block}
+.blank .ans{position:absolute;left:0;right:0;bottom:1px;font-size:9pt;white-space:nowrap}
+body.teacher .page{outline:2px dashed rgba(210,51,74,.35);outline-offset:-6px}
+body.teacher .page:before{content:"교사용 답안";position:absolute;top:5mm;right:15mm;font-size:8pt;font-weight:700;color:var(--ans)}
+@page{size:A4;margin:0}
+@media print{
+  html,body{background:#fff}
+  .toolbar{display:none}
+  .pages{padding:0;gap:0}
+  .page{box-shadow:none;width:210mm;height:297mm;min-height:0;break-after:page;page-break-after:always;overflow:hidden}
+  .page:last-child{break-after:auto;page-break-after:auto}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media screen and (max-width:820px){
+  .page{min-height:0;padding:18px 16px 34px}
+  .page:after{left:16px;right:16px;bottom:8px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .phead{flex-wrap:wrap}
+  .tblwrap{overflow-x:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <b>천구 레이저 관측대 · 인쇄용 워크북</b>
+  <button class="primary" id="printBtn">인쇄하기 (A4 5쪽)</button>
+  <button id="ansBtn" aria-pressed="false">교사용 답안 보기</button>
+  <button id="advBtn" aria-pressed="true">심화 쪽 포함</button>
+</div>
+
+<div class="pages">
+
+<!-- 1쪽: 표지와 천구 -->
+<section class="page" data-foot="ESS Lab · bae_earth(배지구)          1 / 5">
+  <div class="phead">
+    <div><div class="kicker">지구과학 실험 [12지실03-01] · 천구와 좌표계</div><h2>천구 레이저 관측대 워크북</h2></div>
+    <div class="who">학번<span></span> 이름<span></span></div>
+  </div>
+  <h1>하늘의 한 점을 <span class="h">두 가지 주소</span>로 <span class="e">말하기</span></h1>
+  <p class="lead">게임 속 관측자가 되어 관측 레이저로 목표를 포착하며, 왜 좌표계가 두 개(지평좌표계·적도좌표계)나 필요한지 알아냅니다. 게임을 하면서 이 기록지를 채우세요. 정답을 먼저 찾아보지 말고, 화면에서 직접 읽은 값을 적어요.</p>
+  <div class="steps">
+    <div><b>1단계</b>지평좌표 훈련</div>
+    <div><b>2단계</b>시간이 흐른다</div>
+    <div><b>3단계</b>별에 붙은 좌표</div>
+    <div><b>4단계</b>위도를 바꾼다</div>
+    <div><b>5단계</b>두 눈으로 읽기</div>
+  </div>
+
+  <h3><span class="tag">시작 전</span> 천구란 무엇일까? <span class="note">(게임의 ‘천구와 좌표 먼저 배우기’를 보고 채워요)</span></h3>
+  <div class="box">
+    <p>별까지의 거리는 제각각이지만 눈으로는 멀고 가까움을 알 수 없어서, 관측자를 중심으로 한 반지름이 아주 큰 가상의 공에 천체가 붙어 있다고 생각해요. 이 공을 <span class="blank">&nbsp;<span class="ans">천구</span></span>라고 해요.</p>
+    <p style="margin-top:5px">지구의 자전축을 하늘까지 늘여 천구와 만나는 두 점을 <span class="blank l">&nbsp;<span class="ans">천구 북극·천구 남극</span></span>, 지구 적도를 늘인 원을 <span class="blank">&nbsp;<span class="ans">천구 적도</span></span>라고 해요.</p>
+  </div>
+
+  <h3><span class="tag h">그림</span> 천구 그림의 ①~⑥이 가리키는 것의 이름을 보기에서 골라 쓰세요.</h3>
+  <div class="grid2 figgrid" style="align-items:center">
+    <div class="fig">
+      <svg viewBox="-12 10 346 232" width="340" role="img" aria-label="관측자를 중심으로 한 천구. 지평선, 천정, 북점, 별과 방위각·고도가 표시되어 있다." font-family="IBM Plex Sans KR, sans-serif"><circle cx="165" cy="128" r="100" fill="#f6f8fb" stroke="#16202e" stroke-width="1.5"/><path d="M241.6 150.0 L238.1 151.3 L234.5 152.6 L230.6 153.8 L226.6 155.0 L222.4 156.0 L218.0 157.0 L213.5 157.9 L208.8 158.7 L204.1 159.5 L199.2 160.1 L194.2 160.7 L189.2 161.2 L184.1 161.6 L178.9 161.9 L173.7 162.1 L168.5 162.2 L163.3 162.2 L158.0 162.1 L152.8 161.9 L147.6 161.7 L142.5 161.3 L137.4 160.9 L132.4 160.3 L127.5 159.7 L122.7 159.0 L118.1 158.2 L113.5 157.3 L109.1 156.4 L104.8 155.3 L100.7 154.2 L96.8 153.0 L93.1 151.8 L89.5 150.4 L86.2 149.1 L83.1 147.6 L80.2 146.1 L77.5 144.6 L75.1 143.0 L72.9 141.4 L71.0 139.7 L69.4 138.0 L68.0 136.3 L66.8 134.5 L66.0 132.8 L65.4 131.0 L65.1 129.2 L65.0 127.4 L65.2 125.6 L65.7 123.8 L66.5 122.1 L67.6 120.3 L68.9 118.6 L70.4 116.9 L72.3 115.2 L74.4 113.5 L76.7 111.9 L79.3 110.4 L82.1 108.9 L85.1 107.4 L88.4 106.0 L91.9 104.7 L95.5 103.4 L99.4 102.2 L103.4 101.0 L107.6 100.0 L112.0 99.0 L116.5 98.1 L121.2 97.3 L125.9 96.5 L130.8 95.9 L135.8 95.3 L140.8 94.8 L145.9 94.4 L151.1 94.1 L156.3 93.9 L161.5 93.8 L166.7 93.8 L172.0 93.9 L177.2 94.1 L182.4 94.3 L187.5 94.7 L192.6 95.1 L197.6 95.7 L202.5 96.3 L207.3 97.0 L211.9 97.8 L216.5 98.7 L220.9 99.6 L225.2 100.7 L229.3 101.8 L233.2 103.0 L236.9 104.2 L240.5 105.6 L243.8 106.9 L246.9 108.4 L249.8 109.9 L252.5 111.4 L254.9 113.0 L257.1 114.6 L259.0 116.3 L260.6 118.0 L262.0 119.7 L263.2 121.5 L264.0 123.2 L264.6 125.0 L264.9 126.8 L265.0 128.6 L264.8 130.4 L264.3 132.2 L263.5 133.9 L262.4 135.7 L261.1 137.4 L259.6 139.1 L257.7 140.8 L255.6 142.5 L253.3 144.1 L250.7 145.6 L247.9 147.1 L244.9 148.6 L241.6 150.0 Z" fill="#fdf1df" opacity=".85"/><path d="M241.6 150.0 L238.1 151.3 L234.5 152.6 L230.6 153.8 L226.6 155.0 L222.4 156.0 L218.0 157.0 L213.5 157.9 L208.8 158.7 L204.1 159.5 L199.2 160.1 L194.2 160.7 L189.2 161.2 L184.1 161.6 L178.9 161.9 L173.7 162.1 L168.5 162.2 L163.3 162.2 L158.0 162.1 L152.8 161.9 L147.6 161.7 L142.5 161.3 L137.4 160.9 L132.4 160.3 L127.5 159.7 L122.7 159.0 L118.1 158.2 L113.5 157.3 L109.1 156.4 L104.8 155.3 L100.7 154.2 L96.8 153.0 L93.1 151.8 L89.5 150.4 L86.2 149.1 L83.1 147.6 L80.2 146.1 L77.5 144.6 L75.1 143.0 L72.9 141.4 L71.0 139.7 L69.4 138.0 L68.0 136.3 L66.8 134.5 L66.0 132.8 L65.4 131.0 L65.1 129.2" fill="none" stroke="#c77a0a" stroke-width="2" stroke-linecap="round"/><path d="M65.1 129.2 L65.0 127.4 L65.2 125.6 L65.7 123.8 L66.5 122.1 L67.6 120.3 L68.9 118.6 L70.4 116.9 L72.3 115.2 L74.4 113.5 L76.7 111.9 L79.3 110.4 L82.1 108.9 L85.1 107.4 L88.4 106.0 L91.9 104.7 L95.5 103.4 L99.4 102.2 L103.4 101.0 L107.6 100.0 L112.0 99.0 L116.5 98.1 L121.2 97.3 L125.9 96.5 L130.8 95.9 L135.8 95.3 L140.8 94.8 L145.9 94.4 L151.1 94.1 L156.3 93.9 L161.5 93.8 L166.7 93.8 L172.0 93.9 L177.2 94.1 L182.4 94.3 L187.5 94.7 L192.6 95.1 L197.6 95.7 L202.5 96.3 L207.3 97.0 L211.9 97.8 L216.5 98.7 L220.9 99.6 L225.2 100.7 L229.3 101.8 L233.2 103.0 L236.9 104.2 L240.5 105.6 L243.8 106.9 L246.9 108.4 L249.8 109.9 L252.5 111.4 L254.9 113.0 L257.1 114.6 L259.0 116.3 L260.6 118.0 L262.0 119.7 L263.2 121.5 L264.0 123.2 L264.6 125.0 L264.9 126.8" fill="none" stroke="#c77a0a" stroke-width="1.4" stroke-dasharray="4 4" opacity=".7"/><path d="M264.9 126.8 L265.0 128.6 L264.8 130.4 L264.3 132.2 L263.5 133.9 L262.4 135.7 L261.1 137.4 L259.6 139.1 L257.7 140.8 L255.6 142.5 L253.3 144.1 L250.7 145.6 L247.9 147.1 L244.9 148.6 L241.6 150.0" fill="none" stroke="#c77a0a" stroke-width="2" stroke-linecap="round"/><line x1="165.0" y1="128.0" x2="165.0" y2="34.0" stroke="#16202e" stroke-dasharray="4 4"/><circle cx="165.0" cy="34.0" r="4" fill="#16202e"/><path d="M241.6 150.0 L239.3 150.9 L236.9 151.8 L234.5 152.6 L231.9 153.4 L229.3 154.2 L226.6 155.0 L223.8 155.7 L220.9 156.4 L218.0 157.0 L215.0 157.6 L211.9 158.2 L208.8 158.7 L205.7 159.2 L202.5 159.7 L199.2 160.1 L195.9 160.5 L192.6 160.9 L189.2 161.2 L185.8 161.5 L182.4 161.7 L178.9 161.9 L175.5 162.0 L172.0 162.1 L168.5 162.2 L165.0 162.2 L161.5 162.2 L158.0 162.1 L154.5 162.0 L151.1 161.9 L147.6 161.7 L144.2 161.5 L140.8 161.2 L137.4 160.9 L134.1 160.5 L130.8 160.1 L127.5 159.7 L124.3 159.2 L121.2 158.7 L118.1 158.2 L115.0 157.6 L112.0 157.0 L109.1 156.4 L106.2 155.7 L103.4 155.0 L100.7 154.2 L98.1 153.4 L95.5 152.6 L93.1 151.8 L90.7 150.9 L88.4 150.0 L86.2 149.1 L84.1 148.1 L82.1 147.1 L80.2 146.1 L78.4 145.1 L76.7 144.1" fill="none" stroke="#c77a0a" stroke-width="4.5" stroke-linecap="round"/><path d="M76.7 144.1 L86.7 144.7 L82.4 152.3 Z" fill="#c77a0a"/><path d="M76.7 144.1 L76.8 140.8 L76.9 137.5 L77.2 134.1 L77.6 130.8 L78.0 127.5 L78.6 124.2 L79.3 120.8 L80.1 117.5 L81.0 114.2 L82.0 110.9 L83.1 107.7 L84.3 104.4 L85.6 101.2 L87.0 98.1 L88.5 94.9 L90.1 91.8 L91.8 88.8 L93.6 85.8 L95.4 82.8 L97.4 79.9" fill="none" stroke="#e39a2d" stroke-width="4.5" stroke-linecap="round"/><path d="M96.9 80.6 L95.8 90.6 L88.4 86.0 Z" fill="#e39a2d"/><line x1="165.0" y1="128.0" x2="97.4" y2="79.9" stroke="#16202e" stroke-width="1" stroke-dasharray="2 3"/><line x1="165.0" y1="128.0" x2="76.7" y2="144.1" stroke="#16202e" stroke-width="1" stroke-dasharray="2 3"/><circle cx="97.4" cy="79.9" r="6.5" fill="#f2c94c" stroke="#16202e"/><text x="109.4" y="73.9" font-size="11.5">별</text><circle cx="165.0" cy="128.0" r="3.2" fill="#16202e"/><text x="159.0" y="143.0" font-size="10.5" text-anchor="end">관측자</text><circle cx="241.6" cy="150.0" r="3" fill="#16202e"/><text x="254.1" y="156.5" font-size="11.5" font-weight="700" text-anchor="middle">N</text><circle cx="100.7" cy="154.2" r="3" fill="#16202e"/><text x="88.7" y="161.6" font-size="11.5" font-weight="700" text-anchor="middle">E</text><circle cx="88.4" cy="106.0" r="3" fill="#16202e"/><text x="75.9" y="107.5" font-size="11.5" font-weight="700" text-anchor="middle">S</text><circle cx="229.3" cy="101.8" r="3" fill="#16202e"/><text x="241.3" y="102.4" font-size="11.5" font-weight="700" text-anchor="middle">W</text><line x1="197.0" y1="32.0" x2="170.0" y2="34.0" stroke="#16202e" stroke-width="1"/><circle cx="197.0" cy="32.0" r="10" fill="#16202e"/><text x="197.0" y="36.3" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">①</text><line x1="273.0" y1="82.3" x2="260.0" y2="113.3" stroke="#16202e" stroke-width="1"/><circle cx="273.0" cy="82.3" r="10" fill="#16202e"/><text x="273.0" y="86.6" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">②</text><line x1="211.6" y1="176.0" x2="238.6" y2="153.0" stroke="#16202e" stroke-width="1"/><circle cx="211.6" cy="176.0" r="10" fill="#16202e"/><text x="211.6" y="180.3" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">③</text><line x1="156.5" y1="196.0" x2="154.5" y2="166.0" stroke="#16202e" stroke-width="1"/><circle cx="156.5" cy="196.0" r="10" fill="#c77a0a"/><text x="156.5" y="200.3" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">④</text><line x1="42.0" y1="124.9" x2="78.0" y2="112.9" stroke="#16202e" stroke-width="1"/><circle cx="42.0" cy="124.9" r="10" fill="#c77a0a"/><text x="42.0" y="129.2" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">⑤</text><line x1="256.7" y1="215.7" x2="234.7" y2="199.7" stroke="#16202e" stroke-width="1"/><circle cx="256.7" cy="215.7" r="10" fill="#16202e"/><text x="256.7" y="220.0" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">⑥</text></svg>
+    </div>
+    <div>
+    <table>
+      <tr><th style="width:11mm">번호</th><th style="width:25mm">가리키는 것</th><th>이름</th></tr>
+      <tr><td>①</td><td class="kind">점</td><td class="w"><span class="ans">천정</span></td></tr>
+      <tr><td>②</td><td class="kind">원 (점선 포함)</td><td class="w"><span class="ans">지평선</span></td></tr>
+      <tr><td>③</td><td class="kind">점</td><td class="w"><span class="ans">북점 (방위각 0°)</span></td></tr>
+      <tr><td>④</td><td class="kind">굵은 호 (각)</td><td class="w"><span class="ans">방위각</span></td></tr>
+      <tr><td>⑤</td><td class="kind">굵은 호 (각)</td><td class="w"><span class="ans">고도</span></td></tr>
+      <tr><td>⑥</td><td class="kind">큰 공 전체</td><td class="w"><span class="ans">천구</span></td></tr>
+    </table>
+    <p class="bogi"><b>보기</b> 천구 · 천정 · 지평선 · 북점 · 방위각 · 고도</p>
+    </div>
+  </div>
+  <div class="box h">
+    <p><b>방위각</b>은 <span class="blank">&nbsp;<span class="ans">북점(0°)</span></span>에서 <span class="blank">&nbsp;<span class="ans">시계</span></span> 방향으로 잰 각이다. 동점 <span class="blank s">&nbsp;<span class="ans">90°</span></span>, 남점 <span class="blank s">&nbsp;<span class="ans">180°</span></span>, 서점 <span class="blank s">&nbsp;<span class="ans">270°</span></span></p>
+    <p style="margin-top:4px"><b>고도</b>는 <span class="blank">&nbsp;<span class="ans">지평선</span></span>에서 별까지 올라간 각이다. 천정의 고도는 <span class="blank s">&nbsp;<span class="ans">90°</span></span></p>
+  </div>
+</section>
+
+<!-- 2쪽: 1·2단계 -->
+<section class="page" data-foot="ESS Lab · bae_earth(배지구)          2 / 5">
+  <div class="phead"><div><div class="kicker">1–2단계</div><h2>지평좌표 훈련 · 시간이 흐른다</h2></div><div class="who">이름<span></span></div></div>
+
+  <h3><span class="tag h">1단계</span> 미션 기록</h3>
+  <table>
+    <tr><th style="width:12mm">미션</th><th class="l">목표</th><th style="width:26mm">시도 횟수</th><th style="width:26mm">별점</th></tr>
+    <tr><td>1-1</td><td class="l">천정 포착 (고도 90°)</td><td></td><td>☆☆☆</td></tr>
+    <tr><td>1-2</td><td class="l">방위각 90°, 고도 0° 포착 — 이 점의 이름: <span class="blank">&nbsp;<span class="ans">동점</span></span></td><td></td><td>☆☆☆</td></tr>
+    <tr><td>1-3</td><td class="l">방위각 135°, 고도 30° 포착 — 어느 쪽 하늘? <span class="blank">&nbsp;<span class="ans">남동쪽</span></span></td><td></td><td>☆☆☆</td></tr>
+    <tr><td>1-4</td><td class="l">좌표 표시 없이 방위각 240°, 고도 45° 포착</td><td></td><td>☆☆☆</td></tr>
+    <tr><td>1-6</td><td class="l">같은 좌표를 서울과 시드니에서 포착 — 무엇이 달라졌나? <span class="blank l">&nbsp;<span class="ans">그 자리에 있는 별</span></span></td><td></td><td>☆☆☆</td></tr>
+  </table>
+
+  <h3><span class="tag h">1–2단계</span> 시리우스의 지평좌표 (서울, 1월 15일)</h3>
+  <table>
+    <tr><th style="width:26mm">시각</th><th class="h">방위각</th><th class="h">고도</th><th class="l">메모</th></tr>
+    <tr><td>21:00</td><td class="w"><span class="ans">약 138°</span></td><td><span class="ans">약 24°</span></td><td class="l">1-5에서 기록</td></tr>
+    <tr><td>22:00</td><td class="w"><span class="ans">약 152°</span></td><td><span class="ans">약 31°</span></td><td class="l">2-2에서 기록</td></tr>
+    <tr><td>변화</td><td class="w"><span class="ans">커졌다(+14°)</span></td><td><span class="ans">높아졌다(+7°)</span></td><td class="l"></td></tr>
+  </table>
+  <ol class="q">
+    <li>2-1에서 21:00에 기록한 좌표로 22:00에 레이저를 쏘았더니 어떻게 되었나요? 그 까닭은 무엇일까요?
+      <div class="lines"><i></i><i></i></div>
+      <div class="ans">별이 없는 빈 하늘을 맞혔다. 별이 일주 운동을 하므로 시간이 지나면 지평좌표가 바뀌기 때문이다.</div></li>
+  </ol>
+
+  <h3><span class="tag h">2단계</span> 별의 일주 운동 그리기</h3>
+  <p class="note">게임에서 본 궤적을 떠올려, 각 하늘에 별이 움직이는 길을 화살표로 그리세요. 북쪽 하늘에는 별들이 도는 중심점도 표시하고 이름을 쓰세요.</p>
+  <div class="grid2">
+    <div class="box" style="height:52mm;position:relative">
+      <b style="font-size:9.5pt">남쪽 하늘</b>
+      <svg viewBox="0 0 300 150" style="position:absolute;left:10px;right:10px;bottom:8px;width:calc(100% - 20px)" aria-hidden="true"><line x1="0" y1="140" x2="300" y2="140" stroke="#16202e" stroke-width="2"/><text x="4" y="134" font-size="11" fill="#5b6778">동</text><text x="150" y="134" font-size="11" fill="#5b6778" text-anchor="middle">남</text><text x="296" y="134" font-size="11" fill="#5b6778" text-anchor="end">서</text></svg>
+      <p class="ans" style="margin-top:8px">동쪽 지평선에서 떠올라 남쪽 하늘에서 가장 높이 오른 뒤 서쪽으로 지는 호(왼쪽→오른쪽)</p>
+    </div>
+    <div class="box" style="height:52mm;position:relative">
+      <b style="font-size:9.5pt">북쪽 하늘</b>
+      <svg viewBox="0 0 300 150" style="position:absolute;left:10px;right:10px;bottom:8px;width:calc(100% - 20px)" aria-hidden="true"><line x1="0" y1="140" x2="300" y2="140" stroke="#16202e" stroke-width="2"/><text x="4" y="134" font-size="11" fill="#5b6778">서</text><text x="150" y="134" font-size="11" fill="#5b6778" text-anchor="middle">북</text><text x="296" y="134" font-size="11" fill="#5b6778" text-anchor="end">동</text></svg>
+      <p class="ans" style="margin-top:8px">중심점 = 천구 북극(북극성 근처, 고도 약 37.6°). 별은 그 둘레를 시계 반대 방향으로 돈다.</p>
+    </div>
+  </div>
+  <p>정리: 별은 <span class="blank s">&nbsp;<span class="ans">동</span></span>쪽에서 <span class="blank s">&nbsp;<span class="ans">서</span></span>쪽으로 움직이고, 북쪽 하늘에서는 <span class="blank">&nbsp;<span class="ans">천구 북극</span></span>을 중심으로 <span class="blank">&nbsp;<span class="ans">시계 반대</span></span> 방향으로 돈다. 그래서 별의 위치를 오래 쓸 수 있게 적으려면 <span class="blank l">&nbsp;<span class="ans">별과 함께 도는 좌표</span></span>가 필요하다.</p>
+</section>
+
+<!-- 3쪽: 3·4단계 -->
+<section class="page" data-foot="ESS Lab · bae_earth(배지구)          3 / 5">
+  <div class="phead"><div><div class="kicker">3–4단계</div><h2>별에 붙은 좌표 · 위도를 바꾼다</h2></div><div class="who">이름<span></span></div></div>
+
+  <h3><span class="tag e">3단계</span> 적도좌표의 기준 찾기 <span class="note">— ⑦~⑪이 가리키는 것의 이름을 보기에서 골라 쓰세요</span></h3>
+  <div class="grid2 figgrid" style="align-items:center">
+    <div class="fig">
+      <svg viewBox="30 10 290 232" width="330" role="img" aria-label="천구 적도, 천구 북극, 춘분점, 별과 적경·적위가 표시된 천구" font-family="IBM Plex Sans KR, sans-serif"><circle cx="165" cy="128" r="100" fill="#f6f8fb" stroke="#16202e" stroke-width="1.5"/><path d="M104.8 157.9 L109.1 159.1 L113.5 160.1 L118.1 161.1 L122.7 162.0 L127.5 162.7 L132.4 163.4 L137.4 164.0 L142.5 164.5 L147.6 164.9 L152.8 165.2 L158.0 165.4 L163.3 165.5 L168.5 165.4 L173.7 165.3 L178.9 165.1 L184.1 164.8 L189.2 164.3 L194.2 163.8 L199.2 163.2 L204.1 162.5 L208.8 161.7 L213.5 160.8 L218.0 159.8 L222.4 158.7 L226.6 157.5 L230.6 156.3 L234.5 154.9 L238.1 153.5 L241.6 152.1 L244.9 150.5 L247.9 148.9 L250.7 147.3 L253.3 145.6 L255.6 143.8 L257.7 142.0 L259.6 140.2 L261.1 138.3 L262.4 136.4 L263.5 134.5 L264.3 132.6 L264.8 130.6 L265.0 128.7" fill="none" stroke="#7cc4df" stroke-width="2.2" stroke-linecap="round"/><path d="M265.0 128.7 L264.9 126.7 L264.6 124.7 L264.0 122.8 L263.2 120.9 L262.0 118.9 L260.6 117.0 L259.0 115.2 L257.1 113.4 L254.9 111.6 L252.5 109.8 L249.8 108.1 L246.9 106.5 L243.8 104.9 L240.5 103.4 L236.9 102.0 L233.2 100.6 L229.3 99.3 L225.2 98.1 L220.9 96.9 L216.5 95.9 L211.9 94.9 L207.3 94.0 L202.5 93.3 L197.6 92.6 L192.6 92.0 L187.5 91.5 L182.4 91.1 L177.2 90.8 L172.0 90.6 L166.7 90.5 L161.5 90.6 L156.3 90.7 L151.1 90.9 L145.9 91.2 L140.8 91.7 L135.8 92.2 L130.8 92.8 L125.9 93.5 L121.2 94.3 L116.5 95.2 L112.0 96.2 L107.6 97.3 L103.4 98.5 L99.4 99.7 L95.5 101.1 L91.9 102.5 L88.4 103.9 L85.1 105.5 L82.1 107.1 L79.3 108.7 L76.7 110.4 L74.4 112.2 L72.3 114.0 L70.4 115.8 L68.9 117.7 L67.6 119.6 L66.5 121.5 L65.7 123.4 L65.2 125.4 L65.0 127.3" fill="none" stroke="#7cc4df" stroke-width="1.3" stroke-dasharray="4 4" opacity=".7"/><path d="M65.0 127.3 L65.1 129.3 L65.4 131.3 L66.0 133.2 L66.8 135.1 L68.0 137.1 L69.4 139.0 L71.0 140.8 L72.9 142.6 L75.1 144.4 L77.5 146.2 L80.2 147.9 L83.1 149.5 L86.2 151.1 L89.5 152.6 L93.1 154.0 L96.8 155.4 L100.7 156.7 L104.8 157.9" fill="none" stroke="#7cc4df" stroke-width="2.2" stroke-linecap="round"/><line x1="165.0" y1="220.7" x2="165.0" y2="35.3" stroke="#0a7fa8" stroke-dasharray="5 4"/><circle cx="165.0" cy="35.3" r="4.5" fill="#0a7fa8"/><circle cx="165.0" cy="220.7" r="3.2" fill="#0a7fa8"/><path d="M213.5 94.2 L211.5 89.4 L209.3 84.8 L207.0 80.3 L204.6 75.9 L202.1 71.7 L199.4 67.6 L196.7 63.7 L193.9 60.0 L191.0 56.4 L188.1 53.1 L185.0 49.9 L182.0 47.0 L178.8 44.3 L175.7 41.8 L172.5 39.6 L169.3 37.6 L166.1 35.8" fill="none" stroke="#0a7fa8" stroke-width="1" stroke-dasharray="3 3" stroke-linecap="round"/><path d="M104.8 157.9 L107.6 158.7 L110.5 159.4 L113.5 160.1 L116.5 160.8 L119.6 161.4 L122.7 162.0 L125.9 162.5 L129.2 163.0 L132.4 163.4 L135.8 163.8 L139.1 164.2 L142.5 164.5 L145.9 164.8 L149.4 165.0 L152.8 165.2 L156.3 165.3 L159.8 165.4 L163.3 165.5 L166.7 165.5 L170.2 165.4 L173.7 165.3 L177.2 165.2 L180.6 165.0 L184.1 164.8 L187.5 164.5 L190.9 164.2 L194.2 163.8 L197.6 163.4 L200.8 163.0 L204.1 162.5 L207.3 162.0 L210.4 161.4 L213.5 160.8 L216.5 160.1 L219.5 159.4 L222.4 158.7 L225.2 157.9" fill="none" stroke="#075e7f" stroke-width="4.8" stroke-linecap="round"/><path d="M226.6 157.5 L219.0 164.0 L216.8 155.6 Z" fill="#075e7f"/><path d="M226.6 157.5 L226.5 154.3 L226.4 151.0 L226.2 147.7 L226.0 144.3 L225.6 141.0 L225.2 137.6 L224.7 134.2 L224.2 130.8 L223.6 127.4 L222.9 124.0 L222.1 120.6 L221.2 117.3 L220.3 113.9 L219.4 110.5 L218.3 107.2 L217.2 103.9 L216.0 100.6 L214.8 97.4 L213.5 94.2" fill="none" stroke="#2e9fd0" stroke-width="4.8" stroke-linecap="round"/><path d="M213.8 95.0 L221.1 101.9 L213.0 104.9 Z" fill="#2e9fd0"/><path d="M104.8 150.9 l7 7 l-7 7 l-7 -7 z" fill="#075e7f"/><circle cx="213.5" cy="94.2" r="6.5" fill="#f2c94c" stroke="#16202e"/><text x="224.5" y="87.2" font-size="11.5">별</text><circle cx="165.0" cy="128.0" r="2.8" fill="#16202e"/><line x1="131.0" y1="37.3" x2="160.0" y2="35.3" stroke="#16202e" stroke-width="1"/><circle cx="131.0" cy="37.3" r="10" fill="#16202e"/><text x="131.0" y="41.6" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">⑦</text><line x1="285.8" y1="163.9" x2="264.8" y2="136.9" stroke="#16202e" stroke-width="1"/><circle cx="285.8" cy="163.9" r="10" fill="#16202e"/><text x="285.8" y="168.2" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">⑧</text><line x1="74.8" y1="175.9" x2="98.8" y2="159.9" stroke="#16202e" stroke-width="1"/><circle cx="74.8" cy="175.9" r="10" fill="#16202e"/><text x="74.8" y="180.2" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">⑨</text><line x1="155.3" y1="197.4" x2="159.3" y2="168.4" stroke="#16202e" stroke-width="1"/><circle cx="155.3" cy="197.4" r="10" fill="#075e7f"/><text x="155.3" y="201.7" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">⑩</text><line x1="257.2" y1="121.7" x2="226.2" y2="125.7" stroke="#16202e" stroke-width="1"/><circle cx="257.2" cy="121.7" r="10" fill="#2e9fd0"/><text x="257.2" y="126.0" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">⑪</text></svg>
+    </div>
+    <div>
+    <table>
+      <tr><th style="width:11mm">번호</th><th style="width:25mm">가리키는 것</th><th>이름</th></tr>
+      <tr><td>⑦</td><td class="kind">점 (자전축 위쪽 끝)</td><td class="w"><span class="ans">천구 북극 (적위 +90°)</span></td></tr>
+      <tr><td>⑧</td><td class="kind">원 (연한 선)</td><td class="w"><span class="ans">천구 적도 (적위 0°)</span></td></tr>
+      <tr><td>⑨</td><td class="kind">점 (◆)</td><td class="w"><span class="ans">춘분점 (적경 0h)</span></td></tr>
+      <tr><td>⑩</td><td class="kind">진한 굵은 호 (각)</td><td class="w"><span class="ans">적경</span></td></tr>
+      <tr><td>⑪</td><td class="kind">밝은 굵은 호 (각)</td><td class="w"><span class="ans">적위</span></td></tr>
+    </table>
+    <p class="bogi"><b>보기</b> 천구 북극 · 천구 적도 · 춘분점 · 적경 · 적위</p>
+    </div>
+  </div>
+  <div class="box e">
+    <p class="note" style="margin-bottom:4px">적경은 각도지만 ‘시(h)·분(m)’으로 적어요. 천구가 약 하루에 한 바퀴(360°) 도는 것처럼 보여서, 한 바퀴를 24h로 나누었어요. 예: 6h 45m = 6.75h</p>
+    <p><b>적경</b>은 <span class="blank">&nbsp;<span class="ans">춘분점</span></span>에서 <span class="blank s">&nbsp;<span class="ans">동</span></span>쪽으로 잰 각을 시(h)로 나타낸다. 1h = <span class="blank s">&nbsp;<span class="ans">15°</span></span>, 한 바퀴 = <span class="blank s">&nbsp;<span class="ans">24h</span></span>, 1m = <span class="blank s">&nbsp;<span class="ans">0.25°</span></span></p>
+    <p style="margin-top:4px"><b>적위</b>는 <span class="blank">&nbsp;<span class="ans">천구 적도</span></span>에서 북쪽은 <span class="blank s">&nbsp;<span class="ans">+</span></span>, 남쪽은 <span class="blank s">&nbsp;<span class="ans">−</span></span>로 잰 각이다.</p>
+  </div>
+  <table>
+    <tr><th style="width:26mm">시각</th><th class="e">적경</th><th class="e">적위</th><th class="l">그 자리에 있던 별</th></tr>
+    <tr><td>21:00 (3-4)</td><td class="w">6h 45m</td><td>−16.7°</td><td class="l"><span class="ans">시리우스</span></td></tr>
+    <tr><td>23:00 (3-5)</td><td class="w">6h 45m</td><td>−16.7°</td><td class="l"><span class="ans">시리우스 (그대로)</span></td></tr>
+  </table>
+
+  <h3><span class="tag h">4단계</span> 위도에 따른 천구 북극의 고도</h3>
+  <div class="grid2">
+    <table>
+      <tr><th>관측 장소</th><th>위도</th><th class="h">천구 북극의 고도</th></tr>
+      <tr><td>서울</td><td>북위 37.6°</td><td class="w"><span class="ans">약 37.6°</span></td></tr>
+      <tr><td>적도</td><td>0°</td><td class="w"><span class="ans">0° (북점 지평선)</span></td></tr>
+      <tr><td>북극점</td><td>북위 90°</td><td class="w"><span class="ans">90° (천정)</span></td></tr>
+    </table>
+    <div class="box">
+      <p><b>예측 먼저!</b> 부산(북위 35°)에서 천구 북극의 고도는 얼마일까요?</p>
+      <p style="margin-top:6px">예측 <span class="blank s">&nbsp;<span class="ans">35°</span></span> &nbsp;까닭 <span class="blank l">&nbsp;<span class="ans">천구 북극 고도 = 위도</span></span></p>
+      <p style="margin-top:8px">규칙: 천구 북극의 고도 = <span class="blank">&nbsp;<span class="ans">관측자의 위도</span></span></p>
+    </div>
+  </div>
+  <ol class="q" start="2">
+    <li>4-5에서 찾은 주극성(하루 종일 지지 않는 별)의 이름: <span class="blank">&nbsp;<span class="ans">두베·코카브 등</span></span> &nbsp;적도에서는 주극성이 있을까요? <span class="blank">&nbsp;<span class="ans">없다</span></span>
+      <div class="lines"><i></i></div>
+      <div class="ans">적도에서는 천구 북극이 지평선에 있어 모든 별이 뜨고 진다.</div></li>
+  </ol>
+</section>
+
+<!-- 4쪽: 5단계와 정리 -->
+<section class="page" data-foot="ESS Lab · bae_earth(배지구)          4 / 5">
+  <div class="phead"><div><div class="kicker">5단계 · 정리</div><h2>두 눈으로 읽기 · 두 좌표계 비교</h2></div><div class="who">이름<span></span></div></div>
+
+  <h3><span class="tag">5단계</span> 프로키온의 좌표를 직접 읽어 기록하기</h3>
+  <p class="note">좌표 표시가 꺼진 화면에서 두 격자를 보고 읽은 값을 적어요. 게임의 기록 카드에 넣은 값과 같아야 해요.</p>
+  <div class="tblwrap"><table>
+    <tr><th style="width:24mm">시각</th><th class="h">방위각</th><th class="h">고도</th><th class="e">적경</th><th class="e">적위</th></tr>
+    <tr><td>21:00</td><td class="w"><span class="ans">약 110°</span></td><td><span class="ans">약 32°</span></td><td><span class="ans">약 7h 39m</span></td><td><span class="ans">약 +5°</span></td></tr>
+    <tr><td>23:00</td><td class="w"><span class="ans">약 141°</span></td><td><span class="ans">약 51°</span></td><td><span class="ans">약 7h 39m</span></td><td><span class="ans">약 +5°</span></td></tr>
+    <tr><td>변했나?</td><td class="w">O / X</td><td>O / X</td><td>O / X</td><td>O / X</td></tr>
+  </table></div>
+  <p class="ans">방위각·고도: O(변함) / 적경·적위: X(그대로)</p>
+
+  <h3><span class="tag">정리</span> 두 좌표계를 한눈에 비교하기</h3>
+  <table>
+    <tr><th style="width:36mm">비교할 점</th><th class="h">지평좌표계</th><th class="e">적도좌표계</th></tr>
+    <tr><td>두 좌표의 이름</td><td class="w"><span class="ans">방위각, 고도</span></td><td><span class="ans">적경, 적위</span></td></tr>
+    <tr><td>기준이 되는 면(원)</td><td class="w"><span class="ans">지평면(지평선)</span></td><td><span class="ans">천구 적도</span></td></tr>
+    <tr><td>각을 재기 시작하는 점</td><td class="w"><span class="ans">북점</span></td><td><span class="ans">춘분점</span></td></tr>
+    <tr><td>어디에 붙어 있나</td><td class="w"><span class="ans">관측자(땅)</span></td><td><span class="ans">천구(별과 함께 돈다)</span></td></tr>
+    <tr><td>시간이 흐르면</td><td class="w"><span class="ans">별의 값이 변한다</span></td><td><span class="ans">변하지 않는다</span></td></tr>
+    <tr><td>관측 장소가 바뀌면</td><td class="w"><span class="ans">별의 값이 변한다</span></td><td><span class="ans">변하지 않는다</span></td></tr>
+    <tr><td>편리한 쓰임</td><td class="w"><span class="ans">지금 여기서 방향 알려 주기</span></td><td><span class="ans">별 목록·주소 적기</span></td></tr>
+  </table>
+
+  <h3><span class="tag">생각 넓히기</span></h3>
+  <ol class="q">
+    <li>친구가 “오늘 밤 9시에 방위각 138°, 고도 24°에 시리우스가 있어”라고 적어 두었어요. 이 메모를 한 달 뒤 같은 시각에 그대로 쓸 수 있을까요? 까닭과 함께 쓰세요.
+      <div class="lines"><i></i><i></i></div>
+      <div class="ans">쓸 수 없다. 지평좌표는 시각·날짜·장소에 따라 바뀐다(한 달 뒤 같은 시각이면 별이 약 2시간 일찍 떠 있어 위치가 다르다). 적경·적위로 적어야 한다.</div></li>
+    <li>게임 속 모형에서 실제 하늘과 다르게 단순화한 점을 한 가지 쓰세요.
+      <div class="lines"><i></i></div>
+      <div class="ans">예: 대기 굴절·세차 운동을 무시함, 낮에도 별이 보임, 별의 크기와 밝기 차이를 과장함</div></li>
+  </ol>
+  <div class="box" style="margin-top:auto">
+    <p><b>자기 평가</b> &nbsp; <span class="check"></span>방위각·고도를 격자에서 읽을 수 있다 &nbsp; <span class="check"></span>적경·적위를 격자에서 읽을 수 있다 &nbsp; <span class="check"></span>두 좌표계가 왜 필요한지 설명할 수 있다</p>
+  </div>
+</section>
+
+<!-- 5쪽: 심화 -->
+<section class="page" id="advPage" data-foot="ESS Lab · bae_earth(배지구)          5 / 5 · 심화">
+  <div class="phead"><div><div class="kicker" style="color:var(--adv)">심화 과정 · [12지실03-03] 시간계 연계 (선택)</div><h2>태양의 길과 항성시</h2></div><div class="who">이름<span></span></div></div>
+  <p class="lead">기본 과정을 마친 뒤 게임의 ‘심화 과정’을 하며 채워요.</p>
+
+  <h3><span class="tag a">심화1</span> 황도 위의 네 점</h3>
+  <p class="note">황도: 1년 동안 태양이 천구 위를 지나는 길. 게임에서 포착한 값을 적어요.</p>
+  <table>
+    <tr><th>점</th><th class="a">적경</th><th class="a">적위</th><th>태양이 지나는 때</th><th class="l">특징</th></tr>
+    <tr><td>춘분점</td><td class="w"><span class="ans">0h</span></td><td><span class="ans">0°</span></td><td><span class="ans">3월 21일경</span></td><td class="l"><span class="ans">적도 남→북, 적경의 기준</span></td></tr>
+    <tr><td>하지점</td><td class="w"><span class="ans">6h</span></td><td><span class="ans">+23.4°</span></td><td><span class="ans">6월 21일경</span></td><td class="l"><span class="ans">태양이 가장 북쪽, 낮이 가장 김</span></td></tr>
+    <tr><td>추분점</td><td class="w"><span class="ans">12h</span></td><td><span class="ans">0°</span></td><td><span class="ans">9월 23일경</span></td><td class="l"><span class="ans">적도 북→남</span></td></tr>
+    <tr><td>동지점</td><td class="w"><span class="ans">18h</span></td><td><span class="ans">−23.4°</span></td><td><span class="ans">12월 22일경</span></td><td class="l"><span class="ans">태양이 가장 남쪽</span></td></tr>
+  </table>
+  <p>1월 15일 18:00 태양의 좌표: 적경 <span class="blank">&nbsp;<span class="ans">약 19h 47m</span></span>, 적위 <span class="blank">&nbsp;<span class="ans">약 −21°</span></span> → 황도의 <span class="blank l">&nbsp;<span class="ans">동지점과 춘분점 사이</span></span> 구간</p>
+  <p>황도가 천구 적도와 이루는 각 23.4°는 무엇과 같은가요? <span class="blank l">&nbsp;<span class="ans">지구 자전축의 기울기</span></span></p>
+
+  <h3><span class="tag a">심화2</span> 항성시와 시간각</h3>
+  <div class="box a">
+    <p><b>항성시</b> = 지금 <span class="blank">&nbsp;<span class="ans">자오선</span></span>에 걸린 적경 = <span class="blank">&nbsp;<span class="ans">춘분점</span></span>의 시간각</p>
+    <p style="margin-top:4px"><b>시간각</b>: 자오선에서 천체의 시간권까지 <span class="blank s">&nbsp;<span class="ans">서</span></span>쪽으로 잰 각 &nbsp;→&nbsp; 시간각 = <span class="blank">&nbsp;<span class="ans">항성시</span></span> − <span class="blank">&nbsp;<span class="ans">적경</span></span></p>
+  </div>
+  <table>
+    <tr><th>상황</th><th class="a">항성시</th><th class="a">적경</th><th class="a">시간각</th><th>자오선의 어느 쪽?</th></tr>
+    <tr><td class="l">21:00, 자오선과 천구 적도의 교점 (a2-1)</td><td class="w"><span class="ans">약 4h 07m</span></td><td><span class="ans">약 4h 07m</span></td><td><span class="ans">0h</span></td><td><span class="ans">자오선 위</span></td></tr>
+    <tr><td class="l">23:00, 시리우스 (a2-4)</td><td class="w"><span class="ans">약 6h 07m</span></td><td>6h 45m</td><td><span class="ans">약 23h 22m (−0h 38m)</span></td><td><span class="ans">동쪽, 남중 전</span></td></tr>
+    <tr><td class="l">계산: 항성시 10h, 적경 7h인 별</td><td>10h</td><td>7h</td><td class="w"><span class="ans">3h</span></td><td><span class="ans">서쪽, 3시간 전 남중</span></td></tr>
+  </table>
+  <ol class="q">
+    <li>별은 매일 약 4분씩 일찍 남중해요. 그 까닭을 ‘태양일’과 ‘항성일’이라는 말을 넣어 설명하세요.
+      <div class="lines"><i></i><i></i></div>
+      <div class="ans">지구가 공전하는 동안 태양이 황도를 따라 하루 약 1°씩 동쪽으로 움직여, 태양이 다시 남중하는 데 걸리는 태양일(24시간)이 별 기준의 항성일(약 23시간 56분)보다 약 4분 길기 때문이다.</div></li>
+  </ol>
+</section>
+
+</div>
+
+<script>
+(function(){
+  var body=document.body, ans=document.getElementById('ansBtn'), adv=document.getElementById('advBtn'), advPage=document.getElementById('advPage');
+  function setAdv(on){
+    adv.setAttribute('aria-pressed', String(on)); advPage.hidden=!on;
+    document.getElementById('printBtn').textContent = '인쇄하기 (A4 '+(on?5:4)+'쪽)';
+  }
+  document.getElementById('printBtn').onclick=function(){ window.print(); };
+  ans.onclick=function(){ var on=!body.classList.contains('teacher'); body.classList.toggle('teacher',on); ans.setAttribute('aria-pressed',String(on)); ans.textContent = on?'학생용으로 보기':'교사용 답안 보기'; };
+  adv.onclick=function(){ setAdv(adv.getAttribute('aria-pressed')!=='true'); };
+  setAdv(true);
+})();
+</script>
+</body>
+</html>
