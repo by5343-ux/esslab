@@ -94,6 +94,15 @@ details li{margin:4px 0}
 .row button{flex:1;border:1px solid var(--line);background:var(--chip);border-radius:10px;padding:10px;cursor:pointer;font-weight:500;min-height:44px}
 .note{font-size:.85rem;color:var(--muted);margin-top:8px}
 .student-banner{background:var(--buoy);color:#1b1400;padding:10px 0;font-weight:700}
+/* 모드 선택 배너: 탐구 모드 / 시뮬레이션 모드 */
+.mode-banner{background:var(--panel);border-bottom:1px solid var(--line);padding:14px 0}
+.mode-banner .mt{margin:0 0 8px;font-size:.85rem;font-weight:700;color:var(--muted)}
+.mode-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mode-pick button{text-align:left;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);border-radius:14px;padding:10px 14px;cursor:pointer;font:inherit;min-height:56px}
+.mode-pick button b{display:block;font-size:1rem}
+.mode-pick button span{display:block;font-size:.8rem;color:var(--muted);margin-top:2px;line-height:1.35;word-break:keep-all}
+.mode-pick button[aria-pressed="true"]{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.mode-pick button[aria-pressed="true"] span{color:inherit;opacity:.8}
 footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
 </style>
 </head>
@@ -108,6 +117,14 @@ footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
   </div>
   <p class="sub">2022 개정 교육과정 성취기준에 맞춘 지구과학 시뮬레이션 모음이에요. 과목을 골라 수업에 바로 쓰세요.</p>
 </div></header>
+
+<div class="mode-banner" id="modeBanner"><div class="wrap">
+  <p class="mt">어떻게 쓸까요?</p>
+  <div class="mode-pick" role="group" aria-label="모드">
+    <button type="button" data-mode="inq" aria-pressed="true"><b>탐구 모드</b><span>예측하고 질문에 답하며 탐구해요</span></button>
+    <button type="button" data-mode="sim" aria-pressed="false"><b>시뮬레이션 모드</b><span>질문 없이 바로 조작해요</span></button>
+  </div>
+</div></div>
 
 <div class="bar"><div class="wrap">
   <div class="courses" id="courses" role="group" aria-label="과목"></div>
@@ -553,6 +570,15 @@ let course='all',query='';
 let picked=new Set();try{picked=new Set(JSON.parse(localStorage.getItem('esslab-picked-v2')||'[]'));}catch(e){}
 const savePick=()=>{try{localStorage.setItem('esslab-picked-v2',JSON.stringify([...picked]));}catch(e){}};
 const keyOf=(s,i)=>i==null?s.id:s.id+'~'+i;
+/* 모드: 포털을 열 때마다 탐구 모드로 시작(기억하지 않음). 시뮬레이션 모드면 여는 주소에 ?mode=sim을 붙이고 탐구 워크북 버튼은 숨김 */
+let siteMode='inq';
+const modeHref=h=>{if(!h||siteMode!=='sim')return h;const k=h.indexOf('#'),base=k<0?h:h.slice(0,k),tail=k<0?'':h.slice(k);return base+(base.includes('?')?'&':'?')+'mode=sim'+tail;};
+document.querySelectorAll('#modeBanner [data-mode]').forEach(b=>b.addEventListener('click',()=>{
+  siteMode=b.dataset.mode;
+  document.querySelectorAll('#modeBanner [data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));
+  render();
+}));
+if(studentMode)$('#modeBanner').hidden=true;
 
 function visible(){return SIMS.filter(s=>!studentMode||pickParam.some(k=>k===s.id||k.startsWith(s.id+'~')));}
 function inCourse(s,k){return k==='all'||(s.codes.length?s.codes.some(c=>courseOf(c).key===k):k==='etc');}
@@ -572,10 +598,10 @@ const ICON={wb:'📘',game:'🎮',print:'🖨'};
 function card(s,g){
   const el=document.createElement('article');el.className='card';
   el.style.setProperty('--cc','var('+(g?g.color:mainCourse(s).color)+')');
-  const h=href(s.main);
+  const h=modeHref(href(s.main));
   const codes=s.codes.length?s.codes.map((c,i)=>'<span class="code'+(i?' link':'')+'" style="--cc:var('+courseOf(c).color+')">'+(i?'연계 ':'')+esc(c)+'</span>').join(''):'<span class="code" style="--cc:var(--c-etc)">성취기준 외</span>';
   const showMain=!studentMode||pickParam.includes(s.id);
-  const ex=s.extras.map((x,i)=>({x,i})).filter(o=>studentMode?pickParam.includes(keyOf(s,o.i)):true);
+  const ex=s.extras.map((x,i)=>({x,i})).filter(o=>studentMode?pickParam.includes(keyOf(s,o.i)):true).filter(o=>!(siteMode==='sim'&&o.x.kind==='wb'));
   el.innerHTML=
     (s.thumb&&THUMBS[s.thumb]?'<a class="thumb" href="'+esc(h||'#')+'" target="_blank" rel="noopener" aria-label="'+esc(s.title)+' 열기"><img src="'+THUMBS[s.thumb]+'" alt=""></a>':'')+
     '<div class="body"><h3>'+esc(s.title)+'</h3><div class="codes">'+codes+(s.time?'<span class="code link" style="--cc:var(--muted)">'+esc(s.time)+'</span>':'')+'</div>'+
