@@ -238,10 +238,25 @@ details.caution[open] summary::after{content:"접기"}
   #sec{width:min(calc((min(100vw, 1180px) - 60px) * 0.512 - 24px),calc(68svh * 1.25))}
 }
 @media (prefers-reduced-motion:reduce){.blk:active{transform:none}}
+/* ---------- 모드 (탐구 / 시뮬레이션) ---------- */
+.modeSw{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-bottom:4px}
+.modeSw .now{font-size:12px;font-weight:800;border:1px solid var(--line);padding:3px 10px;border-radius:999px;white-space:nowrap}
+.modeSw a{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;text-decoration:none;white-space:nowrap}
+html.sim .modes button:not([data-mode=free]){display:none!important}
 </style>
+<script>
+/* 모드는 주소로만 정한다: ?mode=sim 이면 시뮬레이션 모드(레벨·채점 없이 자유 제작으로 바로 열림), 없으면 탐구 모드.
+   시뮬레이션 모드에서는 학생 진행 기록을 쓰지 않고, 자유 제작도 따로 저장한다 */
+var ESS_SIM=(function(){try{return new URLSearchParams(location.search).get('mode')==='sim';}catch(e){return false;}})();
+if(ESS_SIM)document.documentElement.classList.add('sim');
+</script>
 </head>
 <body>
 <header>
+  <div class="modeSw"><span class="now" id="modeNow">탐구 모드</span><a id="modeBtn" href="?mode=sim">시뮬레이션 모드로</a></div>
+  <script>(function(){const n=document.getElementById('modeNow'),b=document.getElementById('modeBtn');
+    n.textContent=ESS_SIM?'시뮬레이션 모드':'탐구 모드';b.textContent=ESS_SIM?'탐구 모드로':'시뮬레이션 모드로';
+    try{const u=new URL(location.href);if(ESS_SIM)u.searchParams.delete('mode');else u.searchParams.set('mode','sim');b.href=u.pathname.split('/').pop()+u.search+u.hash;}catch(e){}})();</script>
   <div class="esslab">ESS Lab · 지구과학 [12지구02-01]</div>
   <div class="toprow"><h1>Stratify<small>지사학의 달인</small></h1>
     <button type="button" class="tool gear" id="settingsBtn" aria-label="설정"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>설정</span></button>
@@ -900,7 +915,7 @@ function updateUI(){
     li.append(b,s,h); logEl.appendChild(li);
   });
   cvs.setAttribute('aria-label', H.length ? '지층 단면. 층을 길게 누른 채 끌면 순서를 바꿀 수 있어요. 사건 기록: ' + H.map(logText).join(' → ') : '아직 아무것도 쌓지 않은 빈 단면');
-  if (MODE==='free'){ try { localStorage.setItem('stratify-free-v2', JSON.stringify(ACT)); } catch(_){} }
+  if (MODE==='free'){ try { localStorage.setItem((ESS_SIM?'stratify-free-sim-v1':'stratify-free-v2'), JSON.stringify(ACT)); } catch(_){} }
 }
 
 /* 레벨 3(시나리오)에서는 확인하기 전까지 부정합 종류 같은 판정을 가림 */
@@ -1110,7 +1125,7 @@ const EVNAME = Object.fromEntries(EVENTS.map(e=>[e.id,e.label]));
 let MODE = 'free', LV = 1, CI = 0, tries = 0;
 let PROG = {solved:{}, last:{}, mode:'1'};
 try { const g = JSON.parse(localStorage.getItem('stratify-progress-v1')||'null'); if (g && g.solved) PROG = Object.assign(PROG, g); } catch(_){}
-const saveProg = () => { try { localStorage.setItem('stratify-progress-v1', JSON.stringify(PROG)); } catch(_){} };
+const saveProg = () => { if (ESS_SIM) return; try { localStorage.setItem('stratify-progress-v1', JSON.stringify(PROG)); } catch(_){} };
 
 const card = () => LEVELS[LV].cards[CI];
 const cardStops = () => (MODE==='free' ? [] : (card().stop || []));
@@ -1586,7 +1601,7 @@ function setMode(m){
     revealRun++; document.getElementById('reveal').hidden = true;
     document.body.classList.remove('errmode'); document.getElementById('errp').hidden = true;
     ACT = []; H = [];
-    try { const s = JSON.parse(localStorage.getItem('stratify-free-v2')||'[]'); if (Array.isArray(s) && s.every(a=>a && (a.k==='u'&&UNITS[a.id] || a.k==='e'&&EVENTS.some(x=>x.id===a.id))) && !replay(s)) ACT = s; } catch(_){}
+    try { const s = JSON.parse(localStorage.getItem((ESS_SIM?'stratify-free-sim-v1':'stratify-free-v2'))||'[]'); if (Array.isArray(s) && s.every(a=>a && (a.k==='u'&&UNITS[a.id] || a.k==='e'&&EVENTS.some(x=>x.id===a.id))) && !replay(s)) ACT = s; } catch(_){}
     if (!ACT.length) H = [];
     VH = VH_FROM = targetVH(); updateMission(); applyDrawer(); render(1,null); updateUI();
     say('마음대로 쌓아 보세요. 놓은 순서가 곧 이 땅의 역사예요.','info');
@@ -1658,11 +1673,12 @@ function resize(){
 buildDrawer();
 new ResizeObserver(()=>resize()).observe(cvs);
 resize();
-setMode(PROG.mode==='free' ? 'free' : (LEVELS[PROG.mode] ? PROG.mode : '1'));
+setMode(ESS_SIM || PROG.mode==='free' ? 'free' : (LEVELS[PROG.mode] ? PROG.mode : '1'));
 
 /* ---------- 시작 화면 ---------- */
 (function intro(){
   const box = document.getElementById('intro'), icv = document.getElementById('introCv');
+  if (ESS_SIM){ box.remove(); document.querySelectorAll('.diffcard details').forEach(d=>d.open=true); return; } // 시뮬레이션 모드: 시작 화면 건너뜀, 모형 안내 펼침
   let done = false, raf = 0;
   const finish = () => { if (done) return; done = true; cancelAnimationFrame(raf); box.classList.add('out'); setTimeout(()=>box.remove(), 750); };
   const showTitle = () => { box.classList.add('titled'); document.getElementById('introStart')?.focus(); };

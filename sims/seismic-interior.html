@@ -118,11 +118,28 @@ details summary{font-weight:700;cursor:pointer}
 #cv5{height:min(56vh,430px);min-height:330px;margin-top:6px;background:var(--bg)}
 .soon{text-align:center;padding:40px 10px;color:var(--sub)}
 .term{font-weight:700}
+/* ---------- 모드 (탐구 / 시뮬레이션) ---------- */
+.modeSw{flex-basis:100%;display:flex;justify-content:flex-end;align-items:center;gap:6px}
+.modeSw .now{font-size:12px;font-weight:800;color:var(--ink);background:var(--card);border:1px solid var(--line);padding:3px 10px;border-radius:999px;white-space:nowrap}
+.modeSw a{font-size:12px;font-weight:600;color:var(--sub);border:1px solid var(--line);border-radius:999px;padding:3px 10px;text-decoration:none;white-space:nowrap}
+html.sim .opts:not([data-lt]),html.sim p:has(+ .opts:not([data-lt])),html.sim .fb.hint,
+html.sim [data-a=reguess],html.sim [data-a=core],html.sim [data-a=h],html.sim [data-a=calc]{display:none!important}
+html.sim .wrap{max-width:960px}
 </style>
+<script>
+/* 모드는 주소로만 정한다: ?mode=sim 이면 시뮬레이션 모드(질문 없이 모든 단계를 연 상태), 없으면 탐구 모드.
+   시뮬레이션 모드에서는 탐구 기록(localStorage)을 읽지도 쓰지도 않는다 → 학생 기록이 지워지지 않음 */
+var ESS_SIM=(function(){try{return new URLSearchParams(location.search).get('mode')==='sim';}catch(e){return false;}})();
+if(ESS_SIM)document.documentElement.classList.add('sim');
+function essSimText(h){if(!ESS_SIM)return h;
+  return h.replace(/(맞아요|찾았어요|좋아요)[.!]\s*/g,'').replace('<h3>1. 예측하기</h3>','<h3>1. 세 파의 도착 순서</h3>')
+    .replace('<h3>예측 확인</h3>','<h3>거리와 PS시</h3>').replace('<th>내가 구한 거리</th>','<th>거리</th>').replace('<h3>3. 지각의 두께 맞히기</h3>','<h3>3. 지각의 두께</h3>');}
+</script>
 </head>
 <body>
 <div class="wrap">
 <header>
+  <div class="modeSw"><span class="now" id="modeNow">탐구 모드</span><a id="modeBtn" href="?mode=sim">시뮬레이션 모드로</a></div>
   <h1>지진파로 지구 속 보기</h1>
   <span class="code">지구시스템과학 [12지시01-05]</span>
   <button class="themebtn" id="themeBtn" aria-label="밝기 바꾸기">밝기</button>
@@ -218,7 +235,7 @@ const FIG=(()=>{
 })();
 /* items: [{t:제목, sim:문장, real:문장, fs:그림키, fr:그림키}] */
 function diffHTML(items){
-  return `<details class="dif"><summary>🔍 이 시뮬레이션이 실제와 다른 점 <span class="muted">(${items.length}가지)</span></summary>
+  return `<details class="dif"${ESS_SIM?' open':''}><summary>🔍 이 시뮬레이션이 실제와 다른 점 <span class="muted">(${items.length}가지)</span></summary>
   ${items.map((it,i)=>`<div class="dcard"><div class="dt">${i+1}. ${it.t}</div><div class="dg">
     <div class="dc sim"><span class="dl">시뮬레이션</span>${it.fs?FIG[it.fs]:''}<p>${it.sim}</p></div>
     <div class="dc real"><span class="dl">실제</span>${it.fr?FIG[it.fr]:''}<p>${it.real}</p></div></div></div>`).join('')}</details>`;
@@ -281,8 +298,12 @@ const KM_PER_DEG=111.195;
 const blank=()=>({sel:0,stn:[0,1,2].map(()=>({pm:null,sm:null,ps:'',psOk:false,dist:'',distOk:false,fb:null,fb2:null})),
   pred:null,q1:null,q3:null,qc:null,guess:null,revealed:false,view:'wave'});
 let S={mission:'gj',gj:blank(),th:blank()};
-try{const s=JSON.parse(localStorage.getItem('ess-seismic-v1'));if(s&&s.gj&&s.th)S=s;}catch(e){}
-function save(){try{localStorage.setItem('ess-seismic-v1',JSON.stringify(S));}catch(e){}}
+function simM(k){const m=blank();m.stn=m.stn.map((_,i)=>{const t=trueArr(k,i),ps=+(t.s-t.p).toFixed(k==='th'?0:1);
+  return {pm:+t.p.toFixed(2),sm:+t.s.toFixed(2),ps:String(ps),psOk:true,dist:String(Math.round(distFromPS(k,ps))),distOk:true,fb:null,fb2:null};});
+  m.revealed=true;m.view='map';m.q1='정할 수 없다';m.q3='한 점에서 만나지 않고 작은 영역이 생긴다';m.qc='휘어 있다';return m;}
+if(ESS_SIM){S={mission:'gj',gj:simM('gj'),th:simM('th')};}
+else{try{const s=JSON.parse(localStorage.getItem('ess-seismic-v1'));if(s&&s.gj&&s.th)S=s;}catch(e){}}
+function save(){if(ESS_SIM)return;try{localStorage.setItem('ess-seismic-v1',JSON.stringify(S));}catch(e){}}
 const M=()=>S[S.mission];
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
@@ -505,7 +526,7 @@ function renderCards(){
   if(k==='gj'){
     h+=`<div class="card"><h3>미션 1 · ${ev.name}</h3><p>${ev.date}, 규모 ${ev.mag}. 세 관측소의 기록만으로 <span class="term">진앙</span>(진원 바로 위 땅 위의 점)을 찾아봅시다.</p>
       <p class="muted"><span class="term">진원</span>은 땅속에서 지진이 처음 시작된 곳입니다.</p></div>`;
-    h+=`<div class="card"><h3>먼저 예측하기</h3><p>진앙에서 <b>먼</b> 관측소일수록 <span class="term">PS시</span>(P파와 S파의 도착 시간 차이)는 어떻게 될까요?</p>
+    if(!ESS_SIM)h+=`<div class="card"><h3>먼저 예측하기</h3><p>진앙에서 <b>먼</b> 관측소일수록 <span class="term">PS시</span>(P파와 S파의 도착 시간 차이)는 어떻게 될까요?</p>
       <div class="opts" data-q="pred">${['길어진다','같다','짧아진다'].map(o=>`<button class="${m.pred===o?'picked':''}" data-v="${o}">${o}</button>`).join('')}</div>
       ${m.pred?'<p class="muted">예측을 기록했어요. 세 관측소를 모두 읽은 뒤 확인합니다.</p>':''}</div>`;
   }else{
@@ -549,9 +570,9 @@ function renderCards(){
     if(m.q3&&m.q3.startsWith('정확히'))h+=fb({c:'hint',t:'지도에서 [＋]로 세 원이 겹치는 곳을 크게 보세요. 세 원의 선이 한 점을 지나나요?'});
     if(m.q3&&m.q3.startsWith('한 점')){
       h+=fb({c:'ok',t:'맞아요. 파형을 읽을 때 생기는 오차, 실제 지구 속이 곳곳마다 조금씩 다른 점 때문에 세 원은 보통 한 점에서 만나지 않습니다. 진앙은 <b>세 원이 겹치는 작은 영역 안</b>에 있다고 판단합니다.'});
-      h+=`<p style="margin-top:10px"><b>지도에서 진앙이라고 생각하는 곳을 눌러 표시하세요.</b></p>`;
+      h+=ESS_SIM?`<p class="muted" style="margin-top:10px">지도에 발표된 진앙(${ev.src})을 함께 표시했어요.</p>`:`<p style="margin-top:10px"><b>지도에서 진앙이라고 생각하는 곳을 눌러 표시하세요.</b></p>`;
       if(m.guess&&!m.revealed)h+=`<button class="btn primary" data-a="reveal">발표된 진앙과 비교하기</button>`;
-      if(m.revealed){const err=hav(m.guess[1],m.guess[0],ev.lat,ev.lon);
+      if(m.revealed&&m.guess){const err=hav(m.guess[1],m.guess[0],ev.lat,ev.lon);
         h+=fb({c:err<(k==='gj'?20:300)?'ok':'note',t:`내가 찾은 진앙과 발표된 진앙(${ev.src})의 거리: <b>약 ${err<100?err.toFixed(0):Math.round(err/10)*10} km</b>. `+
           (err<(k==='gj'?20:300)?'관측소 세 곳만으로 이만큼 가깝게 찾았어요!':'세 원이 겹치는 영역 안을 다시 살펴보세요. 거리 읽기를 다시 해 보아도 좋아요.')});
         h+=`<button class="btn" data-a="reguess" style="margin-top:6px">다시 찍기</button>`;}
@@ -560,7 +581,7 @@ function renderCards(){
     if(k==='gj'){
       const rows=sn.map((s,j)=>({n:s.n,ps:parseFloat(m.stn[j].ps),d:parseFloat(m.stn[j].dist)})).sort((a,b)=>a.d-b.d);
       h+=`<div class="card"><h3>예측 확인</h3><table class="res"><tr><th>관측소</th><th>내가 구한 거리</th><th>PS시</th></tr>${rows.map(r=>`<tr><td>${r.n}</td><td>${r.d} km</td><td>${r.ps}초</td></tr>`).join('')}</table>
-        <p>내 예측: <b>${m.pred||'(예측 안 함)'}</b></p>
+        ${ESS_SIM?'':`<p>내 예측: <b>${m.pred||'(예측 안 함)'}</b></p>`}
         ${fb({c:'ok',t:'먼 관측소일수록 PS시가 <b>길어집니다</b>. P파가 S파보다 빠르기 때문에, 멀리 갈수록 두 파의 간격이 점점 벌어집니다. 달리기에서 빠른 선수와 느린 선수의 차이가 거리가 길수록 커지는 것과 같아요.'})}</div>`;
     }else{
       h+=`<div class="card"><h3>곡선 비교하기</h3><p>[주시 곡선]을 다시 보세요. 미션 1(수백 km)의 곡선은 거의 곧았습니다. 미션 2(수천 km)의 곡선은 어떤가요?</p>
@@ -572,7 +593,7 @@ function renderCards(){
   if(k==='gj'&&nDone===3&&m.revealed&&S.th.stn.every(s=>!s.distOk))h+=`<button class="btn primary" data-a="m2" style="width:100%;margin-bottom:12px">미션 2 동일본 대지진으로 가기</button>`;
   // 모형 안내
   h+=diffHTML(DIFF2);
-  document.getElementById('cards').innerHTML=h;updateReadout();renderTools();
+  document.getElementById('cards').innerHTML=essSimText(h);updateReadout();renderTools();
 }
 
 document.getElementById('cards').addEventListener('click',e=>{
@@ -1678,8 +1699,8 @@ if(document.fonts)document.fonts.ready.then(draw);
    L파: 진앙(진원 바로 위 지표)에서 지표를 따라 퍼진다. 깊어질수록 약해진다. 레일리파(굴러가듯 타원)·러브파(옆으로) */
 const T1=(()=>{
 let st={view:'2d',pred:null,qp:null,qs:null,q3:null,q4:null,seqDone:false,w:'P',med:'solid',lt:'R'};
-try{const x=JSON.parse(localStorage.getItem('ess-seismic1-v1'));if(x)st=Object.assign(st,x);}catch(e){}
-const save=()=>{try{localStorage.setItem('ess-seismic1-v1',JSON.stringify(st));}catch(e){}};
+if(ESS_SIM)Object.assign(st,{pred:'P',qp:'para',qs:'perp',q3:'L',q4:'stop',seqDone:true});else{try{const x=JSON.parse(localStorage.getItem('ess-seismic1-v1'));if(x)st=Object.assign(st,x);}catch(e){}}
+const save=()=>{if(ESS_SIM)return;try{localStorage.setItem('ess-seismic1-v1',JSON.stringify(st));}catch(e){}};
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const box=document.getElementById('g1'),tr=document.getElementById('tr1'),tctx=tr.getContext('2d');
 let ok=false,noGL=false,looping=false,trail=[],renderer,scene,camera,controls,inst,N,base,isTr,bld,floors=[],frame,front={},labels={};
@@ -1855,7 +1876,7 @@ function cards(){let h='';
   if(st.q4==='stop')h+=`<details class="dif"><summary>더 알아보기 · L파는 두 가지</summary><p>L파(표면파)에는 두 종류가 있습니다. 버튼을 눌러 비교해 보세요.</p>
     <div class="opts" data-lt="1"><button class="${st.lt==='R'?'picked':''}" data-v="R"><b>레일리파</b>: 땅이 굴러가듯 위아래·앞뒤로 둥글게 움직인다</button><button class="${st.lt==='L'?'picked':''}" data-v="L"><b>러브파</b>: 땅이 옆으로 뱀처럼 흔들린다</button></div></details>`;
   out(h);}
-function out(h){document.getElementById('cards1').innerHTML=h+diffHTML(DIFF1);syncTools();}
+function out(h){document.getElementById('cards1').innerHTML=essSimText(h)+diffHTML(DIFF1);syncTools();}
 document.getElementById('cards1').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.parentElement.dataset.lt){st.lt=b.dataset.v;save();if(st.med!=='solid'){st.med='solid';colors();}play(['L']);cards();return;}
   const q=b.parentElement.dataset.q;if(q){st[q]=b.dataset.v;save();cards();}});
@@ -1872,8 +1893,8 @@ const D3={"vel":[[6371.0,5.8,3.36],[6351.0,5.8,3.36],[6351.0,6.5,3.75],[6336.0,6
 const T3=(()=>{
 const R=6371,RC0=3482,RIC=1217;
 let st={q1:null,q2:null,q3:null,rc:2200,coreOk:false,q5:null,w:'S',tries:0};
-try{const x=JSON.parse(localStorage.getItem('ess-seismic3-v1'));if(x)st=Object.assign(st,x);}catch(e){}
-const save=()=>{try{localStorage.setItem('ess-seismic3-v1',JSON.stringify(st));}catch(e){}};
+if(ESS_SIM)Object.assign(st,{q1:'all',q2:'103',obsOn:true,q3:'액체',coreOk:true,rc:3482,q5:'b'});else{try{const x=JSON.parse(localStorage.getItem('ess-seismic3-v1'));if(x)st=Object.assign(st,x);}catch(e){}}
+const save=()=>{if(ESS_SIM)return;try{localStorage.setItem('ess-seismic3-v1',JSON.stringify(st));}catch(e){}};
 const cv=document.getElementById('cv3'),ctx=cv.getContext('2d');let W=0,H=0;
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
@@ -2016,7 +2037,7 @@ function cards(){let h='';
     h+=`<details><summary>더 알아보기 · 암영대에도 아주 약한 P파가 온다</summary><p>점선은 <b>내핵</b>에서 꺾여 나온 아주 약한 P파입니다. 1936년 레만은 이 약한 파를 보고 외핵 안에 또 하나의 핵(내핵)이 있다고 생각했어요. 내핵에서는 P파가 다시 빨라지는데, 이것이 내핵이 <b>고체</b>라는 근거 가운데 하나입니다.</p></details>
     <details><summary>더 알아보기 · 103° 너머에 오는 S파(SKS)</summary><p>S파로 맨틀을 내려가 외핵에서 P파로 바뀌어 지나간 뒤, 다시 S파로 바뀌어 올라오는 파가 있습니다(SKS). 그래서 103° 너머에도 S파 성질의 파가 기록되지만, <b>맨틀만 지나온 S파</b>는 오지 않습니다. 외핵을 S파 그대로 통과한 파는 없어요.</p></details>`;}
   done(h);
-  function done(x){document.getElementById('cards3').innerHTML=(x||h)+diff();sync();}
+  function done(x){document.getElementById('cards3').innerHTML=essSimText(x||h)+diff();sync();}
 }
 function diff(){return `<details class="dif"><summary>📘 '계산값'은 무엇을 근거로 했나요?</summary>
   <p><b>표준 지구 모형 iasp91</b>(Kennett·Engdahl, 1991)을 썼습니다. 전 세계 관측소에 기록된 수많은 지진의 <b>실제 도착 시각</b>에 가장 잘 맞도록, 깊이에 따른 P파·S파 속도를 정한 모형입니다. 지진 위치를 정할 때 국제적으로 널리 씁니다.</p>
@@ -2049,8 +2070,8 @@ const T4=(()=>{
 const V1=6.2,V2=8.0,H_TRUE=33,XS=Array.from({length:12},(_,i)=>25*(i+1)),EX=3; // EX: 세로 과장 배율
 const NOISE=[0.2,-0.25,0.15,-0.1,0.25,-0.2,0.1,0.3,-0.15,0.2,-0.3,0.1];
 let st={pts:[],sel:null,q2:null,q3:null,h:15,hOk:false,calc:'',calcOk:false};
-try{const x=JSON.parse(localStorage.getItem('ess-seismic4-v1'));if(x)st=Object.assign(st,x);}catch(e){}
-const save=()=>{try{localStorage.setItem('ess-seismic4-v1',JSON.stringify(st));}catch(e){}};
+if(ESS_SIM)Object.assign(st,{pts:XS.map((_,i)=>i),sel:11,q2:'two',q3:'mantle',h:33,hOk:false,calc:'33',calcOk:true});else{try{const x=JSON.parse(localStorage.getItem('ess-seismic4-v1'));if(x)st=Object.assign(st,x);}catch(e){}}
+const save=()=>{if(ESS_SIM)return;try{localStorage.setItem('ess-seismic4-v1',JSON.stringify(st));}catch(e){}};
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const cv=document.getElementById('cv4'),ctx=cv.getContext('2d');let W=0,H=0;
 const ic=Math.asin(V1/V2),K=Math.sqrt(1/V1**2-1/V2**2);
@@ -2130,17 +2151,17 @@ function cards(){let h='';const n=st.pts.length;
       st.q3?fb('hint','[경주 보기]에서 주황 점이 <b>어디를</b> 지날 때 빨라지는지 보세요.'):''}</div>`;
   if(st.q3!=='mantle'){out(h);return;}
   h+=`<div class="card"><h3>3. 지각의 두께 맞히기</h3><p>막대로 <b>모호면 깊이</b>를 바꾸면 그래프의 두 선(파랑: 곧장 온 파, 주황: 맨틀을 따라 온 파)이 바뀝니다. 선이 관측 점과 가장 잘 맞는 깊이를 찾으세요.</p>
-    ${st.hOk?fb('ok',`찾았어요! 이 지역의 지각 두께는 약 <b>${H_TRUE} km</b>입니다. 두 선이 만나는 곳(검은 점)보다 먼 곳에서는 맨틀을 따라 온 파가 먼저 도착해요. 지각이 두꺼울수록 이 점이 멀어집니다.`):
+    ${st.hOk||ESS_SIM?fb('ok',`찾았어요! 이 지역의 지각 두께는 약 <b>${H_TRUE} km</b>입니다. 두 선이 만나는 곳(검은 점)보다 먼 곳에서는 맨틀을 따라 온 파가 먼저 도착해요. 지각이 두꺼울수록 이 점이 멀어집니다.`):
       `<button class="btn primary" data-a="h">이 깊이로 정하기</button>${st.tries4&&Math.abs(st.h-H_TRUE)>2?fb('hint','주황 선이 점들보다 위에 있나요, 아래에 있나요? 막대를 움직이며 선이 꺾이는 곳(검은 점)이 관측 점이 꺾이는 곳과 맞는지 보세요.'):''}`}</div>`;
-  if(st.hOk)h+=`<details class="dif"><summary>더 알아보기 · 공식으로 두께 구하기</summary>
+  if(st.hOk||ESS_SIM)h+=`<details class="dif"><summary>더 알아보기 · 공식으로 두께 구하기</summary>
     <p>두 직선의 기울기로 지각 속도 V<sub>1</sub>과 맨틀 속도 V<sub>2</sub>를, 두 직선이 만나는 거리(<b>교차 거리</b> x<sub>c</sub>)를 읽으면 지각 두께 h를 계산할 수 있습니다.</p>
     <p style="font-size:18px;text-align:center"><b>h = (x<sub>c</sub> ÷ 2) × √((V<sub>2</sub> − V<sub>1</sub>) ÷ (V<sub>2</sub> + V<sub>1</sub>))</b></p>
     <p>이 모형의 값: V<sub>1</sub> = ${V1} km/s, V<sub>2</sub> = ${V2} km/s, x<sub>c</sub> ≈ ${Math.round(xc(H_TRUE))} km. h를 계산해 보세요.</p>
     <div class="inp"><span>h</span><input id="calc4" type="number" inputmode="decimal" placeholder="숫자" value="${st.calc}" ${st.calcOk?'disabled':''}><span>km</span>${st.calcOk?'':'<button class="btn primary" data-a="calc">확인</button>'}</div>
     ${st.calcOk?fb('ok','맞아요. 막대로 찾은 값과 같습니다.'):st.calc!==''?fb('hint','√ 안을 먼저 계산하세요: (8.0 − 6.2) ÷ (8.0 + 6.2). 그 값의 제곱근에 x<sub>c</sub> ÷ 2를 곱합니다.'):''}</details>`;
   out(h);}
-function out(h){document.getElementById('cards4').innerHTML=h+diffHTML(DIFF4);sync();}
-function sync(){const s=document.getElementById('slider4');s.hidden=!(st.q3==='mantle'&&!st.hOk);const r=document.getElementById('hIn');r.value=st.h;document.getElementById('hVal').textContent=st.h+' km';
+function out(h){document.getElementById('cards4').innerHTML=essSimText(h)+diffHTML(DIFF4);sync();}
+function sync(){const s=document.getElementById('slider4');s.hidden=!(ESS_SIM||st.q3==='mantle'&&!st.hOk);const r=document.getElementById('hIn');r.value=st.h;document.getElementById('hVal').textContent=st.h+' km';
   const tg=document.getElementById('tag4');tg.className='tag model';tg.textContent='모형';draw();}
 document.getElementById('cards4').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const q=b.parentElement.dataset.q;
   if(q){st[q]=b.dataset.v;save();cards();return;}const a=b.dataset.a;
@@ -2163,8 +2184,8 @@ return {show(){cards();fit();},draw(){draw();}};
 const D5={"sec":[{"name":"한반도·일본 아래","span":50.2,"na":121,"nr":58,"r0":3480,"r1":6346,"v":"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","marks":[["태평양",0.0],["일본 해구",0.335],["한반도",0.585],["중국",1.0]]},{"name":"아프리카 아래","span":102.2,"na":121,"nr":58,"r0":3480,"r1":6346,"v":"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","marks":[["남대서양",0.0],["아프리카 남부",0.435],["인도양",1.0]]}]};
 const T5=(()=>{
 let st={mode:'v',zoom:false,found:{cmb:false,icb:false,moho:false},q1:null,sec:0,qa:null,qb:null,qc:null,pick:null,tp:null};
-try{const x=JSON.parse(localStorage.getItem('ess-seismic5-v1'));if(x)st=Object.assign(st,x);}catch(e){}
-const save=()=>{try{localStorage.setItem('ess-seismic5-v1',JSON.stringify(st));}catch(e){}};
+if(ESS_SIM)Object.assign(st,{found:{cmb:true,icb:true,moho:true},q1:'ok',qa:'temp',qb:'slab',qc:'plume'});else{try{const x=JSON.parse(localStorage.getItem('ess-seismic5-v1'));if(x)st=Object.assign(st,x);}catch(e){}}
+const save=()=>{if(ESS_SIM)return;try{localStorage.setItem('ess-seismic5-v1',JSON.stringify(st));}catch(e){}};
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const cv=document.getElementById('cv5'),ctx=cv.getContext('2d');let W=0,H=0;
 const R=6371,B={moho:35,cmb:R-3482,icb:R-1217};
@@ -2262,11 +2283,16 @@ function cards(){let h='';const f=st.found;
     ${opts('qc',[['plume','뜨거운 거대한 덩어리(플룸이 솟아오르는 곳)'],['slab','가라앉은 차가운 판'],['core','외핵의 일부']])}
     ${st.qc==='plume'?fb('ok','맞아요. 맨틀 바닥의 뜨겁고 느린 거대한 덩어리입니다. 여기서 <b>플룸</b>이 솟아올라 열점 화산을 만든다고 봅니다. 태평양 아래에도 이런 덩어리가 하나 더 있어요.'):st.qc?fb('hint','빨강은 느림 = 뜨거움입니다. 맨틀 바닥에서 뜨거운 물질이 솟아오르는 것을 무엇이라고 했나요?'):''}</div>`;
   out(h);}
-function out(h){document.getElementById('cards5').innerHTML=h+diffHTML(DIFF5);tools();}
+function out(h){document.getElementById('cards5').innerHTML=essSimText(h)+diffHTML(DIFF5);tools();}
 document.getElementById('cards5').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const q=b.parentElement.dataset.q;if(q){st[q]=b.dataset.v;save();cards();draw();}});
 return {show(){cards();fit();},draw(){imgKey='';draw();}};
 })();
 
+</script>
+<script>
+(function(){const n=document.getElementById('modeNow'),b=document.getElementById('modeBtn');
+  n.textContent=ESS_SIM?'시뮬레이션 모드':'탐구 모드';b.textContent=ESS_SIM?'탐구 모드로':'시뮬레이션 모드로';
+  try{const u=new URL(location.href);if(ESS_SIM)u.searchParams.delete('mode');else u.searchParams.set('mode','sim');b.href=u.pathname.split('/').pop()+u.search+u.hash;}catch(e){}})();
 </script>
 <script>T1.show();</script>
 </body>

@@ -164,11 +164,23 @@ table.diff td:nth-child(2){color:var(--muted);width:30%}
 input[type=range]{width:100%;height:36px;accent-color:var(--parent);margin:4px 0}
 .opts.one{grid-template-columns:1fr}
 .opts.one button{text-align:left;padding:12px 14px}
+/* ---------- 모드 (탐구 / 시뮬레이션) ---------- */
+.modeSw{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-bottom:4px}
+.modeSw .now{font:800 12px var(--font);color:var(--ink);background:var(--chip);border:1px solid var(--line);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.modeSw button{font:600 12px var(--font);color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer;white-space:nowrap}
+.modeSw button:hover{color:var(--ink);border-color:var(--muted)}
+body.sim .inq-only{display:none!important}
+body:not(.sim) .sim-only{display:none!important}
+body.sim .wrap{max-width:960px}
+.simNote{font-size:15px;line-height:1.55;word-break:keep-all}
+.simNote ul,.simNote ol{margin:8px 0 0;padding-left:20px}
+.simNote li{margin:4px 0}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
+    <div class="modeSw"><span class="now" id="modeNow">탐구 모드</span><button id="modeBtn" type="button">시뮬레이션 모드로</button></div>
     <div class="sub">ESS Lab · 지구과학 [12지구02-01]</div>
     <h1>상대 연령과 절대 연령</h1>
   </header>
@@ -180,10 +192,11 @@ input[type=range]{width:100%;height:36px;accent-color:var(--parent);margin:4px 0
 
   <section id="t1">
     <div class="chips roundChips hidden" id="roundChips"><button data-r="1">1라운드 · 지층 순서</button><button data-r="2">2라운드 · 지질 사건</button></div>
-    <div class="card" id="r1Q">
+    <div class="card inq-only" id="r1Q">
       <div class="q" style="margin-top:0">이 지층 단면에서 A~F는 어떤 순서로 생겼을까요?</div>
       <div class="sub2" style="line-height:1.5">지층을 눌러 관찰한 뒤, <b>가장 오래된 것부터</b> 순서대로 넣어 보세요.</div>
     </div>
+    <div class="card sim-only"><div class="simNote">가상 지층 단면의 A~F가 생긴 순서와 그 근거예요. 지층을 누르면 관찰 내용이 나와요.</div></div>
     <div class="card" id="xsecCard">
       <div class="canvasBox" id="xsecBox"></div>
       <div class="sub2" style="margin-top:6px">지층을 누르면 관찰 내용이 나와요.</div>
@@ -192,23 +205,47 @@ input[type=range]{width:100%;height:36px;accent-color:var(--parent);margin:4px 0
       <div id="obs" class="obs"><span class="sub2">아직 고른 지층이 없어요. 단면에서 지층을 눌러 보세요.</span></div>
     </div>
     <div class="card" id="ordCard">
-      <div class="setRow" style="margin:0 0 8px"><span class="lab">내가 정한 순서</span><span class="sub2">칸을 누르면 빠져요</span></div>
+      <div class="setRow" style="margin:0 0 8px"><span class="lab inq-only">내가 정한 순서</span><span class="lab sim-only">생긴 순서</span><span class="sub2 inq-only">칸을 누르면 빠져요</span></div>
       <div class="slots" id="slots"></div>
       <div class="slotEnds"><span>가장 오래됨</span><span>가장 젊음</span></div>
-      <div class="btnRow"><button id="ordReset" class="ghost">모두 빼기</button><button id="ordCheck" class="primary" disabled>확인</button></div>
-      <div id="ordFb"></div>
+      <div class="btnRow inq-only"><button id="ordReset" class="ghost">모두 빼기</button><button id="ordCheck" class="primary" disabled>확인</button></div>
+      <div id="ordFb" class="inq-only"></div>
+      <div class="simNote sim-only" style="margin-top:12px">
+        <b>D → A → F → B → E → C</b> 순서를 정하는 단서
+        <ul>
+          <li><b>지층 누중의 법칙</b>: 뒤집히지 않았다면 아래에 있는 층이 먼저 쌓였다. (D → A, B → E → C)</li>
+          <li><b>관입의 법칙</b>: 뚫고 들어온 암석이 뚫린 암석보다 나중에 생겼다. F 속의 셰일 조각(포획암)과 구워진 A층(접촉 변성)이 증거. (D·A → F)</li>
+          <li><b>동물군 천이의 법칙</b>: 지층마다 들어 있는 화석이 다르고, 화석의 순서로 지층의 순서를 알 수 있다. 삼엽충(고생대)이 있는 A가 공룡 뼈(중생대)가 있는 B보다 먼저.</li>
+          <li><b>부정합의 법칙</b>: 울퉁불퉁한 침식면과 그 위의 자갈(기저 역암)은 오랫동안 땅 위로 드러나 깎인 시간을 뜻한다. B의 화강암 자갈은 F가 B보다 먼저 있었다는 증거. (F → B)</li>
+        </ul>
+      </div>
     </div>
     <div class="card hidden" id="r2Card">
       <h2>2라운드: 지질 사건까지</h2>
-      <div class="sub2" style="line-height:1.5;margin-bottom:10px">아래 카드를 눌러 <b>오래된 일부터</b> 차례로 쌓아 보세요. 사건 카드는 여러 번 쓸 수 있고, 필요 없는 카드도 섞여 있어요.</div>
+      <div class="sub2 inq-only" style="line-height:1.5;margin-bottom:10px">아래 카드를 눌러 <b>오래된 일부터</b> 차례로 쌓아 보세요. 사건 카드는 여러 번 쓸 수 있고, 필요 없는 카드도 섞여 있어요.</div>
+      <div class="inq-only">
       <div class="lab">지층 · 암석</div>
       <div class="chips r2pal" id="r2Units"></div>
       <div class="lab" style="margin-top:10px">지질 사건</div>
       <div class="chips r2pal" id="r2Events"></div>
-      <div class="lab" style="margin-top:14px">내가 정한 순서 <span class="sub2">(위가 가장 오래됨 · 줄을 누르면 빠져요)</span></div>
+      </div>
+      <div class="lab inq-only" style="margin-top:14px">내가 정한 순서 <span class="sub2">(위가 가장 오래됨 · 줄을 누르면 빠져요)</span></div>
+      <div class="lab sim-only">지층과 지질 사건이 일어난 순서 <span class="sub2">(위가 가장 오래됨)</span></div>
       <ol class="seq" id="r2Seq"></ol>
-      <div class="btnRow"><button id="r2Reset" class="ghost">모두 빼기</button><button id="r2Check" class="primary" disabled>확인</button></div>
-      <div id="r2Fb"></div>
+      <div class="btnRow inq-only"><button id="r2Reset" class="ghost">모두 빼기</button><button id="r2Check" class="primary" disabled>확인</button></div>
+      <div id="r2Fb" class="inq-only"></div>
+      <div class="simNote sim-only" style="margin-top:12px">
+        <b>이 지역의 역사</b>
+        <ol>
+          <li>물속에서 D, A가 차례로 쌓였다. (지층 누중)</li>
+          <li>지각 변동으로 지층이 기울어졌다.</li>
+          <li>마그마가 D·A를 뚫고 들어와 F가 되었다. F는 기울지 않았으니 기울어진 뒤다. (관입)</li>
+          <li>땅이 융기해 지표로 드러나 풍화·침식되었다. F의 윗부분도 깎였다.</li>
+          <li>다시 침강해 물에 잠긴 뒤, 깎인 F 조각이 자갈로 섞인 B가 쌓였다. (부정합)</li>
+          <li>화산재가 날아와 E가 쌓이고, 그 위에 C가 쌓였다.</li>
+          <li>다시 융기해 지금처럼 땅 위로 드러났다.</li>
+        </ol>
+      </div>
     </div>
     <div class="card">
       <details>
@@ -223,7 +260,8 @@ input[type=range]{width:100%;height:36px;accent-color:var(--parent);margin:4px 0
   </section>
   <section id="t3" class="hidden">
     <div class="card">
-      <div class="q" style="margin-top:0">화성암 F와 화산재층 E의 나이를 구하고, 그 사이 지층의 나이를 정해 보세요.</div>
+      <div class="q inq-only" style="margin-top:0">화성암 F와 화산재층 E의 나이를 구하고, 그 사이 지층의 나이를 정해 보세요.</div>
+      <div class="q sim-only" style="margin-top:0">방사성 원소로 잰 F와 E의 나이, 그리고 그 사이 지층의 나이 범위</div>
       <div class="virtBox"><span class="tag virt">가상 원소</span> 이 탭의 <b>X, Y는 연습용으로 만든 가상의 방사성 원소</b>예요. 실제로는 없는 원소이고, 반감기도 계산하기 쉽게 정한 값이에요. (수능 문제도 이런 가상 원소를 자주 써요.)
         <div class="isoMini"><span><b>X</b> 반감기 1억 년</span><span><b>Y</b> 반감기 5000만 년</span></div></div>
     </div>
@@ -232,7 +270,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--parent);margin:4px 0
       <div class="sub2" style="margin-top:6px">시료를 채취할 지층을 눌러 보세요.</div>
     </div>
     <div class="card" id="smpCard"><div id="smp"><span class="sub2">아직 고른 지층이 없어요.</span></div></div>
-    <div class="card hidden" id="rangeCard">
+    <div class="card hidden inq-only" id="rangeCard">
       <h2>나이의 범위 정하기</h2>
       <div class="ages" id="ages"></div>
       <div class="qnum" id="rqNum"></div>
@@ -245,7 +283,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--parent);margin:4px 0
       <div id="tl"></div>
       <div class="fb ok" style="margin-top:10px"><b>화석과도 맞을까요?</b><br>A층의 삼엽충은 고생대(약 5.4억~2.5억 년 전), B층의 공룡은 중생대(약 2.5억~0.66억 년 전)에 살았어요. 위에서 구한 범위와 비교해 보세요.</div>
     </div>
-    <div class="card hidden" id="advCard">
+    <div class="card hidden inq-only" id="advCard">
       <h2>심화: 딱 떨어지지 않을 때</h2>
       <div class="qnum" id="aqNum"></div>
       <div class="q" id="aqText"></div>
@@ -267,7 +305,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--parent);margin:4px 0
 
   <section id="t2" class="hidden">
     <!-- 예측 질문 -->
-    <div class="card" id="qCard">
+    <div class="card inq-only" id="qCard">
       <div class="setRow" style="margin:0 0 10px">
         <span class="lab">예측 질문</span>
         <div class="chips" id="qSetChips"><button data-v="0" aria-pressed="true">기본</button><button data-v="1">심화</button></div>
@@ -402,6 +440,7 @@ input[type=range]{width:100%;height:36px;accent-color:var(--parent);margin:4px 0
 
 <script>
 (()=>{
+let SIM=false; // 시뮬레이션 모드 여부 (아래 '모드' 부분에서 정함)
 /* ---------- 자료 ---------- */
 const ISO=[
   {name:'탄소-14',  d:'질소-14',   T:5730},
@@ -650,7 +689,7 @@ $('qOpts').addEventListener('click',e=>{
   if(q.at===null || h>=q.at-EPS) evalQ(); else {qs='wait';renderQ();}
 });
 $('qFb').addEventListener('click',e=>{if(e.target.id==='qNext'){qi++;choice=null;qs='idle';renderQ();}});
-function checkQ(){ if(qs==='wait' && h>=Q[qi].at-EPS) evalQ(); }
+function checkQ(){ if(SIM) return; if(qs==='wait' && h>=Q[qi].at-EPS) evalQ(); }
 segInit0('qSetChips',v=>{qset=v;Q=QS[v];qi=0;choice=null;qs='idle';renderQ();});
 function segInit0(id,fn){const box=$(id);box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   [...box.children].forEach(x=>x.setAttribute('aria-pressed',x===b));fn(+b.dataset.v);});}
@@ -927,6 +966,13 @@ function renderS(){
     o.innerHTML=head+`<div class="fb wait">${msg}</div>`; return;
   }
   const p=S.p, done=solved[selS], ch=sChoice[selS];
+  if(SIM){
+    o.innerHTML=head+`<div class="lab" style="margin-top:8px">측정 결과 · 가상 원소 <b>${S.iso.n}</b> <span class="tag virt">가상</span> (반감기 ${fmtAge(S.iso.T)})</div>
+   <div class="meas"><div class="mbar"><div class="p" style="width:${p}%"></div><div class="d" style="width:${100-p}%"></div></div>
+   <div class="mlab"><span class="pp">모원소 ${S.iso.n} ${p}%</span><span class="dd">자원소 ${100-p}%</span></div></div>
+   <div class="simNote" style="margin-top:10px">모원소가 ${p}%이니 반감기가 2번 지났어요. ${S.iso.n}의 반감기 ${fmtAge(S.iso.T)} × 2 = <b>${fmtAge(S.ans)} 전</b>. ${S.why}</div>`;
+    return;
+  }
   o.innerHTML=head+`<div class="lab" style="margin-top:8px">측정 결과 · 가상 원소 <b>${S.iso.n}</b> <span class="tag virt">가상</span> (반감기 ${fmtAge(S.iso.T)})</div>
    <div class="meas"><div class="mbar"><div class="p" style="width:${p}%"></div><div class="d" style="width:${100-p}%"></div></div>
    <div class="mlab"><span class="pp">모원소 ${S.iso.n} ${p}%</span><span class="dd">자원소 ${100-p}%</span></div></div>
@@ -1031,6 +1077,41 @@ new ResizeObserver(()=>relayout()).observe(graphC);
 window.addEventListener('load',relayout);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)relayout();});
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',relayout);
+
+/* ---------- 모드: 탐구 모드 / 시뮬레이션 모드 ----------
+   모드는 주소로만 정함: ?mode=sim 이면 시뮬레이션 모드, 없으면 항상 탐구 모드(기기에 기억하지 않음).
+   포털 배너에서 모드를 고르면 ?mode=sim 이 붙은 주소로 들어옴.
+   시뮬레이션 모드로 바꿀 때 탐구 진행 상태를 메모리에 보관했다가, 돌아오면 그대로 되살림. */
+let inqSnap=null;
+function readMode(){
+  let m=null; try{ m=new URLSearchParams(location.search).get('mode'); }catch(e){}
+  return m==='sim'?'sim':'inq';
+}
+function setMode(m){
+  const toSim=m==='sim';
+  if(toSim && !SIM){
+    inqSnap={ord:ord.slice(),ordState,r2:r2.slice(),r2ok,r2unlocked,round,
+      solved:{...solved},sChoice:{...sChoice},tlHidden:$('tlCard').classList.contains('hidden')};
+    ord=ORDER.slice(); ordState='right'; r2=R2ANS.slice(); r2ok=true; r2unlocked=true;
+    solved={gr:true,tf:true}; sChoice={gr:SAMP.gr.ans,tf:SAMP.tf.ans};
+    $('tlCard').classList.remove('hidden'); drawTL();
+    document.querySelectorAll('details').forEach(d=>{ if(/실제와 다른 점/.test(d.querySelector('summary')?.textContent||'')) d.open=true; }); // 모형 안내는 펼쳐서 시작
+  } else if(!toSim && SIM && inqSnap){
+    ({ord,ordState,r2,r2ok,r2unlocked,round,solved,sChoice}=inqSnap);
+    $('tlCard').classList.toggle('hidden',inqSnap.tlHidden);
+    inqSnap=null;
+  }
+  SIM=toSim;
+  document.body.classList.toggle('sim',SIM);
+  $('modeNow').textContent=SIM?'시뮬레이션 모드':'탐구 모드';
+  $('modeBtn').textContent=SIM?'탐구 모드로':'시뮬레이션 모드로';
+  $('roundChips').classList.toggle('hidden',!r2unlocked);
+  if(round===2&&!r2unlocked) round=1;
+  renderX(); renderRound(); renderR2(); renderS();
+  try{ const u=new URL(location.href); if(SIM) u.searchParams.set('mode','sim'); else u.searchParams.delete('mode'); history.replaceState(null,'',u); }catch(e){}
+}
+$('modeBtn').onclick=()=>setMode(SIM?'inq':'sim');
+if(readMode()==='sim') setMode('sim'); else { $('modeNow').textContent='탐구 모드'; }
 
 readColors(); newRun(); renderIso(); renderQ(); relayout(); updateStats();
 requestAnimationFrame(t=>{lastT=t;loop(t);});

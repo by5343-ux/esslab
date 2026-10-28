@@ -198,7 +198,17 @@ ul.plain{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
 .src a{color:var(--accent)}
 .formula{font-family:var(--f-mono);background:var(--surface-2);padding:2px 6px;border-radius:6px;font-size:14px;white-space:nowrap}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ---------- 모드 (탐구 / 시뮬레이션) ---------- */
+.modeSw{align-self:flex-end;display:flex;align-items:center;gap:6px}
+.modeSw .now{font-size:12px;font-weight:800;color:var(--fg);border:1px solid var(--line);padding:3px 10px;border-radius:999px;white-space:nowrap}
+.modeSw a{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;text-decoration:none;white-space:nowrap}
+html.sim ol.plain,html.sim h3:has(+ ol.plain){display:none!important}
 </style>
+<script>
+/* 모드는 주소로만 정한다: ?mode=sim 이면 시뮬레이션 모드(모든 단계를 마친 상태로 열고 질문은 보이지 않음), 없으면 탐구 모드 */
+var ESS_SIM=(function(){try{return new URLSearchParams(location.search).get('mode')==='sim';}catch(e){return false;}})();
+if(ESS_SIM)document.documentElement.classList.add('sim');
+</script>
 </head>
 <body>
 
@@ -206,9 +216,13 @@ ul.plain{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="mgrad"><stop offset="0" stop-color="#7aa7ff"/><stop offset=".5" stop-color="#fff3c4"/><stop offset="1" stop-color="#ff7a45"/></linearGradient></defs></svg>
 <div class="wrap">
   <header class="top">
+    <div class="modeSw"><span class="now" id="modeNow">탐구 모드</span><a id="modeBtn" href="?mode=sim">시뮬레이션 모드로</a></div>
     <div class="eyebrow">Earth Science School Lab · bae_earth · <b>지구과학 [12지구03-02]</b></div>
     <h1>별의 물리량과 H-R도</h1>
   </header>
+  <script>(function(){const n=document.getElementById('modeNow'),b=document.getElementById('modeBtn');
+    n.textContent=ESS_SIM?'시뮬레이션 모드':'탐구 모드';b.textContent=ESS_SIM?'탐구 모드로':'시뮬레이션 모드로';
+    try{const u=new URL(location.href);if(ESS_SIM)u.searchParams.delete('mode');else u.searchParams.set('mode','sim');b.href=u.pathname.split('/').pop()+u.search+u.hash;}catch(e){}})();</script>
 
   <nav class="tabs" role="tablist" aria-label="탐구 단계">
     <button role="tab" id="tab1" aria-selected="true" aria-controls="panel1"><span class="n">①</span><span class="t">색과 온도</span></button>
@@ -789,7 +803,7 @@ function renderStep(){
         <li>백색왜성은 태양보다 뜨거운데도 훨씬 어둡습니다. 무엇이 다를까요?</li>
         <li>이 그래프에서 주계열성이 가장 많습니다. 왜 그럴까요?</li>
       </ol>
-      <details id="why"><summary>생각을 정리한 뒤 열어 보기</summary><div class="body">
+      <details id="why"><summary>${ESS_SIM?'더 알아보기':'생각을 정리한 뒤 열어 보기'}</summary><div class="body">
         <p>같은 온도라면 겉면 1 m²가 내는 에너지가 같습니다. 그런데도 더 밝다면 겉넓이가 넓은 것, 곧 <b>반지름이 큰</b> 것입니다. 거꾸로 뜨거운데 어두운 백색왜성은 반지름이 아주 <b>작습니다</b>.</p>
         <p>별은 일생의 대부분을 중심에서 수소를 태우는 주계열 단계로 보냅니다. 그래서 어느 순간에 찍어도 주계열 단계에 있는 별이 가장 많습니다. 주계열이 별이 지나가는 길은 아닙니다. 별의 진화는 다음 앱에서 다룹니다.</p>
       </div></details>`;
@@ -818,6 +832,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
 new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 new ResizeObserver(()=>resize()).observe(cv.parentElement);
 document.fonts&&document.fonts.ready.then(draw);
+if(ESS_SIM){st.step=2;st.reveal=1;st.revealOrder=HR.map((_,i)=>i);$('cLc').disabled=false;}
 renderStep(); resize(); pick(SUN);
 </script>
 <script>
@@ -1020,13 +1035,14 @@ function renderStep1(){
         <div><dt>B−V가 작을수록</dt><dd>표면 온도가 높음</dd></div>
         <div><dt>온도가 2배이면</dt><dd>같은 넓이에서 에너지 16배</dd></div>
       </dl>
-      <p class="mine">내 처음 예측: ${PRED1.find(p=>p[0]===s1.pred)[1]}</p>
+      ${ESS_SIM?'<div class="big-formula">λmax ∝ 1 / T</div><p class="mine">최대 복사 파장은 표면 온도에 <b>반비례</b>합니다(빈 변위 법칙). 기준 · 태양: 약 5,800 K → λmax 약 500 nm</p>':''}
+      ${ESS_SIM?'':`<p class="mine">내 처음 예측: ${PRED1.find(p=>p[0]===s1.pred)[1]}</p>`}
       <h3>더 생각해 보기</h3>
       <ol class="plain">
         <li>태양의 꼭짓점은 약 500 nm, 초록빛 근처입니다. 그런데 태양은 왜 초록색으로 보이지 않을까요?</li>
         <li>베텔게우스는 꼭짓점이 적외선 영역에 있습니다. 그래도 우리 눈에 보이는 까닭은 무엇일까요?</li>
       </ol>
-      <details><summary>생각을 정리한 뒤 열어 보기</summary><div class="body">
+      <details><summary>${ESS_SIM?'더 알아보기':'생각을 정리한 뒤 열어 보기'}</summary><div class="body">
         <p>별은 꼭짓점 파장 하나만 내는 것이 아니라 곡선 전체의 빛을 함께 냅니다. 태양은 가시광선의 모든 색을 고르게 많이 내서, 섞인 빛이 흰색에 가깝게 보입니다.</p>
         <p>베텔게우스도 곡선의 왼쪽 꼬리가 가시광선에 걸쳐 있습니다. 그중 붉은빛이 가장 많아서 붉게 보입니다.</p>
       </div></details>
@@ -1048,6 +1064,7 @@ new ResizeObserver(()=>resize1()).observe(cv1.parentElement);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw1);
 new MutationObserver(draw1).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 document.fonts&&document.fonts.ready.then(draw1);
+if(ESS_SIM)s1.step=4;
 renderStarList(); renderStep1(); setT(5770,true);
 </script>
 <script>
@@ -1191,7 +1208,8 @@ function renderStep3(){
         <div><dt>뜨거운데 어둡다</dt><dd>반지름이 아주 작다</dd></div>
         <div><dt>차가운데 밝다</dt><dd>반지름이 아주 크다</dd></div>
       </dl>
-      <p class="mine">내 처음 예측: ${PRED3.find(p=>p[0]===s3.pred)[1]}</p>
+      ${ESS_SIM?'<div class="big-formula">광도 = 반지름² × 온도⁴</div><p class="mine">L = 4πR²σT⁴를 태양과의 비로 바꾼 식입니다(모두 태양 = 1).</p>':''}
+      ${ESS_SIM?'':`<p class="mine">내 처음 예측: ${PRED3.find(p=>p[0]===s3.pred)[1]}</p>`}
       <p>② 탭에서 반지름 등급선을 켜면, 거성은 10~100배 선 근처, 백색왜성은 0.01배 선 근처에 모여 있는 것을 볼 수 있습니다.</p>
       <button class="btn ghost" id="toHR3">② H-R도에서 반지름 등급선 보기</button>`;
     $('toHR3').onclick=()=>{selectTab(2); if(st.step>=1&&st.xMode==='T'){$('rOn').click();}};
@@ -1202,6 +1220,7 @@ new ResizeObserver(()=>resize3()).observe(cv3.parentElement);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw3);
 new MutationObserver(draw3).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 document.fonts&&document.fonts.ready.then(draw3);
+if(ESS_SIM)s3.step=4;
 renderStep3(); setRK(1,1);
 
 </script>
@@ -1333,7 +1352,7 @@ function renderStep4(){
         <div><dt>가까운 거성·초거성</dt><dd>${nearGiants}개</dd></div>
         <div><dt>우주에 가장 많은 별</dt><dd>어둡고 차가운 주계열성</dd></div>
       </dl>
-      <p class="mine">내 처음 예측: ${PRED4.find(p=>p[0]===s4.pred)[1]}</p>
+      ${ESS_SIM?'':`<p class="mine">내 처음 예측: ${PRED4.find(p=>p[0]===s4.pred)[1]}</p>`}
       <p>우리가 밤하늘에서 보는 별은 우주의 '보통 별'이 아닙니다. 멀리서도 보일 만큼 밝은 별이 뽑힌 것입니다. 어두운 별은 가까이 있어도 맨눈으로는 거의 보이지 않습니다. 10 pc 안의 별 가운데 맨눈으로 보이는 별(6등급보다 밝은 별)은 ${NEAR.filter(s=>s.m!==null&&s.m<=6).length}개뿐입니다.</p>
       <h3>더 생각해 보기</h3>
       <ol class="plain"><li>② 탭의 H-R도에서 주계열성이 가장 많았던 까닭과, 여기서 가까운 별이 대부분 M형인 까닭을 함께 설명해 보세요.</li></ol>`;
@@ -1345,6 +1364,7 @@ new ResizeObserver(()=>resize4()).observe(cv4.parentElement);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw4);
 new MutationObserver(draw4).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 document.fonts&&document.fonts.ready.then(draw4);
+if(ESS_SIM)s4.step=4;
 renderStep4();
 
 /* 처음 열 탭 */
@@ -1356,5 +1376,6 @@ renderStep4();
   requestAnimationFrame(()=>{resize1();resize();resize3();resize4();});})();
 </script>
 
+<script>if(ESS_SIM)document.querySelectorAll('details').forEach(d=>{const t=d.querySelector('summary');if(t&&/실제와 다른 점/.test(t.textContent))d.open=true;});</script>
 </body>
 </html>

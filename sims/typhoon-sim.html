@@ -334,11 +334,26 @@ table.cmp th{white-space:nowrap}table.cmp td{white-space:normal;min-width:150px}
   .views.two .panel{margin:0}
   body{padding-bottom:130px}
 }
+/* ---------- 모드 (탐구 / 시뮬레이션) ---------- */
+.modeSw{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-bottom:4px}
+.modeSw .now{font-size:12px;font-weight:800;border:1px solid var(--line);padding:3px 10px;border-radius:999px;white-space:nowrap}
+.modeSw a{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;text-decoration:none;white-space:nowrap}
+html.sim .pred,html.sim #goal,html.sim #conclLock,html.sim section.s0card:has(#wQs),html.sim section.s0card:has(#b3Qs),html.sim #qs,html.sim label:has(#o-game),
+html.sim table.rec:has(#recb) th:nth-child(4),html.sim #recb td:nth-child(4){display:none!important}
 </style>
+<script>
+/* 모드는 주소로만 정한다: ?mode=sim 이면 시뮬레이션 모드(예측·탐구 질문·잠금 없이 바로 실험), 없으면 탐구 모드 */
+var ESS_SIM=(function(){try{return new URLSearchParams(location.search).get('mode')==='sim';}catch(e){return false;}})();
+if(ESS_SIM)document.documentElement.classList.add('sim');
+</script>
 </head>
 <body>
 <div class="wrap">
 <header class="top">
+  <div class="modeSw"><span class="now" id="modeNow">탐구 모드</span><a id="modeBtn" href="?mode=sim">시뮬레이션 모드로</a></div>
+  <script>(function(){const n=document.getElementById('modeNow'),b=document.getElementById('modeBtn');
+    n.textContent=ESS_SIM?'시뮬레이션 모드':'탐구 모드';b.textContent=ESS_SIM?'탐구 모드로':'시뮬레이션 모드로';
+    try{const u=new URL(location.href);if(ESS_SIM)u.searchParams.delete('mode');else u.searchParams.set('mode','sim');b.href=u.pathname.split('/').pop()+u.search+u.hash;}catch(e){}})();</script>
   <h1>태풍(열대 저기압) 시뮬레이션<small>시뮬레이션만</small></h1>
   <p class="sub"><span class="badge code">[12지구01-04]</span> <span id="subtxt"></span></p>
 </header>
@@ -4984,7 +4999,7 @@ const byId=id=>STATIONS.find(s=>s.id===id);
 const copySt=s=>({id:s.id,name:s.name,ll:s.ll.slice(),coast:s.coast||null});
 const state={t:0,playing:false,speed:6,tab:'map',view:'W',
   slots:[copySt(byId('masan')),copySt(byId('mokpo')),copySt(byId('jinju'))],sel:0,
-  layers:{iso:1,wind:1,wspd:1,track:1,cone:0,semi:0,info:1},obsAll:false,game:true,
+  layers:{iso:1,wind:1,wspd:1,track:1,cone:0,semi:0,info:1},obsAll:false,game:!ESS_SIM,
   mode:'single',A:'map',B:'obs',satMode:'sat'};
 let series=[null,null,null];
 function setSlot(i,s){state.slots[i]=s;series[i]=null;resetGame();renderSlots();renderAll(true);}
@@ -6162,7 +6177,8 @@ const RES={ty:['ty','태풍으로 발달'],weak:['weak','열대 저압부에 그
 function finish(o){
   lockCtl(false);const formed=o.cls==='ty';const right=(L.pred===1)===formed;const dp=dpAt(o,60);
   const out=[];out.push(`<div class="ex">결과: <b>${RES[o.cls][1]}</b> (60시간 뒤 중심 기압 약 ${Math.round(1008-dp)} hPa, 최대풍속 약 ${Math.round(vOf(dp))} m/s)</div>`);
-  if(right)out.push(`<div class="y">예측이 맞았어요. 실험 기록을 모아 태풍이 생기는 조건을 정리해 보세요.</div>`);
+  if(ESS_SIM){}
+  else if(right)out.push(`<div class="y">예측이 맞았어요. 실험 기록을 모아 태풍이 생기는 조건을 정리해 보세요.</div>`);
   else{let h;
     if(!formed&&o.why==='sst')h='바다의 색과 구름이 어떻게 바뀌었는지 보세요. 구름이 계속 자라려면 바다에서 무엇을 계속 받아야 할까요? <b>수증기 공급</b> 막대도 확인해 보세요.';
     else if(!formed&&o.why==='lat')h='노란 선(공기의 움직임)을 위도 15°일 때와 비교해 보세요. 공기가 중심으로 모여들 때 휘어졌나요? <b>전향력</b> 막대도 확인해 보세요.';
@@ -6172,9 +6188,9 @@ function finish(o){
   L.trials.push({sst:L.sst,lat:L.lat,pred:L.pred,cls:o.cls,why:o.why});L.pred=null;renderPred();renderRec();
 }
 function lockCtl(on){['sst','lat','labrun','labreset'].forEach(id=>$(id).disabled=on);document.querySelectorAll('#predopts button').forEach(b=>b.disabled=on);}
-function renderPred(){document.querySelectorAll('#predopts button').forEach(b=>b.setAttribute('aria-pressed',L.pred===+b.dataset.p?'true':'false'));$('labrun').disabled=L.pred===null;}
+function renderPred(){document.querySelectorAll('#predopts button').forEach(b=>b.setAttribute('aria-pressed',L.pred===+b.dataset.p?'true':'false'));$('labrun').disabled=L.pred===null&&!ESS_SIM;}
 document.querySelectorAll('#predopts button').forEach(b=>b.onclick=()=>{L.pred=+b.dataset.p;renderPred();});
-$('labrun').onclick=()=>{if(L.pred!==null)start();};
+$('labrun').onclick=()=>{if(L.pred!==null||ESS_SIM)start();};
 $('labreset').onclick=()=>{cancelAnimationFrame(raf);L.run=null;L.t=0;L.hist=[];L.pred=null;initParts();L.parts.forEach(p=>p.px=null);$('labres').innerHTML='';renderPred();drawLab();spark();};
 ['sst','lat'].forEach(id=>$(id).addEventListener('input',e=>{L[id]=+e.target.value;L.run=null;L.t=0;L.hist=[];L.parts.forEach(p=>p.px=null);meters();drawLab();spark();}));
 
@@ -6187,7 +6203,7 @@ function renderRec(){
     tr.innerHTML=`<td>${i+1}</td><td>${String(r.sst).replace('.0','')} ℃</td><td>${r.lat}°N</td><td>${r.pred?'된다':'안 된다'}</td><td><span class="pill ${R[0]}">${R[1]}</span></td>`;b.appendChild(tr);});
   const done=GOALS.map(g=>L.trials.some(g.ok));
   $('goal').innerHTML='<div style="font-weight:800">찾아볼 것</div>'+GOALS.map((g,i)=>`<div class="${done[i]?'done':''}"><b>${done[i]?'✓':i+1}</b>${g.txt}</div>`).join('');
-  const all=done.every(Boolean);$('conclBody').hidden=!all;$('conclLock').hidden=all;
+  const all=ESS_SIM||done.every(Boolean);$('conclBody').hidden=!all;$('conclLock').hidden=all;
   if(!all){const n=done.filter(Boolean).length;$('conclLock').innerHTML=`<b>아직 잠겨 있어요.</b> 실험 기록에서 '찾아볼 것' 세 가지를 모두 찾으면 열립니다. (지금 ${n}/3)<br><button id="goLab">먼저 할 일: 실험실에서 조건 바꿔 보기</button>`;
     $('goLab').onclick=()=>$('stage0').scrollIntoView({block:'start',behavior:reduce?'auto':'smooth'});}
 }
