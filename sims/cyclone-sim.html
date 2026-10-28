@@ -7,15 +7,15 @@
 <style>
 :root{
   --bg:#eaf0f3;--panel:#ffffff;--ink:#14222d;--muted:#566875;--line:#d3dce2;--chip:#e3eaef;--accent:#1f5fae;
-  --warm:#d23a2c;--cold:#1d5ed6;--occ:#8b3fb8;--dock:#10222f;--dockInk:#e6eef3;--hi:#f2b705;
+  --warm:#d23a2c;--cold:#1d5ed6;--occ:#8b3fb8;--dock:#10222f;--dockInk:#e6eef3;--hi:#f2b705;--soft:#f4f7f9;--s0:#6b7f8f;--s1:#b3541e;--s2:#7b3fa0;--s3:#4a6072;--mapBg:#f3efe3;--mapSea:#d9e7ef;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0b1217;--panel:#121c23;--ink:#e2eaf0;--muted:#98a8b5;--line:#243440;--chip:#1b2831;--accent:#79a8f2;
-  --warm:#ff6f60;--cold:#6aa2ff;--occ:#c790f2;--dock:#07131b;--dockInk:#e2eaf0;
+  --warm:#ff6f60;--cold:#6aa2ff;--occ:#c790f2;--dock:#07131b;--dockInk:#e2eaf0;--soft:#172430;--s0:#8fa3b3;--s1:#e0824a;--s2:#b67ad9;--s3:#7f98ad;--mapBg:#223039;--mapSea:#18303f;
 }}
 :root[data-theme="dark"]{
   --bg:#0b1217;--panel:#121c23;--ink:#e2eaf0;--muted:#98a8b5;--line:#243440;--chip:#1b2831;--accent:#79a8f2;
-  --warm:#ff6f60;--cold:#6aa2ff;--occ:#c790f2;--dock:#07131b;--dockInk:#e2eaf0;
+  --warm:#ff6f60;--cold:#6aa2ff;--occ:#c790f2;--dock:#07131b;--dockInk:#e2eaf0;--soft:#172430;--s0:#8fa3b3;--s1:#e0824a;--s2:#b67ad9;--s3:#7f98ad;--mapBg:#223039;--mapSea:#18303f;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -94,14 +94,71 @@ header.top h1 small{display:block;font-size:.6em;color:var(--muted);font-weight:
   .views.two .b3wrap{aspect-ratio:16/10}
   .views.two .mapwrap canvas,.views.two .mapwrap svg{top:-10%;bottom:auto;height:120%}
 }
-details{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
-summary{cursor:pointer;padding:12px 14px;font-weight:700;font-size:.95rem;list-style-position:inside}
-details .in{padding:0 14px 12px;font-size:.88rem}
-details ul{margin:4px 0;padding-left:1.2em}
-details li{margin:3px 0}
-.stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
-.stages button{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px;cursor:pointer;font-size:.82rem}
-.stages button b{display:block;font-size:.9rem}
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px;padding:16px 18px;font-size:1.12rem;font-weight:800}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);transition:transform .2s}
+details[open] summary::after{transform:rotate(-135deg)}
+summary small{font-size:.8rem;font-weight:600;color:var(--muted)}
+.in{padding:0 18px 18px;display:flex;flex-direction:column;gap:18px}
+.info h3{margin:0 0 8px;font-size:.8rem;letter-spacing:.06em;color:var(--muted);font-weight:800}
+.group{display:flex;flex-direction:column}
+
+/* 기호 목록 */
+.keys{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+@media (min-width:600px){.keys{grid-template-columns:1fr 1fr}.keys li:nth-child(odd){border-right:1px solid var(--line)}}
+.keys li{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+.keys li:last-child{border-bottom:none}
+@media (min-width:600px){.keys li:nth-last-child(2):nth-child(odd){border-bottom:none}}
+.keys svg{width:64px;height:28px;display:block;overflow:visible}
+.keys b{display:block;font-size:.98rem;line-height:1.35}
+.keys span{display:block;font-size:.86rem;color:var(--muted);line-height:1.45}
+.sym-t{font-weight:900;font-size:22px;text-align:center;line-height:28px}
+
+/* 바람 */
+.wind{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:600px){.wind{grid-template-columns:1.1fr 1fr}}
+.wcard{background:var(--soft);border-radius:12px;padding:14px;display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center}
+.wcard svg{width:112px;height:112px;display:block}
+.wcard p{margin:0;font-size:.95rem}
+.wcard .big{font-size:1.15rem;font-weight:800;display:block;margin-bottom:4px}
+.pair{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.pair{display:flex!important}.pair>span{display:block;font-size:.9rem;line-height:1.5}.pair .tag{margin-right:6px}
+.tag{flex:none;font-size:.74rem;font-weight:800;padding:1px 8px;border-radius:999px;background:var(--chip);color:var(--ink)}
+.tag.a{background:var(--ink);color:var(--panel)}
+
+/* 화면 다루기 */
+.how{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.how li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;font-size:.95rem}
+.how i{font-style:normal;width:30px;height:30px;border-radius:8px;background:var(--chip);display:grid;place-items:center;font-size:.95rem;font-weight:800;color:var(--accent)}
+.how b{font-weight:800}
+
+/* 일생 */
+.lstrip{display:flex;height:20px;border-radius:6px;overflow:hidden;font-size:.72rem;font-weight:800;color:#fff;line-height:20px;text-align:center}
+.lstrip span{overflow:hidden;white-space:nowrap}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.tl>li{display:grid;grid-template-columns:22px 1fr;gap:12px;position:relative}
+.rail{position:relative;display:flex;justify-content:center}
+.rail::before{content:"";position:absolute;top:26px;bottom:-4px;width:3px;border-radius:2px;background:var(--line)}
+.tl>li:last-child .rail::before{display:none}
+.dot{position:relative;z-index:1;margin-top:6px;width:18px;height:18px;border-radius:50%;background:var(--c);box-shadow:0 0 0 4px var(--panel)}
+.stage{padding-bottom:22px;display:flex;flex-direction:column;gap:8px}
+.tl>li:last-child .stage{padding-bottom:0}
+.shead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.shead strong{font-size:1.2rem;color:var(--c);line-height:1.3}
+.time{font-size:.8rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.sbody{display:grid;grid-template-columns:104px 1fr;gap:14px;align-items:start}
+.sbody svg{width:104px;height:78px;display:block;background:var(--mapSea);border-radius:10px}
+.key{margin:0;font-weight:800;font-size:1rem;line-height:1.45}
+.pts{margin:6px 0 0;padding-left:1.1em;font-size:.92rem;color:var(--ink)}
+.pts li{margin:2px 0}
+.go{align-self:flex-start;border:1.5px solid var(--c);color:var(--c);background:none;border-radius:999px;padding:5px 14px;font:inherit;font-size:.84rem;font-weight:800;cursor:pointer;min-height:36px}
+.go:focus-visible,summary:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+@media (max-width:380px){.sbody{grid-template-columns:1fr}.sbody svg{width:100%;height:auto;aspect-ratio:4/3}}
+
+.info{display:flex;flex-direction:column;gap:12px}
+.info details .in ul:not([class]){margin:0;padding-left:1.2em;font-size:.92rem}
+.info details .in ul:not([class]) li{margin:4px 0}
 .warmc{color:var(--warm);font-weight:700}.coldc{color:var(--cold);font-weight:700}.occc{color:var(--occ);font-weight:700}
 /* dock */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--dock);color:var(--dockInk);padding:8px 0 calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(0,0,0,.18)}
@@ -209,18 +266,134 @@ details li{margin:3px 0}
   </section>
 </main>
 <section class="info">
-  <details open><summary>읽는 법</summary><div class="in">
-    <div class="legend" id="legend-full"></div>
-    <ul>
-      <li><b>풍향은 바람이 불어 오는 쪽</b>의 이름입니다. 남서쪽에서 불어 와 북동쪽으로 가는 바람이 <b>남서풍</b>입니다. 지도의 화살표는 바람이 <b>불어 가는</b> 쪽을 가리킵니다.</li>
-      <li>지상의 바람은 등압선을 비스듬히 가로질러 저기압 중심 쪽으로, 북반구에서는 <b>시계 반대 방향</b>으로 불어 들어갑니다. 고기압에서는 시계 방향으로 불어 나갑니다.</li>
-      <li>전선 기호(반원·삼각형)는 전선이 <b>움직이는 쪽</b>에 붙입니다.</li>
-      <li>시간 막대를 옮기면 모든 화면이 같은 시각으로 바뀝니다. '두 화면 비교'를 누르면 원하는 화면 두 개를 나란히 볼 수 있습니다.</li>
-    </ul>
-  </div></details>
-  <details><summary>저기압의 일생 (시간 막대의 색 띠)</summary><div class="in">
-    <div class="stages" id="stagecards"></div>
-  </div></details>
+  <details open>
+    <summary>읽는 법</summary>
+    <div class="in">
+      <div class="group">
+        <h3>지도 기호</h3>
+        <ul class="keys">
+          <li><svg viewBox="0 0 64 28" data-front="warm" aria-hidden="true"></svg><div><b>온난전선</b><span>반원이 붙은 쪽으로 움직임</span></div></li>
+          <li><svg viewBox="0 0 64 28" data-front="cold" aria-hidden="true"></svg><div><b>한랭전선</b><span>삼각형이 붙은 쪽으로 움직임</span></div></li>
+          <li><svg viewBox="0 0 64 28" data-front="occ" aria-hidden="true"></svg><div><b>폐색전선</b><span>한랭전선이 온난전선을 따라잡은 곳</span></div></li>
+          <li><svg viewBox="0 0 64 28" data-front="stat" aria-hidden="true"></svg><div><b>정체전선</b><span>거의 움직이지 않는 전선</span></div></li>
+          <li><div class="sym-t" style="color:#d11f1f">L</div><div><b>저기압 중심</b><span>옆 숫자는 중심 기압(hPa)</span></div></li>
+          <li><div class="sym-t" style="color:#1847c9">H</div><div><b>고기압 중심</b><span>저기압 뒤를 따라 들어옴</span></div></li>
+          <li><svg viewBox="0 0 64 28" aria-hidden="true"><path d="M32 24 l-9 -16 h18 z" fill="#f2b705" stroke="currentColor" stroke-width="1.5"/></svg><div><b>관측소</b><span>누르거나 끌어서 옮기기</span></div></li>
+          <li><svg viewBox="0 0 64 28" aria-hidden="true"><path d="M4 14 H60" stroke="#7a1f1f" stroke-width="2" stroke-dasharray="2 4"/><circle cx="16" cy="14" r="3.2" fill="#7a1f1f"/><circle cx="40" cy="14" r="3.2" fill="#7a1f1f"/></svg><div><b>지나온 길</b><span>점은 6시간 간격</span></div></li>
+          <li><svg viewBox="0 0 64 28" aria-hidden="true"><path d="M2 20 Q32 2 62 20" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".75"/><path d="M2 27 Q32 9 62 27" fill="none" stroke="currentColor" stroke-width="2.2" opacity=".85"/></svg><div><b>등압선</b><span>4 hPa 간격, 굵은 선은 20 hPa마다</span></div></li>
+          <li><svg viewBox="0 0 64 28" aria-hidden="true"><defs><linearGradient id="tg" x1="0" x2="1"><stop offset="0" stop-color="#62a0e2"/><stop offset=".5" stop-color="#e9e3cf"/><stop offset="1" stop-color="#f0825a"/></linearGradient></defs><rect x="2" y="7" width="60" height="14" rx="4" fill="url(#tg)"/></svg><div><b>기온 색</b><span>파랑은 찬 공기, 주황은 따뜻한 공기</span></div></li>
+        </ul>
+      </div>
+
+      <div class="group">
+        <h3>바람 읽기</h3>
+        <div class="wind">
+          <div class="wcard">
+            <svg viewBox="0 0 112 112" aria-hidden="true">
+              <circle cx="56" cy="56" r="44" fill="none" stroke="var(--line)" stroke-width="2"/>
+              <text x="56" y="10" text-anchor="middle" font-size="12" font-weight="800" fill="var(--muted)">북</text>
+              <text x="56" y="110" text-anchor="middle" font-size="12" font-weight="800" fill="var(--muted)">남</text>
+              <text x="106" y="60" text-anchor="middle" font-size="12" font-weight="800" fill="var(--muted)">동</text>
+              <text x="7" y="60" text-anchor="middle" font-size="12" font-weight="800" fill="var(--muted)">서</text>
+              <circle cx="25" cy="87" r="6" fill="var(--accent)"/>
+              <text x="27" y="75" text-anchor="middle" font-size="10.5" font-weight="800" fill="var(--accent)">여기서</text>
+              <path d="M30 82 L80 32" stroke="var(--ink)" stroke-width="3.2" stroke-linecap="round"/>
+              <path d="M84 28 l-13 3 l10 10 z" fill="var(--ink)"/>
+            </svg>
+            <p><span class="big">남서풍</span>남서쪽에서 불어 와 북동쪽으로 갑니다.
+              <span class="pair">
+                <span><span class="tag a">화살표</span> 불어 <b>가는</b> 쪽을 가리킴</span>
+                <span><span class="tag">풍향 이름</span> 불어 <b>오는</b> 쪽</span>
+              </span>
+            </p>
+          </div>
+          <div class="wcard">
+            <svg viewBox="0 0 112 112" aria-hidden="true" id="swirl"></svg>
+            <p><span class="big">저기압 둘레</span>지상의 바람은 <b>시계 반대 방향</b>으로 돌며 중심 쪽으로 불어 들어갑니다. 고기압에서는 시계 방향으로 불어 나갑니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>화면 다루기</h3>
+        <ul class="how">
+          <li><i>▶</i><span><b>시간 막대</b>를 움직이면 모든 화면이 같은 시각으로 바뀝니다.</span></li>
+          <li><i>▼</i><span><b>지도를 누르면</b> 관측소가 그곳으로 옮겨집니다.</span></li>
+          <li><i>⇅</i><span><b>두 화면 비교</b>로 원하는 화면 두 개를 나란히 봅니다.</span></li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>저기압의 일생 <small>시간 막대의 색 띠</small></summary>
+    <div class="in">
+      <div class="lstrip" aria-hidden="true">
+        <span style="width:12.5%;background:var(--s0)">발생</span>
+        <span style="width:37.5%;background:var(--s1)">발달·성숙</span>
+        <span style="width:25%;background:var(--s2)">폐색</span>
+        <span style="width:25%;background:var(--s3)">소멸</span>
+      </div>
+      <ol class="tl">
+        <li style="--c:var(--s0)">
+          <div class="rail"><span class="dot"></span></div>
+          <div class="stage">
+            <div class="shead"><strong>발생</strong><span class="time">1일 09시 – 1일 18시</span></div>
+            <div class="sbody">
+              <svg viewBox="0 0 104 78" data-stage="0" role="img" aria-label="정체전선에 파동이 생긴 모습"></svg>
+              <div>
+                <p class="key">정체전선에 파동이 생기며 저기압이 태어납니다.</p>
+                <ul class="pts"><li>찬 공기와 따뜻한 공기가 만나는 곳</li><li>파동의 꼭짓점에 저기압 중심</li></ul>
+              </div>
+            </div>
+            <button class="go" type="button" data-t="0">이 단계로 가기</button>
+          </div>
+        </li>
+        <li style="--c:var(--s1)">
+          <div class="rail"><span class="dot"></span></div>
+          <div class="stage">
+            <div class="shead"><strong>발달·성숙</strong><span class="time">1일 18시 – 2일 21시</span></div>
+            <div class="sbody">
+              <svg viewBox="0 0 104 78" data-stage="1" role="img" aria-label="온난전선과 한랭전선 사이의 온난 구역"></svg>
+              <div>
+                <p class="key">온난전선과 한랭전선이 뚜렷해지고, 중심 기압이 낮아집니다.</p>
+                <ul class="pts"><li>두 전선 사이가 <b>온난 구역</b></li><li>우리나라를 지나는 단계</li></ul>
+              </div>
+            </div>
+            <button class="go" type="button" data-t="9.5">이 단계로 가기</button>
+          </div>
+        </li>
+        <li style="--c:var(--s2)">
+          <div class="rail"><span class="dot"></span></div>
+          <div class="stage">
+            <div class="shead"><strong>폐색</strong><span class="time">2일 21시 – 3일 15시</span></div>
+            <div class="sbody">
+              <svg viewBox="0 0 104 78" data-stage="2" role="img" aria-label="중심 부근에 폐색전선이 생긴 모습"></svg>
+              <div>
+                <p class="key">빠른 한랭전선이 온난전선을 따라잡아 폐색전선이 생깁니다.</p>
+                <ul class="pts"><li>따뜻한 공기가 위로 밀려 올라감</li><li>중심 기압이 가장 낮은 때</li></ul>
+              </div>
+            </div>
+            <button class="go" type="button" data-t="36.5">이 단계로 가기</button>
+          </div>
+        </li>
+        <li style="--c:var(--s3)">
+          <div class="rail"><span class="dot"></span></div>
+          <div class="stage">
+            <div class="shead"><strong>소멸</strong><span class="time">3일 15시 – 4일 09시</span></div>
+            <div class="sbody">
+              <svg viewBox="0 0 104 78" data-stage="3" role="img" aria-label="전선이 약해지고 고기압이 들어오는 모습"></svg>
+              <div>
+                <p class="key">지상의 따뜻한 공기가 사라져 저기압이 약해집니다.</p>
+                <ul class="pts"><li>뒤따르던 <b>이동성 고기압</b>이 들어옴</li><li>우리나라는 맑아짐</li></ul>
+              </div>
+            </div>
+            <button class="go" type="button" data-t="54.5">이 단계로 가기</button>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </details>
   <details><summary>이 모형이 실제와 다른 점</summary><div class="in"><ul>
     <li>일기도·위성·레이더 화면은 모두 <b>모형이 계산해 그린 그림</b>입니다. 실제 관측 영상이 아닙니다.</li>
     <li>기압(hPa)·기온(℃)·풍속·강수량은 실제와 비슷한 범위로 맞춘 <b>모형 값</b>입니다.</li>
@@ -4826,7 +4999,7 @@ function symbols(pts,kind,parent,color2){
     acc-=L;
   }
   for(const s of out){
-    let k=kind;if(kind==='occ')k=s.idx%2?'semi':'tri';
+    let k=kind==='warm'?'semi':kind==='cold'?'tri':kind;if(kind==='occ')k=s.idx%2?'semi':'tri';
     let side=1,col=null;
     if(kind==='stat-warm'){k=s.idx%2?'semi':'tri';side=k==='semi'?1:-1;col=k==='semi'?'#d23a2c':'#1d5ed6';}
     if(kind==='stat-cold'){k=s.idx%2?'tri':'semi';side=k==='tri'?1:-1;col=k==='semi'?'#d23a2c':'#1d5ed6';}
@@ -5427,8 +5600,7 @@ const STAGES=[{a:0,b:9,name:'발생',col:'#6b7f8f'},{a:9,b:36,name:'발달·성�
 function initStrip(){
   const s=$('strip');STAGES.forEach(g=>{const b=document.createElement('button');b.style.width=((g.b-g.a)/TMAX*100)+'%';b.style.background=g.col;b.textContent=g.name;b.title=g.name+' 단계로 가기';b.onclick=()=>setT(g.a+(g.a===0?0:0.5));s.appendChild(b);});
   const cur=document.createElement('div');cur.id='stripcur';cur.style.cssText='position:absolute;top:-2px;bottom:-2px;width:3px;background:#f2b705;border-radius:2px;pointer-events:none';s.appendChild(cur);
-  const cards=$('stagecards');const desc=['정체전선을 따라 찬 공기와 따뜻한 공기가 만나 파동이 생기고, 파동의 꼭짓점에 저기압이 만들어집니다.','온난전선과 한랭전선이 뚜렷해지고, 두 전선 사이에 따뜻한 공기(온난 구역)가 있습니다. 중심 기압이 낮아집니다.','이동 속도가 빠른 한랭전선이 온난전선을 따라잡아 겹치면 폐색전선이 생깁니다. 따뜻한 공기는 위로 밀려 올라갑니다.','지상의 따뜻한 공기가 사라지면 저기압이 약해지고, 뒤따르는 이동성 고기압이 들어옵니다.'];
-  STAGES.forEach((g,i)=>{const b=document.createElement('button');b.innerHTML=`<b>${g.name}</b>${timeLabel(g.a)}~ · ${desc[i]}`;b.onclick=()=>setT(g.a+(i?0.5:0));cards.appendChild(b);});
+  document.querySelectorAll('.tl .go').forEach(b=>b.onclick=()=>{stop();setT(parseFloat(b.dataset.t));$('views').scrollIntoView({behavior:'smooth',block:'start'});});
 }
 function readout(){
   const q=M.toKm(state.st.px);const s=M.sample(state.t,q[0],q[1]);
@@ -5553,7 +5725,7 @@ function legend(){
     const w=document.createElement('span');w.appendChild(s);w.append(' '+label);return w;};
   const add=box=>{box.append(mk('warm','온난전선'),mk('cold','한랭전선'),mk('occ','폐색전선'),mk('stat','정체전선'));
     const s=document.createElement('span');s.innerHTML='<b style="color:#d11f1f">L</b> 저기압 · <b style="color:#1847c9">H</b> 고기압 · <span style="color:#b38600">▼</span> 관측소';box.append(s);};
-  add($('legend-map'));add($('legend-full'));
+  add($('legend-map'));
   const ts=$('scale-temp');ts.innerHTML='기온 색:';for(const T of [4,8,12,16,20,24]){const c=tempColor(T);const i=document.createElement('i');i.style.background=`rgb(${c.map(Math.round).join(',')})`;i.style.opacity=.8;ts.append(i,T+'℃ ');}
   const rs=$('scale-rain');rs.innerHTML='강수 (mm/시):';for(const [v,c] of RAIN){const i=document.createElement('i');i.style.background=c;rs.append(i,v+' ');}
 }
@@ -5567,6 +5739,59 @@ if(q.get('tab')){const b=document.querySelector(`#tabs button[data-tab="${q.get(
 if(q.get('mode')==='two'){state.mode='two';if(q.get('a'))state.A=q.get('a');if(q.get('b'))state.B=q.get('b');}
 if(q.get('sat')==='vis')state.satMode='vis';if(q.get('exag'))state.exag=q.get('exag');
 layout();renderStbar();renderAll(true);
+})();
+</script>
+<script>
+(function(){
+const NS='http://www.w3.org/2000/svg';
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p&&p.appendChild(e);return e;};
+const RED='#d23a2c',BLUE='#1d5ed6',PUR='#8b3fb8';
+const P=pts=>'M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L');
+// 기호: 진행 방향의 왼쪽(화면 좌표에서 (uy,-ux))에 붙임
+function front(svg,pts,kind,o){
+  o=o||{};const step=o.step||14,r=o.r||4.2,w=o.w||2.4,op=o.op==null?1:o.op;
+  const g=el('g',{opacity:op},svg);
+  const col=kind==='warm'?RED:kind==='cold'?BLUE:PUR;
+  if(kind==='stat'){el('path',{d:P(pts),fill:'none',stroke:BLUE,'stroke-width':w},g);}
+  else el('path',{d:P(pts),fill:'none',stroke:col,'stroke-width':w,'stroke-linejoin':'round'},g);
+  let acc=step*0.55,idx=0;
+  for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1];const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy);const ux=dx/L,uy=dy/L,nx=uy,ny=-ux;
+    while(acc<=L){const p=[a[0]+ux*acc,a[1]+uy*acc];let k=kind,side=1,c=col;
+      if(kind==='occ')k=idx%2?'semi':'tri';else if(kind==='warm')k='semi';else if(kind==='cold')k='tri';
+      if(kind==='stat'){k=idx%2?'semi':'tri';side=k==='semi'?1:-1;c=k==='semi'?RED:BLUE;}
+      const sx=nx*side,sy=ny*side;let d;
+      if(k==='semi'){const q=[];for(let s=0;s<=8;s++){const th=Math.PI*s/8;q.push([p[0]+r*Math.cos(th)*ux+r*Math.sin(th)*sx,p[1]+r*Math.cos(th)*uy+r*Math.sin(th)*sy]);}d=P(q)+'Z';}
+      else d=P([[p[0]-ux*r,p[1]-uy*r],[p[0]+ux*r,p[1]+uy*r],[p[0]+sx*r*1.45,p[1]+sy*r*1.45]])+'Z';
+      el('path',{d,fill:c},g);acc+=step;idx++;}
+    acc-=L;}
+  if(kind==='stat'){el('path',{d:P(pts),fill:'none',stroke:RED,'stroke-width':w,'stroke-dasharray':step/2+' '+step/2},g);}
+}
+// 기호 목록
+document.querySelectorAll('svg[data-front]').forEach(s=>{const k=s.dataset.front;
+  const pts=k==='stat'?[[2,16],[62,16]]:[[2,19],[62,19]];
+  front(s,pts,k,{step:15,r:4.6,w:2.6});});
+// 바람: 저기압 둘레
+(function(){const s=document.getElementById('swirl');
+  el('circle',{cx:56,cy:56,r:30,fill:'none',stroke:'var(--line)','stroke-width':1.5},s);
+  el('circle',{cx:56,cy:56,r:46,fill:'none',stroke:'var(--line)','stroke-width':1.5},s);
+  const t=el('text',{x:56,y:64,'text-anchor':'middle','font-size':22,'font-weight':900,fill:'#d11f1f'},s);t.textContent='L';
+  // 시계 반대 방향 + 안쪽으로 (화면 좌표: 반시계 = 각도 감소)
+  for(let i=0;i<4;i++){const a0=i*Math.PI/2+0.25;const pts=[];for(let k=0;k<=10;k++){const a=a0-k*0.09;const rr=46-k*1.4;pts.push([56+rr*Math.cos(a),56+rr*Math.sin(a)]);}
+    el('path',{d:P(pts),fill:'none',stroke:'var(--ink)','stroke-width':2.6,'stroke-linecap':'round'},s);
+    const a=pts[pts.length-2],b=pts[pts.length-1];const ang=Math.atan2(b[1]-a[1],b[0]-a[0]);
+    el('path',{d:`M${b[0]+Math.cos(ang)*5},${b[1]+Math.sin(ang)*5}L${b[0]+Math.cos(ang+2.4)*7},${b[1]+Math.sin(ang+2.4)*7}L${b[0]+Math.cos(ang-2.4)*7},${b[1]+Math.sin(ang-2.4)*7}Z`,fill:'var(--ink)'},s);}
+})();
+// 단계 그림 (104×78, 북쪽 위)
+function land(s){el('path',{d:'M58 0 L70 0 L66 18 L72 30 L64 44 L68 60 L60 78 L52 78 L56 60 L50 44 L58 28 L52 14 Z',fill:'var(--mapBg)',opacity:.9},s);}
+function Lmark(s,x,y,sz,op){const t=el('text',{x,y:y+sz*0.36,'text-anchor':'middle','font-size':sz,'font-weight':900,fill:'#d11f1f',opacity:op==null?1:op,stroke:'var(--mapSea)','stroke-width':3,'paint-order':'stroke'},s);t.textContent='L';}
+function Hmark(s,x,y){const t=el('text',{x,y:y+6,'text-anchor':'middle','font-size':17,'font-weight':900,fill:'#1847c9',stroke:'var(--mapSea)','stroke-width':3,'paint-order':'stroke'},s);t.textContent='H';}
+document.querySelectorAll('svg[data-stage]').forEach(s=>{const k=+s.dataset.stage;land(s);
+  if(k===0){front(s,[[4,44],[30,43],[44,38]],'cold',{step:12,r:3.6});front(s,[[44,38],[62,42],[100,44]],'warm',{step:12,r:3.6});Lmark(s,44,30,16);}
+  if(k===1){el('path',{d:'M40 24 L78 48 Q70 62 58 76 L22 76 Q28 52 40 24Z',fill:'#f0a070',opacity:.28},s);
+    front(s,[[40,24],[58,34],[80,48]],'warm',{step:12,r:3.6});front(s,[[40,24],[34,40],[26,58],[16,76]],'cold',{step:12,r:3.6});Lmark(s,38,16,17);}
+  if(k===2){front(s,[[46,18],[56,28]],'occ',{step:11,r:3.4});front(s,[[56,28],[74,38],[98,48]],'warm',{step:12,r:3.6});front(s,[[56,28],[48,44],[38,62],[28,78]],'cold',{step:12,r:3.6});Lmark(s,44,12,17);}
+  if(k===3){front(s,[[70,16],[82,28]],'occ',{step:11,r:3.2,op:.35});front(s,[[82,28],[102,40]],'warm',{step:12,r:3.2,op:.35});front(s,[[82,28],[70,52],[62,74]],'cold',{step:12,r:3.2,op:.35});Lmark(s,70,10,14,.55);Hmark(s,26,48);}
+});
 })();
 </script>
 </body>
