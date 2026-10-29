@@ -1,0 +1,934 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>허블-르메트르 법칙과 우주 팽창</title>
+<meta name="description" content="ESS Lab 지구과학 [12지구03-05] 허블-르메트르 법칙과 우주 팽창 시뮬레이션 — 적색 편이 재기, 거리-후퇴 속도 그래프로 법칙 찾기, 팽창 모형, 우주의 나이">
+<style>
+:root{
+  --bg:#f5f3ee; --card:#ffffff; --ink:#1c2330; --muted:#5a6372; --line:#e0dbd1;
+  --accent:#1d7656; --warn:#b2461a; --chip:#eeeae2; --chipOn:#1c2330; --chipOnInk:#ffffff;
+  --tb:#c45a00; --real:#0d7f8f; --h29:#7b4bb7; --allpt:#8c95a3; --fit:#c62f2f; --best:#5a6372;
+  --plot:#fbfaf7; --grid:#e7e2d8;
+  --simBg:#fff6d6; --simLine:#e9d38a; --realBg:#e3f4ea; --realLine:#a9d8bb;
+  --font:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#13161b; --card:#1c2027; --ink:#eef1f5; --muted:#a7b0bd; --line:#333944;
+    --accent:#4cc394; --warn:#ff8b5e; --chip:#262b34; --chipOn:#eef1f5; --chipOnInk:#13161b;
+    --tb:#ffa04d; --real:#4fc7d6; --h29:#b994ff; --allpt:#6d7684; --fit:#ff6b6b; --best:#a7b0bd;
+    --plot:#171a20; --grid:#2a2f38;
+    --simBg:#3a3218; --simLine:#6b5a24; --realBg:#16362a; --realLine:#2f6b52;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#13161b; --card:#1c2027; --ink:#eef1f5; --muted:#a7b0bd; --line:#333944;
+  --accent:#4cc394; --warn:#ff8b5e; --chip:#262b34; --chipOn:#eef1f5; --chipOnInk:#13161b;
+  --tb:#ffa04d; --real:#4fc7d6; --h29:#b994ff; --allpt:#6d7684; --fit:#ff6b6b; --best:#a7b0bd;
+  --plot:#171a20; --grid:#2a2f38;
+  --simBg:#3a3218; --simLine:#6b5a24; --realBg:#16362a; --realLine:#2f6b52;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-text-size-adjust:100%}
+body{padding-bottom:96px}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+header{padding:18px 0 8px}
+header .sub{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+header h1{font-size:22px;margin:4px 0 0;line-height:1.3;word-break:keep-all}
+nav.tabs{display:flex;gap:6px;margin:12px 0 14px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5}
+nav.tabs button{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 14px var(--font);padding:11px 2px;border-radius:12px;cursor:pointer;word-break:keep-all;line-height:1.25}
+nav.tabs button[aria-selected="true"]{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{font-size:17px;margin:0 0 10px;line-height:1.4;word-break:keep-all}
+.q{font-size:16px;font-weight:700;line-height:1.5;word-break:keep-all;margin:0 0 10px}
+p,.txt{font-size:15px;line-height:1.6;word-break:keep-all}
+p{margin:0 0 8px}
+.lab{font-size:13px;color:var(--muted);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:1px solid var(--line);background:var(--chip);color:var(--ink);font:600 15px var(--font);padding:9px 12px;border-radius:999px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+.chips button .ok{color:var(--accent);font-weight:800}
+.chips button[aria-pressed="true"] .ok{color:inherit}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;vertical-align:middle;white-space:nowrap}
+.tag.real{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.tag.tbk{background:color-mix(in srgb,var(--tb) 18%,transparent);color:var(--tb)}
+.tag.model{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.canvasBox{position:relative;touch-action:none}
+.canvasBox canvas{display:block;width:100%}
+.opts{display:grid;gap:8px}
+.opts button{border:1px solid var(--line);background:var(--chip);color:var(--ink);font:600 15px var(--font);padding:12px 14px;border-radius:12px;cursor:pointer;text-align:left;line-height:1.45;word-break:keep-all}
+.opts button[aria-pressed="true"]{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+.opts button:disabled{cursor:default}
+.fb{margin-top:10px;font-size:15px;line-height:1.55;padding:10px 12px;border-radius:10px;word-break:keep-all}
+.fb.good{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.fb.hint{background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.fb.note{background:var(--chip)}
+.btn{display:inline-block;border:none;background:var(--chipOn);color:var(--chipOnInk);font:700 15px var(--font);padding:11px 16px;border-radius:12px;cursor:pointer}
+.btn.sec{background:var(--chip);color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+input[type=range]{width:100%;height:36px;accent-color:var(--fit);margin:4px 0}
+select{font:600 15px var(--font);padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--chip);color:var(--ink);max-width:100%}
+.readout{font-size:15px;margin-top:6px;color:var(--muted)}
+.readout b{color:var(--ink);font-family:var(--mono)}
+.calc{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.calc .ln{font-size:15px;line-height:1.5;padding:8px 10px;border-radius:10px;background:var(--chip);font-family:var(--mono);word-break:keep-all;overflow-wrap:anywhere}
+.calc .ln .k{font-family:var(--font);font-weight:700;margin-right:6px}
+.calc .ar{text-align:center;color:var(--muted);font-weight:700;line-height:1}
+.tblWrap{overflow-x:auto}
+table.dat{width:100%;border-collapse:collapse;font-size:14px}
+table.dat th{font-size:12px;color:var(--muted);text-align:right;padding:6px 4px;font-weight:700;line-height:1.3;word-break:keep-all;border-bottom:1px solid var(--line)}
+table.dat th:first-child,table.dat td:first-child{text-align:left}
+table.dat td{border-bottom:1px solid var(--line);padding:8px 4px;text-align:right;font-family:var(--mono);white-space:nowrap}
+table.dat td:first-child{font-family:var(--font);font-weight:700;white-space:normal}
+table.dat td.empty{color:var(--muted)}
+table.dat tr.sep td{font-family:var(--font);font-weight:600;color:var(--muted);font-size:13px;text-align:left;white-space:normal}
+.hBig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:2px 0 6px}
+.hBig .v{font:800 28px var(--mono);color:var(--fit)}
+.hBig .u{font:700 18px var(--font)}
+.hBig .l{font:700 15px var(--font);color:var(--muted)}
+.legend{display:flex;gap:6px 14px;flex-wrap:wrap;font-size:14px;margin-top:8px;color:var(--ink)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend svg{width:14px;height:14px}
+.hidden{display:none!important}
+.ph{font-size:15px;color:var(--muted);line-height:1.6}
+/* ---------- 모드 (탐구 / 시뮬레이션) — dating-sim.html과 같은 배너 ---------- */
+.modeSw{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-bottom:4px}
+.modeSw .now{font:800 12px var(--font);color:var(--ink);background:var(--chip);border:1px solid var(--line);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.modeSw button{font:600 12px var(--font);color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer;white-space:nowrap}
+.modeSw button:hover{color:var(--ink);border-color:var(--muted)}
+body.sim .inq-only{display:none!important}
+body:not(.sim) .sim-only{display:none!important}
+body.sim .wrap{max-width:960px}
+.simNote{font-size:15px;line-height:1.55;word-break:keep-all}
+/* ---------- 접이식 안내 ---------- */
+.extras{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:0 16px}
+details summary{cursor:pointer;padding:14px 0;font-weight:700;font-size:16px;line-height:1.4}
+details[open] summary{border-bottom:1px solid var(--line);margin-bottom:12px}
+details .body{padding-bottom:16px;display:flex;flex-direction:column;gap:12px;font-size:15px;line-height:1.6;word-break:keep-all}
+details .body p{margin:0}
+details .body h4{margin:0 0 4px;font-size:16px}
+/* ---------- 모형 안내 그림 카드 ---------- */
+.mlist{display:grid;gap:12px}
+.mc{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg)}
+.mc h4{margin:0 0 10px;font-size:16px;line-height:1.35}
+.mc .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pn{border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.pn.s{background:var(--simBg);border:1px solid var(--simLine)}
+.pn.r{background:var(--realBg);border:1px solid var(--realLine)}
+.pn .tg{font-size:12px;font-weight:800;color:var(--muted)}
+.pn svg{width:120px;height:64px;max-width:100%;align-self:center}
+.pn p{margin:0;font-size:15px;line-height:1.5}
+.pn svg *{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pn svg .f{fill:var(--ink);stroke:none}
+.pn svg .m{stroke:var(--muted)}
+.pn svg .fm{fill:var(--muted);stroke:none}
+.pn svg .rd{stroke:var(--fit)}
+.pn svg .band{fill:url(#gBand);stroke:none}
+.pn svg text{fill:var(--ink);stroke:none;font:700 13px var(--mono)}
+.pn svg text.sm{font:600 10px var(--font)}
+@media (max-width:480px){ .mc .pair{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="gBand" x1="0" x2="1" y1="0" y2="0">
+    <stop offset="0" stop-color="#7a5cff"/><stop offset=".25" stop-color="#3f7bff"/><stop offset=".45" stop-color="#2fc4c9"/>
+    <stop offset=".6" stop-color="#5fd35a"/><stop offset=".75" stop-color="#f2e14b"/><stop offset=".88" stop-color="#ff9a3c"/><stop offset="1" stop-color="#ff4a3c"/>
+  </linearGradient></defs></svg>
+<div class="wrap">
+  <header>
+    <div class="modeSw"><span class="now" id="modeNow">탐구 모드</span><button id="modeBtn" type="button">시뮬레이션 모드로</button></div>
+    <div class="sub">ESS Lab · 지구과학 [12지구03-05]</div>
+    <h1>허블-르메트르 법칙과 우주 팽창</h1>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="redshift" aria-selected="false">① 적색 편이</button>
+    <button role="tab" data-tab="law" aria-selected="false">② 법칙 찾기</button>
+    <button role="tab" data-tab="expand" aria-selected="false">③ 팽창 모형</button>
+    <button role="tab" data-tab="age" aria-selected="false">④ 우주의 나이</button>
+  </nav>
+
+  <!-- ① 적색 편이 (다음 단계에서 제작) -->
+  <section id="t-redshift" class="hidden">
+    <div class="card"><h2>① 적색 편이</h2><div class="ph">이 탭은 다음 단계에서 만들어요.</div></div>
+  </section>
+
+  <!-- ② 법칙 찾기 -->
+  <section id="t-law" class="hidden">
+    <div class="card sim-only"><div class="simNote">교과서 탐구 자료와 실제 은하 자료가 모두 그래프에 찍혀 있어요. 자료 단추로 보이는 자료를 바꾸고, 그래프의 빨간 직선을 끌어 기울기를 맞춰 보세요. 스펙트럼에서 은하를 고르면 칼슘 흡수선이 밀린 양과 계산 과정을 볼 수 있어요.</div></div>
+
+    <div class="card inq-only" id="predCard">
+      <div class="q">멀리 있는 은하는 가까이 있는 은하보다 어떻게 멀어질까요?</div>
+      <div class="opts" id="predOpts">
+        <button data-v="fast">더 빨리 멀어진다</button>
+        <button data-v="same">같은 빠르기로 멀어진다</button>
+        <button data-v="slow">더 느리게 멀어진다</button>
+      </div>
+      <div class="fb note hidden" id="predFb"></div>
+    </div>
+
+    <div class="card" id="specCard">
+      <h2>스펙트럼에서 칼슘 흡수선 재기</h2>
+      <div class="tags"><span class="tag model">모형 스펙트럼</span><span class="tag tbk" id="specSrcTb">교과서 탐구 자료</span><span class="tag real hidden" id="specSrcReal">실제 자료 · 거리와 z</span></div>
+      <div class="fb note inq-only" id="specGuide" style="margin:0 0 10px"></div>
+      <div class="chips" id="galChips"></div>
+      <div class="row hidden" id="realPickRow"><span class="lab">실제 은하</span><select id="realSel" aria-label="실제 은하 고르기"></select></div>
+      <div class="canvasBox" style="margin-top:10px"><canvas id="spec" aria-label="정지 상태와 은하의 스펙트럼"></canvas></div>
+      <div id="measureCtl">
+        <input type="range" id="mk" min="380" max="460" step="0.5" value="400" aria-label="흡수선 위치 표시">
+        <div class="row" style="margin-top:0;justify-content:space-between"><div class="readout">표시 위치 <b id="mkVal">400.0 nm</b></div><button class="btn" id="mkBtn" type="button">이 위치로 재기</button></div>
+        <div class="fb hint hidden" id="mkFb"></div>
+      </div>
+      <div class="calc hidden" id="calc"></div>
+    </div>
+
+    <div class="card" id="tblCard">
+      <h2>관측 결과</h2>
+      <div class="tblWrap"><table class="dat"><thead><tr><th>은하</th><th>거리<br>(Mpc)</th><th>파장 변화량<br>(nm)</th><th>적색 편이<br>(z)</th><th>후퇴 속도<br>(km/s)</th></tr></thead><tbody id="tbody"></tbody></table></div>
+      <div class="row hidden" id="addRow"><button class="btn" id="addBtn" type="button">나머지 실제 은하 관측하기</button></div>
+    </div>
+
+    <div class="card" id="graphCard">
+      <h2>거리와 후퇴 속도</h2>
+      <div class="chips" id="dsChips">
+        <button data-ds="tb" aria-pressed="true">교과서 탐구 자료</button>
+        <button data-ds="real" aria-pressed="true" id="dsReal">실제 은하 17개</button>
+        <button data-ds="all" aria-pressed="false" id="dsAll">실제 전체 506개</button>
+        <button data-ds="h29" aria-pressed="false" id="ds29">허블 1929년</button>
+      </div>
+      <div id="hBox" class="hidden" style="margin-top:12px">
+        <div class="hBig"><span class="l">직선의 기울기</span><span class="v" id="hVal">50</span><span class="u">km/s/Mpc</span></div>
+      </div>
+      <div class="canvasBox" style="margin-top:8px"><canvas id="graph" aria-label="거리와 후퇴 속도 그래프"></canvas></div>
+      <div class="legend" id="legend"></div>
+      <div id="hCtl" class="hidden">
+        <input type="range" id="hR" min="20" max="120" step="1" value="50" aria-label="직선의 기울기">
+        <div class="row" style="margin-top:0">
+          <button class="btn inq-only" id="fitBtn" type="button">이 직선으로 정하기</button>
+          <button class="btn sec hidden" id="bestBtn" type="button" aria-pressed="false">맞춤 직선 보기</button>
+        </div>
+        <div class="fb hidden" id="fitFb"></div>
+      </div>
+      <div class="fb note hidden" id="h29Note"></div>
+    </div>
+
+    <div class="card inq-only hidden" id="relCard">
+      <div class="q">세 은하의 거리와 후퇴 속도 사이에는 어떤 관계가 있나요?</div>
+      <div class="opts" id="relOpts">
+        <button data-v="a">거리가 멀수록 후퇴 속도가 크다 (비례 관계)</button>
+        <button data-v="b">거리가 멀수록 후퇴 속도가 작다</button>
+        <button data-v="c">거리와 관계없이 후퇴 속도가 비슷하다</button>
+      </div>
+      <div class="fb hidden" id="relFb"></div>
+    </div>
+
+    <div class="card inq-only hidden" id="fitCard">
+      <div class="q">그래프의 빨간 직선을 끌어(또는 막대를 밀어) 실제 은하들의 점에 가장 잘 맞게 돌려 보세요.</div>
+      <p>직선은 원점을 지나요. 직선의 기울기가 무엇을 뜻하는지 단위 <b>km/s/Mpc</b>를 읽어 보세요. "거리 1 Mpc마다 후퇴 속도가 몇 km/s씩 커지는가"예요.</p>
+    </div>
+
+    <div class="card hidden" id="useCard">
+      <div class="q">후퇴 속도가 21,000 km/s인 은하까지의 거리는 약 얼마일까요? (허블 상수 = 70 km/s/Mpc)</div>
+      <div class="opts inq-only" id="useOpts">
+        <button data-v="a">약 30 Mpc</button>
+        <button data-v="b">약 300 Mpc</button>
+        <button data-v="c">약 3,000 Mpc</button>
+        <button data-v="d">약 1,470,000 Mpc</button>
+      </div>
+      <div class="fb hidden" id="useFb"></div>
+      <div class="sim-only txt">V = H · r 이므로 r = V ÷ H = 21,000 ÷ 70 = <b>300 Mpc</b></div>
+    </div>
+
+    <div class="extras">
+      <details class="mguide">
+        <summary>모형 안내 — 시뮬레이션이 실제와 다른 점</summary>
+        <div class="body"><div class="mlist">
+          <div class="mc"><h4>1. 스펙트럼</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><rect class="band" x="4" y="18" width="112" height="28" rx="3"/><path d="M44 18v28" stroke-width="3"/></svg>
+              <p>칼슘 흡수선 <b>하나</b>만 그린 모형 스펙트럼이다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><rect class="band" x="4" y="18" width="112" height="28" rx="3"/><path d="M14 18v28M22 18v28M41 18v28M45 18v28M58 18v28M71 18v28M86 18v28M99 18v28M108 18v28" stroke-width="1.6"/><path class="m" d="M4 52l4-2 4 3 4-3 4 2 4-3 4 3 4-2 4 3 4-3 4 2 4-3 4 3 4-2 4 3 4-3 4 2 4-3 4 3 4-2 4 3 4-3 4 2 4-3 4 3 4-2 4 3 4-3" stroke-width="1.2"/></svg>
+              <p>별 수천억 개의 빛이 섞여 흡수선이 아주 많고 잡음이 있다. 칼슘선도 실제로는 두 줄(393, 397 nm)이다.</p></div></div></div>
+          <div class="mc"><h4>2. 거리 자료</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path d="M10 40h100M10 34v12M110 34v12M35 37v6M60 37v6M85 37v6"/><text x="60" y="24" text-anchor="middle">300 Mpc</text></svg>
+              <p>은하까지의 거리를 정확한 숫자로 준다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="rd" d="M30 20l4 8 8 1-6 6 2 8-8-4-8 4 2-8-6-6 8-1z"/><path d="M62 32h44M66 26v12M102 26v12"/><path class="f" d="M84 32m-4 0a4 4 0 1 0 8 0a4 4 0 1 0-8 0"/><text class="sm" x="84" y="54" text-anchor="middle">± 오차</text></svg>
+              <p>Ia형 초신성의 밝기로 거리를 잰다. 거리마다 <b>오차</b>가 있다.</p></div></div></div>
+          <div class="mc"><h4>3. 후퇴 속도 식</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="m" d="M12 6v50h100"/><path class="rd" d="M12 56L104 10"/><text x="70" y="50" text-anchor="middle">v = c·z</text></svg>
+              <p>v = c·z 근사식만 쓴다. 그래서 z가 0.1보다 작은 은하만 골랐다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="m" d="M12 6v50h100"/><path class="m" d="M12 56L104 10" stroke-dasharray="4 4"/><path class="rd" d="M12 56C40 42 70 30 106 24"/><text class="sm" x="84" y="46" text-anchor="middle">z가 클 때</text></svg>
+              <p>아주 먼 은하(z가 큼)는 이 식이 맞지 않아 다른 식을 쓴다.</p></div></div></div>
+          <div class="mc"><h4>4. 허블 상수 값</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><text x="60" y="42" text-anchor="middle" style="font-size:26px">70</text></svg>
+              <p>거리 구하기 문제와 ④ 탭에서는 교과서 값 70 km/s/Mpc를 쓴다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><text x="34" y="42" text-anchor="middle" style="font-size:24px">67</text><text x="86" y="42" text-anchor="middle" style="font-size:24px">73</text><path class="m" d="M56 24v24"/></svg>
+              <p>측정 방법에 따라 약 67~73으로 아직 조금 다르다.</p></div></div></div>
+        </div></div>
+      </details>
+      <details>
+        <summary>더 알아보기</summary>
+        <div class="body">
+          <div><h4>허블의 1929년 자료</h4><p>허블은 은하 24개의 거리와 속도로 처음 이 관계를 보였어요. 허블이 구한 값은 약 <b>500 km/s/Mpc</b>예요. 이 자료로 원점을 지나는 직선을 단순히 맞추면 약 420이 나와요(허블은 태양의 운동을 보정한 뒤 직선을 맞췄어요). 지금 값보다 훨씬 큰 까닭은 당시에 은하까지의 거리를 실제보다 짧게 쟀기 때문이에요. 이 값으로 허블 시간을 계산하면 약 20억 년으로, 지구의 나이(약 46억 년)보다 짧아지는 문제가 생겼어요. 그래프의 <b>[허블 1929년]</b> 단추로 볼 수 있어요. 속도가 음수인 은하는 우리에게 다가오는 가까운 은하예요.</p></div>
+          <div><h4>교과서 탐구 자료로 기울기를 구하면?</h4><p>교과서의 세 은하로 기울기를 구하면 약 44 km/s/Mpc가 나와요. 탐구 활동용으로 만든 값이라 실제 값(약 70)과 달라요. 그래서 그래프에서 교과서 자료의 점은 실제 자료의 직선보다 아래에 놓여요.</p></div>
+          <div><h4>왜 z가 0.01~0.1인 은하만 골랐을까?</h4><p>z가 0.1보다 크면 v = c·z 식이 잘 맞지 않아요. 아주 가까운 은하(z가 0.01보다 작음)는 이웃 은하에 끌려 움직이는 속도가 후퇴 속도에 비해 커서, 점이 직선에서 많이 벗어나요.</p></div>
+          <div><h4>왜 '허블-르메트르 법칙'일까?</h4><p>르메트르가 1927년에 먼저 우주 팽창과 이 비례 관계를 제안했어요. 2018년 국제천문연맹 총회에서 '허블 법칙'을 '허블-르메트르 법칙'으로 부르자는 권고안이 통과되었어요.</p></div>
+        </div>
+      </details>
+      <details>
+        <summary>자료 출처</summary>
+        <div class="body">
+          <p><span class="tag real">실제 자료</span> <b>Pantheon+SH0ES</b> Ia형 초신성 자료(Scolnic 외 2022, Brout 외 2022; github.com/PantheonPlusSH0ES/DataRelease). 1,701건 가운데 거리 보정용 초신성과 겹치는 항목을 빼고, <b>0.01 &lt; z &lt; 0.1</b>인 506개를 골랐어요. 거리는 거리 지수(MU_SH0ES)에서, z는 zHD에서 구했어요. '실제 은하 17개'는 거리 40~480 Mpc를 18구간으로 나눠, 구간마다 z가 구간 중앙값에 가장 가까운 은하를 하나씩 고른 것이에요(빈 구간 1개). 은하 이름은 그 은하에서 터진 초신성의 이름이에요.</p>
+          <p><span class="tag tbk">교과서 탐구 자료</span> 미래엔 「지구과학」 172쪽 탐구: 은하 (가)~(다)의 거리와 칼슘 흡수선 관측 파장. 칼슘 흡수선 고유 파장 395 nm, 광속 3×10⁵ km/s도 교과서 값이에요.</p>
+          <p><span class="tag real">실제 자료</span> 허블의 1929년 자료: Hubble, E. (1929), PNAS 15, 168쪽 표 1의 은하 24개(R 패키지 stat0002의 정리본).</p>
+          <p><span class="tag model">모형</span> 스펙트럼 띠는 흡수선 위치만 맞춘 모형이에요. 실제 은하의 스펙트럼 사진이 아니에요.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section id="t-expand" class="hidden">
+    <div class="card sim-only"><div class="simNote">은하가 흩어진 평면이 고르게 늘어나는 모형이에요. [팽창 ▶]을 누르거나 막대를 밀어 보세요. 아무 은하나 누르면 그 은하가 관측자('우리')가 되어 가운데로 와요. [풍선 그림]으로 교과서의 풍선 모형도 볼 수 있어요.</div></div>
+
+    <div class="card inq-only" id="exPredCard">
+      <div class="q">모든 은하가 우리은하에서 멀어지고 있어요. 그렇다면 우리은하는 우주의 중심일까요?</div>
+      <div class="opts" id="exPredOpts">
+        <button data-v="a">그렇다. 모두 우리에게서 멀어지니 우리은하가 중심이다</button>
+        <button data-v="b">아니다. 다른 은하에서 보아도 똑같이 보일 것이다</button>
+        <button data-v="c">잘 모르겠다</button>
+      </div>
+      <div class="fb note hidden" id="exPredFb"></div>
+    </div>
+
+    <div class="card" id="exCard">
+      <h2>팽창하는 우주 모형</h2>
+      <div class="tags"><span class="tag model">모형</span></div>
+      <div class="fb note inq-only" id="exGuide" style="margin:0 0 10px"></div>
+      <div class="chips" id="exView">
+        <button data-v="plane" aria-pressed="true">평면 모형</button>
+        <button data-v="balloon" aria-pressed="false">풍선 그림</button>
+      </div>
+      <div class="canvasBox" style="margin-top:10px"><canvas id="exC" aria-label="은하가 흩어진 평면이 늘어나는 모형"></canvas></div>
+      <div class="legend" id="exLegend"></div>
+      <div class="row">
+        <button class="btn" id="exPlay" type="button">팽창 ▶</button>
+        <button class="btn sec" id="exReset" type="button">처음으로</button>
+      </div>
+      <input type="range" id="exA" min="1" max="1.6" step="0.01" value="1" aria-label="은하 사이 거리 배율">
+      <div class="readout">은하 사이 거리: 처음의 <b id="exAVal">1.00배</b></div>
+      <div class="chips" id="exOpt" style="margin-top:10px">
+        <button data-v="ghost" aria-pressed="true">이전 모습 겹쳐 보기</button>
+        <button data-v="arrow" aria-pressed="true">속도 화살표</button>
+      </div>
+      <div class="fb note hidden" id="balloonNote" style="margin-top:10px">풍선이 부풀면 겉면에 붙인 점 사이의 거리가 모두 멀어져요. 이 비유에서는 <b>풍선의 겉면만이 우주</b>예요. 풍선의 안쪽이나 바깥쪽은 우주가 아니에요. 그리고 점(은하)의 크기는 커지지 않아요.</div>
+    </div>
+
+    <div class="card" id="exGCard">
+      <h2>관측자가 본 거리와 멀어지는 속도</h2>
+      <div class="tags"><span class="tag model">모형</span><span class="tag model" id="exObsTag">관측자: 우리은하</span></div>
+      <div class="canvasBox"><canvas id="exG" aria-label="관측자에서 본 거리와 멀어지는 속도 그래프"></canvas></div>
+      <p style="margin-top:8px;font-size:14px;color:var(--muted)">화면에 보이는 은하만 찍었어요. 단위는 모형 단위예요.</p>
+    </div>
+
+    <div class="card inq-only hidden" id="exCenterCard">
+      <div class="q">다른 은하에서 관측해 보니 어떤가요?</div>
+      <div class="opts" id="exCenterOpts">
+        <button data-v="b">관측자를 바꾸면 가까운 은하가 더 빨리 멀어진다</button>
+        <button data-v="a">어느 은하에서 보아도 먼 은하일수록 더 빨리 멀어진다</button>
+        <button data-v="c">처음 우리은하에서 볼 때만 모든 은하가 멀어진다</button>
+      </div>
+      <div class="fb hidden" id="exCenterFb"></div>
+    </div>
+
+    <div class="card hidden" id="exBoundCard">
+      <div class="q">생각 거리: 우주가 팽창하면 태양계 행성 사이의 거리도 멀어질까요?</div>
+      <div class="opts inq-only" id="exBoundOpts">
+        <button data-v="a">멀어진다. 우주 전체가 늘어나니까</button>
+        <button data-v="b">멀어지지 않는다. 중력으로 묶여 있으니까</button>
+        <button data-v="c">오히려 가까워진다</button>
+      </div>
+      <div class="fb hidden" id="exBoundFb"></div>
+      <div class="sim-only txt">태양계, 은하, 은하단처럼 <b>중력으로 묶인 천체는 팽창하지 않아요.</b> 원자나 우리 몸도 그대로예요. 그래서 모형에서도 은하 그림의 크기는 그대로 두었어요.</div>
+    </div>
+
+    <div class="extras">
+      <details class="mguide">
+        <summary>모형 안내 — 시뮬레이션이 실제와 다른 점</summary>
+        <div class="body"><div class="mlist">
+          <div class="mc"><h4>1. 팽창 속도</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path d="M14 22h40"/><path class="rd" d="M14 42h92"/><path class="rd" d="M98 36l8 6-8 6"/><text class="sm" x="60" y="16" text-anchor="middle">몇 초</text></svg>
+              <p>몇 초 만에 은하 사이가 눈에 띄게 멀어진다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle cx="30" cy="32" r="18"/><path d="M30 20v12l8 6"/><text x="84" y="37" text-anchor="middle" style="font-size:12px">수십억 년</text></svg>
+              <p>은하 사이 거리가 눈에 띄게 늘려면 수십억 년이 걸린다. 지금 빠르기로는 두 배가 되는 데 약 100억 년이 걸린다.</p></div></div></div>
+          <div class="mc"><h4>2. 은하의 크기와 간격</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle class="f" cx="30" cy="22" r="7"/><circle class="f" cx="58" cy="40" r="7"/><circle class="f" cx="86" cy="20" r="7"/><circle class="f" cx="96" cy="46" r="7"/></svg>
+              <p>은하를 크게, 간격을 좁게 그렸다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle class="f" cx="12" cy="14" r="2"/><circle class="f" cx="104" cy="52" r="2"/><circle class="f" cx="70" cy="10" r="2"/><path class="m" d="M16 16L100 50" stroke-dasharray="3 4"/></svg>
+              <p>은하 사이의 거리는 은하 크기의 수십 배에 이른다.</p></div></div></div>
+          <div class="mc"><h4>3. 평면 우주</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path d="M20 44l20-20h66l-20 20z"/><circle class="f" cx="50" cy="34" r="2.5"/><circle class="f" cx="72" cy="30" r="2.5"/><circle class="f" cx="62" cy="40" r="2.5"/></svg>
+              <p>2차원 평면에 은하를 늘어놓았다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path d="M36 20h40v30H36z"/><path d="M36 20l14-10h40l-14 10M90 10v30l-14 10"/><circle class="f" cx="52" cy="34" r="2.5"/><circle class="f" cx="68" cy="28" r="2.5"/><circle class="f" cx="80" cy="22" r="2.5"/></svg>
+              <p>실제 우주는 3차원이고, 모든 방향으로 똑같이 팽창한다.</p></div></div></div>
+          <div class="mc"><h4>4. 풍선 모형의 한계</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle cx="60" cy="30" r="22"/><path d="M60 52l-3 6h6z"/><circle class="f" cx="50" cy="22" r="2.5"/><circle class="f" cx="68" cy="26" r="2.5"/><circle class="f" cx="58" cy="38" r="2.5"/></svg>
+              <p>풍선의 겉면만이 우주라고 비유한다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle class="m" cx="60" cy="30" r="22"/><path class="rd" d="M52 22l16 16M68 22L52 38" stroke-width="3"/><path class="rd" d="M96 10l12 12M108 10L96 22" stroke-width="3"/></svg>
+              <p>풍선의 안쪽이나 바깥쪽에 해당하는 공간은 없다. 비유일 뿐이다.</p></div></div></div>
+          <div class="mc"><h4>5. 고르게 흩어진 은하</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><g class="fm"><circle cx="20" cy="14" r="2.5" class="f"/><circle cx="48" cy="18" r="2.5" class="f"/><circle cx="78" cy="12" r="2.5" class="f"/><circle cx="102" cy="20" r="2.5" class="f"/><circle cx="30" cy="40" r="2.5" class="f"/><circle cx="62" cy="38" r="2.5" class="f"/><circle cx="92" cy="44" r="2.5" class="f"/><circle cx="16" cy="54" r="2.5" class="f"/><circle cx="74" cy="56" r="2.5" class="f"/><circle cx="104" cy="56" r="2.5" class="f"/></g></svg>
+              <p>은하를 고르게 흩어 놓았다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="m" d="M8 50C30 40 40 20 60 30S90 14 112 10M60 30C64 44 80 50 110 56"/><circle class="f" cx="60" cy="30" r="3.5"/><circle class="f" cx="36" cy="38" r="2"/><circle class="f" cx="84" cy="20" r="2"/><circle class="f" cx="88" cy="50" r="2"/><circle class="f" cx="20" cy="46" r="2"/></svg>
+              <p>은하는 은하단을 이루고, 은하단은 실처럼 이어진 거대한 그물 구조를 이룬다.</p></div></div></div>
+          <div class="mc"><h4>6. 은하의 운동</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle class="f" cx="60" cy="32" r="4"/><path class="rd" d="M70 32h30M60 22V6M52 38L36 52M68 24l14-12"/></svg>
+              <p>모든 은하가 정확히 법칙대로 멀어진다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle class="f" cx="60" cy="32" r="4"/><path class="rd" d="M70 34l28-6M58 22l-4-14M52 38L40 56M68 24l8-14"/><path d="M20 30l12 2"/><path d="M28 28l4 4-5 3"/></svg>
+              <p>은하마다 제 움직임이 더해져 ② 탭의 점이 직선에서 흩어진다. 가까운 은하는 다가오기도 한다(안드로메다은하).</p></div></div></div>
+          <div class="mc"><h4>7. 묶인 천체</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><ellipse cx="34" cy="32" rx="12" ry="7"/><ellipse cx="86" cy="32" rx="12" ry="7"/><path class="m" d="M50 32h20"/><path class="m" d="M64 28l6 4-6 4"/></svg>
+              <p>은하 그림의 크기는 그대로 두고 사이만 멀어지게 했다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle class="f" cx="60" cy="32" r="5"/><circle class="m" cx="60" cy="32" r="14"/><circle class="m" cx="60" cy="32" r="24"/><circle class="f" cx="74" cy="32" r="2.5"/><circle class="f" cx="44" cy="20" r="2.5"/></svg>
+              <p>태양계, 은하, 은하단처럼 중력으로 묶인 천체는 팽창하지 않는다.</p></div></div></div>
+        </div></div>
+      </details>
+      <details>
+        <summary>더 알아보기</summary>
+        <div class="body">
+          <div><h4>정적 우주와 팽창 우주</h4><p>아인슈타인은 처음에 우주가 커지지도 작아지지도 않는 <b>정적 우주</b>를 생각했어요. 프리드만과 르메트르는 우주가 팽창할 수 있다는 <b>팽창 우주</b>를 내놓았어요. 허블-르메트르 법칙은 우주가 팽창한다는 관측 증거가 되었어요.</p></div>
+          <div><h4>은하가 달려가는 걸까, 공간이 늘어나는 걸까?</h4><p>교과서에서는 은하가 멀어지는 빠르기를 '후퇴 속도'라고 불러요. 하지만 은하가 공간 속을 달려 멀어지는 것이 아니라, 은하 사이의 <b>공간 자체가 늘어나서</b> 멀어지는 거예요. 그래서 우주 팽창은 한 점에서 터진 폭발이 빈 공간으로 퍼지는 모습과 달라요. 우주에는 바깥의 '빈 공간'도, 중심도 없어요.</p></div>
+          <div><h4>어느 은하에서 보아도 같은 까닭</h4><p>공간이 모든 곳에서 같은 비율로 늘어나면, 어느 은하에서 보든 두 배 멀리 있는 은하는 두 배 빨리 멀어져요. 그래서 어느 은하에서든 허블-르메트르 법칙이 성립해요.</p></div>
+        </div>
+      </details>
+    </div>
+  </section>
+  <section id="t-age" class="hidden">
+    <div class="card"><h2>④ 우주의 나이</h2><div class="ph">이 탭은 다음 단계에서 만들어요.</div></div>
+  </section>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- 상수와 단위 변환 (모두 여기서만) ----------
+   c = 3×10⁵ km/s, 칼슘 흡수선 고유 파장 395 nm : 미래엔 「지구과학」 171~172쪽
+   1 Mpc = 3.1×10¹⁹ km : 교과서 172쪽 / 1년 = 3.156×10⁷ s */
+const U={C:3e5, CA:395, MPC_KM:3.1e19, YR_S:3.156e7};
+const r3=x=>Math.round(x*1000)/1000, r4=x=>Math.round(x*10000)/10000, r1=x=>Math.round(x*10)/10;
+const fmt=n=>Math.round(n).toLocaleString('en');
+/* 교과서 방식: Δλ → z(소수 셋째 자리로 반올림) → v = c·z */
+function calcTB(obs){const dl=r1(obs-U.CA), z=r3(dl/U.CA); return {dl,z,v:Math.round(z*U.C),zd:3};}
+function calcReal(obs){const dl=r1(obs-U.CA), z=r4(dl/U.CA); return {dl,z,v:Math.round(z*U.C),zd:4};}
+
+/* ---------- 자료 ---------- */
+const TB=[{n:'(가)',r:300,obs:411},{n:'(나)',r:430,obs:421},{n:'(다)',r:770,obs:439}]; // 교과서 172쪽
+const REALD={"obs":[["ASASSN-16la",59,0.0142],["2007as",71,0.018],["2000ca",95,0.0239],["AT2017zd",114,0.0297],["2003kc",148,0.0348],["PS16axi",168,0.0409],["2008cf",198,0.0468],["1993O",227,0.0519],["2005hj",250,0.0571],["2007ae",261,0.0653],["1993B",288,0.0702],["7876",313,0.0752],["370333",336,0.0759],["130308",366,0.0824],["SN2016glp",392,0.0841],["2007hx",416,0.0788],["iPTF17dz",441,0.0929]],"all":[[36,0.0102],[38,0.0102],[42,0.0107],[42,0.0104],[47,0.0103],[49,0.0112],[50,0.012],[52,0.013],[52,0.011],[52,0.013],[52,0.0115],[52,0.0126],[53,0.0128],[54,0.0139],[55,0.0139],[55,0.0122],[55,0.0126],[56,0.0111],[56,0.013],[56,0.0123],[56,0.0128],[56,0.0145],[56,0.0146],[57,0.0138],[57,0.0152],[57,0.0174],[57,0.0147],[57,0.0156],[57,0.0138],[58,0.0139],[58,0.0141],[58,0.0125],[58,0.0112],[59,0.0169],[59,0.0142],[59,0.0149],[60,0.0121],[60,0.0146],[60,0.0152],[60,0.0147],[60,0.0167],[60,0.0145],[61,0.0146],[62,0.0168],[62,0.0132],[62,0.0166],[62,0.015],[63,0.0158],[63,0.0158],[63,0.0155],[63,0.0165],[63,0.0148],[64,0.0144],[64,0.0172],[64,0.0159],[64,0.0159],[64,0.0155],[64,0.0153],[65,0.0158],[65,0.0154],[65,0.017],[66,0.016],[67,0.0173],[67,0.0175],[68,0.0166],[68,0.0158],[68,0.0159],[68,0.0168],[68,0.0145],[68,0.0156],[69,0.0152],[69,0.0149],[69,0.017],[69,0.0183],[70,0.0178],[71,0.0155],[71,0.018],[72,0.0155],[72,0.0166],[72,0.0178],[72,0.0179],[73,0.0174],[73,0.0175],[74,0.0157],[74,0.0178],[74,0.0144],[74,0.0167],[74,0.017],[74,0.0154],[74,0.0214],[75,0.0173],[75,0.0199],[75,0.0212],[76,0.0159],[76,0.0173],[76,0.0165],[76,0.0206],[77,0.0191],[77,0.0184],[78,0.0251],[78,0.0241],[79,0.0208],[79,0.0169],[79,0.0186],[80,0.0202],[80,0.0201],[81,0.0187],[82,0.0205],[82,0.0206],[82,0.0204],[82,0.0236],[82,0.0186],[82,0.0203],[83,0.0215],[83,0.0202],[83,0.0187],[83,0.0181],[83,0.0172],[84,0.0215],[84,0.0186],[85,0.0233],[85,0.0204],[86,0.0211],[86,0.022],[86,0.0208],[86,0.0227],[87,0.02],[87,0.0198],[87,0.021],[88,0.0226],[89,0.0221],[89,0.0213],[89,0.0198],[89,0.0218],[89,0.0224],[90,0.0213],[90,0.0259],[90,0.0231],[90,0.0217],[90,0.0224],[90,0.0223],[90,0.0195],[90,0.0224],[91,0.0223],[91,0.0246],[92,0.0247],[92,0.0209],[92,0.0203],[92,0.0212],[93,0.0234],[93,0.0251],[93,0.0235],[93,0.0227],[94,0.0234],[94,0.023],[94,0.022],[94,0.0227],[95,0.0241],[95,0.0232],[95,0.0221],[95,0.0239],[95,0.0239],[96,0.0252],[96,0.0232],[97,0.0223],[97,0.0242],[97,0.0237],[97,0.0253],[98,0.0287],[98,0.0246],[98,0.0237],[98,0.022],[99,0.0183],[99,0.0252],[99,0.023],[99,0.0234],[99,0.0243],[100,0.0239],[100,0.0239],[100,0.0202],[100,0.023],[100,0.0235],[100,0.0245],[100,0.0243],[101,0.0222],[101,0.0263],[101,0.0231],[101,0.0251],[102,0.0224],[102,0.0236],[102,0.0221],[103,0.0232],[103,0.029],[103,0.0256],[104,0.0243],[104,0.0251],[104,0.0249],[104,0.0295],[105,0.024],[105,0.0285],[105,0.0241],[105,0.0246],[105,0.0275],[105,0.0252],[106,0.0212],[106,0.0259],[106,0.027],[106,0.0205],[106,0.028],[109,0.0246],[109,0.0243],[109,0.0256],[109,0.0253],[109,0.0285],[110,0.0249],[110,0.0253],[110,0.0252],[110,0.0251],[111,0.0252],[111,0.0243],[112,0.0292],[112,0.0271],[113,0.0283],[113,0.0273],[113,0.023],[113,0.0269],[114,0.0294],[114,0.0289],[114,0.0297],[114,0.0263],[114,0.0282],[114,0.0273],[114,0.026],[115,0.0274],[115,0.0267],[115,0.026],[116,0.0274],[116,0.0282],[116,0.0271],[117,0.0273],[117,0.0287],[117,0.0277],[118,0.0307],[118,0.0306],[118,0.0282],[118,0.0295],[119,0.0284],[120,0.026],[121,0.0311],[121,0.0287],[121,0.0309],[122,0.0299],[122,0.0285],[124,0.0319],[124,0.0308],[124,0.0295],[124,0.0294],[125,0.029],[125,0.0304],[125,0.032],[125,0.0309],[126,0.0312],[126,0.0298],[126,0.0282],[126,0.0296],[127,0.0298],[127,0.0291],[127,0.0302],[127,0.0301],[127,0.0274],[128,0.0312],[128,0.0305],[129,0.0358],[129,0.0303],[129,0.0314],[130,0.0311],[130,0.0326],[131,0.0312],[132,0.0286],[132,0.0292],[132,0.0295],[132,0.0308],[133,0.033],[133,0.0294],[133,0.0313],[134,0.0328],[135,0.0314],[135,0.0316],[135,0.031],[135,0.0286],[136,0.0327],[136,0.0333],[136,0.0312],[136,0.0311],[136,0.0281],[136,0.0324],[138,0.0291],[138,0.0315],[138,0.0315],[140,0.0329],[140,0.028],[140,0.0317],[140,0.033],[140,0.0346],[142,0.034],[143,0.0312],[143,0.0337],[143,0.0344],[144,0.0329],[145,0.0352],[145,0.037],[146,0.0333],[146,0.0344],[146,0.0338],[146,0.0337],[147,0.0352],[147,0.0329],[148,0.0326],[148,0.0348],[148,0.0362],[149,0.0353],[149,0.03],[149,0.0334],[149,0.0373],[150,0.0326],[150,0.0351],[151,0.0352],[151,0.0382],[152,0.0326],[152,0.0339],[152,0.0349],[152,0.0315],[152,0.0427],[153,0.0343],[153,0.0311],[153,0.0368],[154,0.0358],[155,0.0375],[156,0.0358],[156,0.037],[157,0.0345],[157,0.0374],[158,0.0355],[158,0.036],[158,0.0408],[159,0.0364],[159,0.0379],[159,0.0372],[159,0.0387],[159,0.039],[160,0.0406],[160,0.0338],[160,0.0388],[161,0.041],[162,0.0371],[163,0.0379],[164,0.037],[164,0.037],[164,0.037],[165,0.038],[167,0.0383],[168,0.0409],[170,0.0358],[170,0.0458],[173,0.0362],[173,0.0391],[174,0.0429],[175,0.0422],[175,0.0391],[175,0.0435],[176,0.0385],[177,0.0357],[177,0.0431],[178,0.0428],[178,0.0385],[179,0.0437],[179,0.0462],[181,0.0401],[181,0.0444],[181,0.0427],[182,0.0597],[183,0.041],[184,0.0464],[184,0.0441],[185,0.0486],[185,0.0376],[188,0.0484],[189,0.0459],[190,0.0513],[191,0.041],[192,0.0435],[195,0.0454],[196,0.0449],[196,0.0504],[196,0.0457],[197,0.0494],[197,0.0466],[197,0.0499],[198,0.0468],[199,0.0482],[200,0.0466],[201,0.0426],[201,0.0446],[201,0.0383],[203,0.0463],[203,0.0503],[204,0.0505],[204,0.0444],[204,0.0403],[204,0.0444],[205,0.0417],[205,0.0478],[206,0.0474],[206,0.0502],[207,0.0494],[208,0.0515],[208,0.0478],[209,0.0493],[209,0.0476],[213,0.0498],[213,0.0486],[213,0.055],[217,0.0452],[219,0.0505],[225,0.0469],[226,0.0531],[227,0.0519],[230,0.0561],[233,0.0547],[233,0.0522],[234,0.0532],[235,0.0507],[235,0.0547],[235,0.0502],[236,0.0535],[236,0.0554],[236,0.052],[238,0.0511],[241,0.0565],[241,0.0526],[246,0.0583],[247,0.0614],[249,0.0589],[249,0.0582],[250,0.0571],[253,0.0638],[255,0.0609],[256,0.0569],[259,0.0573],[260,0.0615],[260,0.0645],[261,0.0653],[268,0.0612],[271,0.0665],[271,0.061],[280,0.0673],[280,0.0684],[282,0.0716],[286,0.069],[288,0.0702],[288,0.0706],[295,0.0637],[296,0.0712],[297,0.0663],[298,0.0709],[304,0.0717],[305,0.0689],[305,0.0671],[307,0.0744],[309,0.0745],[310,0.0709],[313,0.0752],[313,0.0707],[314,0.0708],[315,0.0679],[321,0.0793],[323,0.0757],[324,0.0739],[325,0.0719],[326,0.0752],[327,0.0785],[331,0.079],[331,0.0799],[335,0.0725],[336,0.0722],[336,0.0759],[341,0.0801],[343,0.0828],[350,0.0817],[351,0.0709],[359,0.0887],[360,0.0791],[365,0.0756],[366,0.0824],[368,0.0786],[370,0.0857],[371,0.087],[384,0.0904],[392,0.0841],[397,0.0831],[401,0.0788],[403,0.0909],[416,0.0788],[429,0.0921],[441,0.0929],[487,0.0995]]}; // Pantheon+SH0ES 정리본 (자료 출처 참고)
+const REAL=REALD.obs.map(([id,r,z])=>({n:(/^\d+$/.test(id)?'SDSS '+id:'SN '+id),r,z,obs:r1(U.CA*(1+z))}));
+const ALL=REALD.all; // [거리 Mpc, z]
+const H29=[[.032,170],[.034,290],[.214,-130],[.263,-70],[.275,-185],[.275,-220],[.45,200],[.5,290],[.5,270],[.63,200],[.8,300],[.9,-30],[.9,650],[.9,150],[.9,500],[1,920],[1.1,450],[1.1,500],[1.4,500],[1.7,960],[2,500],[2,850],[2,800],[2,1090]];
+const N_MANUAL=2; // 실제 은하 중 손으로 재는 개수
+const slopeOf=pts=>{let a=0,b=0;pts.forEach(([x,y])=>{a+=x*y;b+=x*x});return a/b;};
+const realV=i=> i<N_MANUAL ? calcReal(REAL[i].obs).v : Math.round(REAL[i].z*U.C);
+const H17=()=>slopeOf(REAL.map((g,i)=>[g.r,realV(i)]));
+const HALL=slopeOf(ALL.map(([r,z])=>[r,z*U.C]));
+const H29FIT=slopeOf(H29);
+
+/* ---------- 상태 ---------- */
+const KEY='ess-hubble-lemaitre-v1';
+const fresh=()=>({pred:null,tb:[false,false,false],rel:null,relOK:false,rm:[false,false],added:0,fitOK:false,use:null,useOK:false,H:50,H29:300,sel:{k:'tb',i:0},mk:400,ds:{tb:true,real:true,all:false},v29:false,best:false,
+  ex:{pred:null,played:false,seen:[0],cAns:null,cOK:false,bAns:null,bOK:false,obs:0,view:'plane',ghost:true,arrow:true}});
+let S=fresh(), SIM=false, inqSnap=null, loaded=false;
+function load(){ try{const t=localStorage.getItem(KEY); if(t) S=Object.assign(fresh(),JSON.parse(t));}catch(e){} }
+function save(){ if(SIM) return; try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} }
+
+const tbDone=()=>S.tb.every(Boolean);
+const realReady=()=>SIM||S.relOK;
+const allAdded=()=>SIM||(S.rm.every(Boolean)&&S.added>=REAL.length-N_MANUAL);
+const lineOn=()=>SIM||allAdded();
+const extraOn=()=>SIM||S.fitOK;
+const isMeasured=(k,i)=>SIM||(k==='tb'?S.tb[i]:(i<N_MANUAL?S.rm[i]:true));
+
+/* ---------- 스펙트럼 ---------- */
+const SP={L0:380,L1:460};
+const specC=$('spec'), sx=specC.getContext('2d'); let SW=0,SH=0;
+function wlRGB(l){ // hr-diagram-sim.html과 같은 가시광선 띠 색
+  let r=0,gg=0,b=0;
+  if(l<440){r=-(l-440)/60;b=1}else if(l<490){gg=(l-440)/50;b=1}else if(l<510){gg=1;b=-(l-510)/20}else if(l<580){r=(l-510)/70;gg=1}else if(l<645){r=1;gg=-(l-645)/65}else{r=1}
+  let a=l<420?0.3+0.7*(l-380)/40:l>700?0.3+0.7*(750-l)/50:1; a=Math.max(0,a);
+  return [r,gg,b,a];
+}
+function bandColor(l){ // 흡수선(검은 선)이 잘 보이도록 밝기만 올림
+  const [r,g,b,a]=wlRGB(l); const k=0.45+0.55*a, m=v=>Math.round(255*Math.min(1,v*k*0.85+0.12));
+  return `rgb(${m(r)},${m(g)},${m(b)})`;
+}
+function curGal(){ return S.sel.k==='tb'?TB[S.sel.i]:REAL[S.sel.i]; }
+function resizeSpec(){
+  const w=specC.parentElement.clientWidth; if(w<100) return;
+  const h=176, dpr=Math.max(1,window.devicePixelRatio||1);
+  SW=w;SH=h;specC.style.height=h+'px';specC.width=Math.round(w*dpr);specC.height=Math.round(h*dpr);sx.setTransform(dpr,0,0,dpr,0,0);
+  drawSpec();
+}
+const pad={l:12,r:12};
+const XS=l=>pad.l+(l-SP.L0)/(SP.L1-SP.L0)*(SW-pad.l-pad.r);
+const LS=x=>SP.L0+(x-pad.l)/(SW-pad.l-pad.r)*(SP.L1-SP.L0);
+function drawSpec(){
+  if(!SW) return;
+  const c=sx, ink=css('--ink'), mu=css('--muted'), font=css('--font'), mono=css('--mono');
+  c.clearRect(0,0,SW,SH);
+  const g=curGal(), k=S.sel.k, done=isMeasured(k,S.sel.i);
+  const top=[22,52], bot=[94,124];
+  const strip=([y0,y1])=>{for(let l=SP.L0;l<SP.L1;l+=0.5){c.fillStyle=bandColor(l);c.fillRect(XS(l),y0,XS(l+0.5)-XS(l)+.6,y1-y0);} };
+  strip(top); strip(bot);
+  // 공통 눈금선 (두 띠의 파장축을 맞춤)
+  c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=1;
+  for(let l=SP.L0;l<=SP.L1;l+=10){const x=Math.round(XS(l))+.5;c.beginPath();c.moveTo(x,top[0]);c.lineTo(x,top[1]);c.moveTo(x,bot[0]);c.lineTo(x,bot[1]);c.stroke();}
+  // 이름표
+  c.fillStyle=ink;c.font=`600 13px ${font}`;c.textAlign='left';c.textBaseline='bottom';
+  c.fillText('정지 상태 (실험실)',pad.l,top[0]-4);
+  c.fillText(`은하 ${g.n} · ${fmt(g.r)} Mpc`,pad.l,bot[0]-4);
+  // 고유 파장 395 nm 점선 (두 띠를 잇는 기준선)
+  const x0=XS(U.CA);
+  c.strokeStyle=mu;c.setLineDash([4,3]);c.lineWidth=1.5;c.beginPath();c.moveTo(x0,top[1]);c.lineTo(x0,bot[1]+4);c.stroke();c.setLineDash([]);
+  // 흡수선
+  c.fillStyle='#000';
+  c.fillRect(x0-1.5,top[0],3,top[1]-top[0]);
+  const xo=XS(g.obs); c.fillRect(xo-1.5,bot[0],3,bot[1]-bot[0]);
+  c.fillStyle=ink;c.font=`700 13px ${mono}`;c.textAlign='center';c.textBaseline='bottom';
+  c.textAlign='left';c.textBaseline='top';c.fillText('395 nm',x0+5,top[1]+4);
+  // 눈금 숫자
+  c.fillStyle=mu;c.font=`600 13px ${mono}`;c.textBaseline='top';
+  for(let l=SP.L0;l<=SP.L1;l+=10){const x=XS(l);c.textAlign=l===SP.L0?'left':l===SP.L1?'right':'center';c.fillText(String(l),x,bot[1]+8);}
+  c.textAlign='right';c.fillStyle=mu;c.font=`600 12px ${font}`;c.fillText('파장 (nm)',SW-pad.r,SH-14+2);
+  if(done){
+    // 교과서 그림처럼 395 → 관측 파장 노란 화살표
+    const y=bot[1]-8; c.strokeStyle='#ffd400';c.fillStyle='#ffd400';c.lineWidth=3;
+    c.beginPath();c.moveTo(x0,y);c.lineTo(xo-7,y);c.stroke();
+    c.beginPath();c.moveTo(xo-1,y);c.lineTo(xo-9,y-5);c.lineTo(xo-9,y+5);c.closePath();c.fill();
+    c.font=`800 13px ${mono}`;const lab=`${g.obs} nm`; const tw=c.measureText(lab).width; let lx=xo+6; if(lx+tw+6>SW-pad.r) lx=xo-10-tw;
+    c.fillStyle='rgba(0,0,0,.72)';c.fillRect(lx-3,bot[0]+3,tw+6,17);c.fillStyle='#fff';c.textAlign='left';c.textBaseline='top';c.fillText(lab,lx,bot[0]+5);
+  } else {
+    const xm=XS(S.mk); c.strokeStyle=css('--fit');c.lineWidth=2;c.beginPath();c.moveTo(xm,bot[0]-2);c.lineTo(xm,bot[1]+2);c.stroke();
+    c.fillStyle=css('--fit');c.beginPath();c.moveTo(xm,bot[1]+2);c.lineTo(xm-6,bot[1]+10);c.lineTo(xm+6,bot[1]+10);c.closePath();c.fill();
+  }
+}
+let specDrag=false;
+function specPtr(e){ if(isMeasured(S.sel.k,S.sel.i)) return; const r=specC.getBoundingClientRect(); setMk(LS(e.clientX-r.left)); }
+specC.addEventListener('pointerdown',e=>{specDrag=true;try{specC.setPointerCapture(e.pointerId)}catch(_){ } specPtr(e);});
+specC.addEventListener('pointermove',e=>{if(specDrag) specPtr(e);});
+specC.addEventListener('pointerup',()=>{specDrag=false;});
+function setMk(l){ S.mk=Math.max(SP.L0,Math.min(SP.L1,Math.round(l*2)/2)); $('mk').value=S.mk; $('mkVal').textContent=S.mk.toFixed(1)+' nm'; $('mkFb').classList.add('hidden'); drawSpec(); }
+$('mk').addEventListener('input',e=>setMk(+e.target.value));
+$('mkBtn').onclick=()=>{
+  const g=curGal(), d=Math.abs(S.mk-g.obs);
+  if(d<=1.5){
+    if(S.sel.k==='tb') S.tb[S.sel.i]=true; else S.rm[S.sel.i]=true;
+    save(); renderAll();
+  } else {
+    const fb=$('mkFb'); fb.classList.remove('hidden');
+    fb.textContent = S.mk<U.CA ? '고유 파장 395 nm보다 짧은 쪽이에요. 아래 띠에서 검은 흡수선을 찾아 표시를 그 가운데에 맞춰 보세요.' : '아래 띠의 검은 흡수선 가운데에 빨간 표시를 맞춰 보세요. 손가락으로 띠를 끌어도 돼요.';
+  }
+};
+function renderCalc(){
+  const g=curGal(), box=$('calc');
+  if(!isMeasured(S.sel.k,S.sel.i)){box.classList.add('hidden');return;}
+  const R=S.sel.k==='tb'?calcTB(g.obs):calcReal(g.obs);
+  box.classList.remove('hidden');
+  box.innerHTML=`<div class="ln"><span class="k">파장 변화량</span>Δλ = ${g.obs} − 395 = ${R.dl} nm</div><div class="ar">↓</div>
+  <div class="ln"><span class="k">적색 편이</span>z = Δλ ÷ λ₀ = ${R.dl} ÷ 395 ≈ ${R.z.toFixed(R.zd)}</div><div class="ar">↓</div>
+  <div class="ln"><span class="k">후퇴 속도</span>v = c · z = (3×10⁵) × ${R.z.toFixed(R.zd)} ≈ ${fmt(R.v)} km/s</div>`;
+}
+
+/* ---------- 은하 고르기 ---------- */
+function renderPick(){
+  const chips=$('galChips'); chips.innerHTML='';
+  TB.forEach((g,i)=>{const b=document.createElement('button');b.type='button';
+    b.innerHTML=`교과서 ${g.n}${(!SIM&&S.tb[i])?' <span class="ok">✓</span>':''}`;
+    b.setAttribute('aria-pressed',S.sel.k==='tb'&&S.sel.i===i);
+    b.onclick=()=>{S.sel={k:'tb',i};S.mk=400;setMk(400);renderAll();};chips.appendChild(b);});
+  const showReal=realReady();
+  if(!SIM && showReal){
+    for(let i=0;i<N_MANUAL;i++){const g=REAL[i];const b=document.createElement('button');b.type='button';
+      b.innerHTML=`실제 ${g.n}${S.rm[i]?' <span class="ok">✓</span>':''}`;
+      b.setAttribute('aria-pressed',S.sel.k==='real'&&S.sel.i===i);
+      b.onclick=()=>{S.sel={k:'real',i};setMk(400);renderAll();};chips.appendChild(b);}
+  }
+  $('realPickRow').classList.toggle('hidden',!SIM);
+  if(SIM){const sel=$('realSel'); if(!sel.options.length){const o0=document.createElement('option');o0.value='';o0.textContent='실제 은하 고르기';o0.disabled=true;sel.appendChild(o0);REAL.forEach((g,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`${g.n} (${g.r} Mpc)`;sel.appendChild(o);});}
+    sel.value=S.sel.k==='real'?String(S.sel.i):'';}
+  const real=S.sel.k==='real';
+  $('specSrcTb').classList.toggle('hidden',real); $('specSrcReal').classList.toggle('hidden',!real);
+  $('measureCtl').classList.toggle('hidden',isMeasured(S.sel.k,S.sel.i));
+  // 안내(탐구 모드)
+  let guide='';
+  if(!tbDone()){const i=S.tb.findIndex(v=>!v); guide=`교과서 은하 ${TB[i].n}를 골라, 아래 띠의 검은 흡수선에 빨간 표시를 맞추고 [이 위치로 재기]를 누르세요.`;}
+  else if(!S.relOK) guide='세 은하를 모두 쟀어요. 아래 그래프를 보고 질문에 답해 보세요.';
+  else if(!S.rm.every(Boolean)){const i=S.rm.findIndex(v=>!v); guide=`이번에는 실제 은하예요. '실제 ${REAL[i].n}'를 골라 같은 방법으로 재 보세요.`;}
+  else guide='실제 은하 두 개를 손으로 쟀어요. 나머지 은하는 [나머지 실제 은하 관측하기]로 같은 방법으로 잴 수 있어요.';
+  $('specGuide').textContent=guide;
+}
+$('realSel').addEventListener('change',e=>{S.sel={k:'real',i:+e.target.value};renderAll();});
+
+/* ---------- 표 ---------- */
+function renderTable(){
+  const tb=$('tbody'); let h='';
+  TB.forEach((g,i)=>{ if(isMeasured('tb',i)){const R=calcTB(g.obs);h+=`<tr><td>${g.n}</td><td>${g.r}</td><td>${R.dl}</td><td>${R.z.toFixed(3)}</td><td>${fmt(R.v)}</td></tr>`;}
+    else h+=`<tr><td>${g.n}</td><td>${g.r}</td><td class="empty">?</td><td class="empty">?</td><td class="empty">?</td></tr>`;});
+  if(realReady()){
+    h+=`<tr class="sep"><td colspan="5">실제 은하 (Pantheon+SH0ES)</td></tr>`;
+    const n=SIM?REAL.length:N_MANUAL+S.added;
+    for(let i=0;i<Math.max(n,N_MANUAL);i++){const g=REAL[i];
+      if(isMeasured('real',i)&&(SIM||i<N_MANUAL||i<n)){
+        if(i<N_MANUAL){const R=calcReal(g.obs);h+=`<tr><td>${g.n}</td><td>${g.r}</td><td>${R.dl}</td><td>${R.z.toFixed(4)}</td><td>${fmt(R.v)}</td></tr>`;}
+        else h+=`<tr><td>${g.n}</td><td>${g.r}</td><td>${r1(g.obs-U.CA)}</td><td>${g.z.toFixed(4)}</td><td>${fmt(g.z*U.C)}</td></tr>`;
+      } else h+=`<tr><td>${g.n}</td><td>${g.r}</td><td class="empty">?</td><td class="empty">?</td><td class="empty">?</td></tr>`;}
+  }
+  tb.innerHTML=h;
+  const canAdd=!SIM&&S.relOK&&S.rm.every(Boolean)&&S.added<REAL.length-N_MANUAL;
+  $('addRow').classList.toggle('hidden',!canAdd);
+  $('addBtn').textContent=`나머지 실제 은하 ${REAL.length-N_MANUAL}개 관측하기`;
+}
+let addTimer=null;
+$('addBtn').onclick=()=>{ if(addTimer) return; $('addBtn').disabled=true;
+  addTimer=setInterval(()=>{S.added++; if(S.added>=REAL.length-N_MANUAL){clearInterval(addTimer);addTimer=null;$('addBtn').disabled=false;save();renderAll();} else {renderTable();drawGraph();}},160);};
+
+/* ---------- 그래프 ---------- */
+const gC=$('graph'), gx=gC.getContext('2d'); let GW=0,GH=0; const GP={l:48,r:16,t:16,b:50};
+function view(){ return S.v29&&extraOn() ? {x0:0,x1:2.2,xs:.5,y0:-400,y1:1200,ys:400,yl:'속도 (km/s)',ydiv:1,yf:v=>fmt(v),xf:v=>v.toFixed(1)} : {x0:0,x1:800,xs:100,y0:0,y1:40000,ys:10000,yl:'후퇴 속도 (×10⁴ km/s)',ydiv:1e4,yf:v=>String(v/1e4),xf:v=>String(v)}; }
+const GX=(V,x)=>GP.l+(x-V.x0)/(V.x1-V.x0)*(GW-GP.l-GP.r);
+const GY=(V,y)=>GH-GP.b-(y-V.y0)/(V.y1-V.y0)*(GH-GP.t-GP.b);
+function resizeGraph(){
+  const w=gC.parentElement.clientWidth; if(w<100) return;
+  const h=Math.round(Math.max(300,Math.min(w*0.8,440))), dpr=Math.max(1,window.devicePixelRatio||1);
+  GW=w;GH=h;gC.style.height=h+'px';gC.width=Math.round(w*dpr);gC.height=Math.round(h*dpr);gx.setTransform(dpr,0,0,dpr,0,0);
+  drawGraph();
+}
+function shape(c,kind,x,y,col){
+  c.lineWidth=2;
+  if(kind==='tb'){c.fillStyle=col;c.beginPath();c.arc(x,y,6,0,7);c.fill();c.strokeStyle=css('--card');c.lineWidth=1.5;c.stroke();}
+  else if(kind==='real'){c.strokeStyle=col;c.lineWidth=2.4;c.fillStyle=css('--plot');c.beginPath();c.arc(x,y,5.5,0,7);c.fill();c.stroke();}
+  else if(kind==='all'){c.fillStyle=col;c.globalAlpha=.55;c.beginPath();c.arc(x,y,2.2,0,7);c.fill();c.globalAlpha=1;}
+  else if(kind==='h29'){c.fillStyle=col;c.beginPath();c.moveTo(x,y-6.5);c.lineTo(x+6,y+4.5);c.lineTo(x-6,y+4.5);c.closePath();c.fill();}
+}
+function drawGraph(){
+  if(!GW) return;
+  const c=gx, V=view(), ink=css('--ink'), mu=css('--muted'), gr=css('--grid'), font=css('--font'), mono=css('--mono');
+  c.clearRect(0,0,GW,GH);
+  const xa=GP.l, xb=GW-GP.r, ya=GP.t, yb=GH-GP.b;
+  c.fillStyle=css('--plot');c.fillRect(xa,ya,xb-xa,yb-ya);
+  c.lineWidth=1;c.font=`600 13px ${mono}`;
+  c.textAlign='center';c.textBaseline='top';
+  for(let x=V.x0;x<=V.x1+1e-9;x+=V.xs){const X=GX(V,x);c.strokeStyle=gr;c.beginPath();c.moveTo(X,ya);c.lineTo(X,yb);c.stroke();c.fillStyle=mu;c.fillText(V.xf(x),X,yb+6);}
+  c.textAlign='right';c.textBaseline='middle';
+  for(let y=V.y0;y<=V.y1+1e-9;y+=V.ys){const Y=GY(V,y);c.strokeStyle=y===0?mu:gr;c.beginPath();c.moveTo(xa,Y);c.lineTo(xb,Y);c.stroke();c.fillStyle=mu;c.fillText(V.yf(y),xa-6,Y);}
+  c.strokeStyle=css('--line');c.strokeRect(xa+.5,ya+.5,xb-xa-1,yb-ya-1);
+  c.fillStyle=ink;c.font=`700 14px ${font}`;c.textAlign='center';c.textBaseline='bottom';c.fillText('거리 (Mpc)',(xa+xb)/2,GH-4);
+  c.save();c.translate(13,(ya+yb)/2);c.rotate(-Math.PI/2);c.textBaseline='middle';c.fillText(V.yl,0,0);c.restore();
+  c.save();c.beginPath();c.rect(xa,ya,xb-xa,yb-ya);c.clip();
+  const is29=S.v29&&extraOn();
+  if(is29){
+    H29.forEach(([r,v])=>shape(c,'h29',GX(V,r),GY(V,v),css('--h29')));
+  } else {
+    if(S.ds.all&&extraOn()) ALL.forEach(([r,z])=>shape(c,'all',GX(V,r),GY(V,z*U.C),css('--allpt')));
+    if(S.ds.real&&realReady()){const n=SIM?REAL.length:N_MANUAL+S.added;
+      REAL.forEach((g,i)=>{ if(i<N_MANUAL? isMeasured('real',i) : (SIM||i<n)) shape(c,'real',GX(V,g.r),GY(V,realV(i)),css('--real')); });}
+    if(S.ds.tb) TB.forEach((g,i)=>{ if(!isMeasured('tb',i)) return; const R=calcTB(g.obs),X=GX(V,g.r),Y=GY(V,R.v);
+      shape(c,'tb',X,Y,css('--tb')); c.fillStyle=css('--tb');c.font=`700 13px ${font}`;c.textAlign='right';c.textBaseline='bottom';c.fillText(g.n,X-7,Y-4); });
+  }
+  // 맞춤 직선 (참고)
+  if(S.best&&extraOn()){const H=is29?H29FIT:HALL; c.strokeStyle=css('--best');c.setLineDash([6,5]);c.lineWidth=2;
+    c.beginPath();c.moveTo(GX(V,0),GY(V,0));c.lineTo(GX(V,V.x1),GY(V,H*V.x1));c.stroke();c.setLineDash([]);
+    const lx=Math.min(V.x1*0.62,(V.y1*0.85)/H); c.fillStyle=css('--best');c.font=`700 13px ${font}`;c.textAlign='left';c.textBaseline='top';c.fillText(`맞춤 직선 ${is29?Math.round(H):H.toFixed(1)}`,GX(V,lx)+6,GY(V,H*lx)+4);}
+  // 학생이 돌리는 직선
+  if(lineOn()){const H=is29?S.H29:S.H; c.strokeStyle=css('--fit');c.lineWidth=3;
+    c.beginPath();c.moveTo(GX(V,0),GY(V,0));c.lineTo(GX(V,V.x1),GY(V,H*V.x1));c.stroke();
+    const ex=Math.min(V.x1*0.84,(V.y1*0.86)/H); c.fillStyle=css('--fit');c.beginPath();c.arc(GX(V,ex),GY(V,H*ex),8,0,7);c.fill();
+    c.strokeStyle=css('--card');c.lineWidth=2;c.stroke();}
+  c.restore();
+}
+let gDrag=false;
+function gPtr(e){ if(!lineOn()) return; const V=view(), b=gC.getBoundingClientRect(), px=e.clientX-b.left, py=e.clientY-b.top;
+  const x=V.x0+(px-GP.l)/(GW-GP.l-GP.r)*(V.x1-V.x0), y=V.y0+(GH-GP.b-py)/(GH-GP.t-GP.b)*(V.y1-V.y0);
+  if(x<=V.x1*0.04) return; setH(y/x); }
+gC.addEventListener('pointerdown',e=>{if(!lineOn())return;gDrag=true;try{gC.setPointerCapture(e.pointerId)}catch(_){ } gPtr(e);});
+gC.addEventListener('pointermove',e=>{if(gDrag) gPtr(e);});
+gC.addEventListener('pointerup',()=>{gDrag=false;save();});
+function setH(h){ const R=$('hR'), is29=S.v29&&extraOn(), lo=+R.min, hi=+R.max, st=+R.step;
+  h=Math.max(lo,Math.min(hi,Math.round(h/st)*st)); if(is29) S.H29=h; else S.H=h; R.value=h; $('hVal').textContent=h; $('fitFb').classList.add('hidden'); drawGraph(); }
+$('hR').addEventListener('input',e=>setH(+e.target.value));
+$('hR').addEventListener('change',save);
+function renderGraphCtl(){
+  const is29=S.v29&&extraOn(), R=$('hR');
+  if(is29){R.min=100;R.max=800;R.step=10;R.value=S.H29;$('hVal').textContent=S.H29;} else {R.min=20;R.max=120;R.step=1;R.value=S.H;$('hVal').textContent=S.H;}
+  $('hBox').classList.toggle('hidden',!lineOn()); $('hCtl').classList.toggle('hidden',!lineOn());
+  $('dsReal').classList.toggle('hidden',!realReady());
+  $('dsAll').classList.toggle('hidden',!extraOn()); $('ds29').classList.toggle('hidden',!extraOn());
+  document.querySelectorAll('#dsChips button').forEach(b=>{const k=b.dataset.ds;
+    b.setAttribute('aria-pressed', k==='h29'?is29:(!is29&&S.ds[k])); });
+  $('bestBtn').classList.toggle('hidden',!extraOn()); $('bestBtn').setAttribute('aria-pressed',S.best);
+  $('bestBtn').textContent=S.best?'맞춤 직선 숨기기':'맞춤 직선 보기';
+  $('fitBtn').classList.toggle('hidden',S.fitOK||is29);
+  const n=$('h29Note'); n.classList.toggle('hidden',!is29);
+  if(is29) n.innerHTML=`<span class="tag real">실제 자료</span> 허블(1929)의 은하 24개. 거리 단위가 0~2 Mpc로 아주 작아요. 허블이 구한 값은 약 <b>500 km/s/Mpc</b>, 이 자료로 원점을 지나는 직선을 단순히 맞추면 약 <b>${Math.round(H29FIT)}</b>이에요. 속도가 0보다 작은 점은 우리에게 다가오는 은하예요.`;
+  // 범례
+  const sv=(k,col)=>k==='tb'?`<svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" fill="${col}"/></svg>`:k==='real'?`<svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="${col}" stroke-width="2.2"/></svg>`:k==='all'?`<svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="2.6" fill="${col}"/></svg>`:k==='h29'?`<svg viewBox="0 0 14 14"><path d="M7 1.5L13 12H1z" fill="${col}"/></svg>`:`<svg viewBox="0 0 14 14"><path d="M1 12L13 2" stroke="${col}" stroke-width="3"/></svg>`;
+  let L='';
+  if(is29) L+=`<span>${sv('h29',css('--h29'))}허블 1929년 <span class="tag real">실제 자료</span></span>`;
+  else{ if(S.ds.tb) L+=`<span>${sv('tb',css('--tb'))}교과서 탐구 자료 <span class="tag tbk">교과서</span></span>`;
+    if(S.ds.real&&realReady()) L+=`<span>${sv('real',css('--real'))}실제 은하 17개 <span class="tag real">실제 자료</span></span>`;
+    if(S.ds.all&&extraOn()) L+=`<span>${sv('all',css('--allpt'))}실제 전체 506개</span>`; }
+  if(lineOn()) L+=`<span>${sv('line',css('--fit'))}내가 맞춘 직선</span>`;
+  $('legend').innerHTML=L;
+}
+document.querySelectorAll('#dsChips button').forEach(b=>b.onclick=()=>{const k=b.dataset.ds;
+  if(k==='h29'){S.v29=!S.v29;} else { if(S.v29){S.v29=false;} S.ds[k]=!S.ds[k]; }
+  save(); renderGraphCtl(); drawGraph();});
+$('bestBtn').onclick=()=>{S.best=!S.best;save();renderGraphCtl();drawGraph();};
+$('fitBtn').onclick=()=>{
+  const fb=$('fitFb'), h17=H17(), d=S.H-h17; fb.classList.remove('hidden','good','hint');
+  if(Math.abs(d)<=5){ S.fitOK=true; S.ds.all=true; fb.classList.add('good');
+    fb.innerHTML=`맞아요. 실제 은하 17개로 계산한 기울기도 약 <b>${Math.round(h17)} km/s/Mpc</b>예요. 이 기울기를 <b>허블 상수(H)</b>라고 하고, 이 관계를 <b>허블-르메트르 법칙 V = H · r</b>이라고 해요. 그래프에 실제 은하 506개를 모두 겹쳤어요. 전체로 계산하면 약 <b>${HALL.toFixed(1)}</b>이고, 교과서에 실린 최근 값은 약 <b>70 km/s/Mpc</b>예요.`;
+    save(); renderAll(); $('fitFb').classList.remove('hidden'); }
+  else { fb.classList.add('hint'); fb.textContent = d>0 ? '직선이 점들보다 위로 지나가요. 점들이 직선의 위와 아래에 비슷하게 흩어지도록 조금 눕혀 보세요.' : '직선이 점들보다 아래로 지나가요. 점들이 직선의 위와 아래에 비슷하게 흩어지도록 조금 세워 보세요.'; }
+};
+
+/* ---------- 질문 ---------- */
+const PRED_T={fast:'더 빨리 멀어진다',same:'같은 빠르기로 멀어진다',slow:'더 느리게 멀어진다'};
+document.querySelectorAll('#predOpts button').forEach(b=>b.onclick=()=>{ if(S.pred) return; S.pred=b.dataset.v; save(); renderAll(); });
+document.querySelectorAll('#relOpts button').forEach(b=>b.onclick=()=>{ if(S.relOK) return; S.rel=b.dataset.v; if(S.rel==='a') S.relOK=true; save(); renderAll(); });
+document.querySelectorAll('#useOpts button').forEach(b=>b.onclick=()=>{ if(S.useOK) return; S.use=b.dataset.v; if(S.use==='b') S.useOK=true; save(); renderAll(); });
+function renderQ(){
+  // 예측
+  document.querySelectorAll('#predOpts button').forEach(b=>{b.setAttribute('aria-pressed',S.pred===b.dataset.v);b.disabled=!!S.pred;});
+  const pf=$('predFb'); pf.classList.toggle('hidden',!S.pred);
+  if(S.pred) pf.innerHTML=`내 예측: <b>${PRED_T[S.pred]}</b>. 이제 교과서의 세 은하를 관측해 확인해 봐요.`;
+  const started=SIM||!!S.pred;
+  ['specCard','tblCard','graphCard'].forEach(id=>$(id).classList.toggle('hidden',!started));
+  // 관계
+  $('relCard').classList.toggle('hidden',!(tbDone()));
+  document.querySelectorAll('#relOpts button').forEach(b=>{b.setAttribute('aria-pressed',S.rel===b.dataset.v);b.disabled=S.relOK;});
+  const rf=$('relFb'); rf.classList.toggle('hidden',!S.rel); rf.classList.remove('good','hint');
+  if(S.relOK){rf.classList.add('good');rf.innerHTML=`맞아요. 멀리 있는 은하일수록 더 빨리 멀어져요. 처음 예측은 '<b>${PRED_T[S.pred]||'-'}</b>'였어요. 점이 세 개뿐이니, 실제 은하를 더 관측해 정말 그런지 확인해 봐요. 위 스펙트럼 카드에 실제 은하가 생겼어요.`;}
+  else if(S.rel){rf.classList.add('hint');rf.textContent='그래프에서 오른쪽(먼 은하)으로 갈수록 점의 높이(후퇴 속도)가 어떻게 되는지 보세요.';}
+  // 직선 맞추기, 응용
+  $('fitCard').classList.toggle('hidden',!(allAdded()&&!S.fitOK));
+  $('useCard').classList.toggle('hidden',!extraOn());
+  document.querySelectorAll('#useOpts button').forEach(b=>{b.setAttribute('aria-pressed',S.use===b.dataset.v);b.disabled=S.useOK;});
+  const uf=$('useFb'); uf.classList.toggle('hidden',SIM||!S.use); uf.classList.remove('good','hint');
+  if(S.useOK){uf.classList.add('good');uf.innerHTML='맞아요. V = H · r 이므로 r = V ÷ H = 21,000 ÷ 70 = <b>300 Mpc</b>. 후퇴 속도만 재면 허블-르메트르 법칙으로 은하까지의 거리를 구할 수 있어요.';}
+  else if(S.use){uf.classList.add('hint');uf.textContent='V = H · r 에서 r을 구하려면 V를 무엇으로 나눠야 할까요? 단위(km/s ÷ km/s/Mpc)도 함께 따져 보세요.';}
+  if(S.fitOK&&!SIM){const fb=$('fitFb'); if(fb.classList.contains('hidden')){fb.classList.remove('hidden','hint');fb.classList.add('good');fb.innerHTML=`허블 상수: 실제 은하 17개로 약 <b>${Math.round(H17())}</b>, 506개 전체로 약 <b>${HALL.toFixed(1)}</b>, 교과서 값 약 <b>70</b> km/s/Mpc.`;}}
+}
+
+/* ================= ③ 팽창 모형 =================
+   은하 위치 x0(모형 단위)는 고정, 늘어나는 정도 a(1.00~1.60배)만 바뀜 → 화면 위치 = a × (x0 − 관측자 x0).
+   멀어지는 속도 = (da/dt) × x0 = (da/dt ÷ a) × 현재 거리 → 어느 관측자에게나 거리에 비례(허블-르메트르 법칙). */
+const EX={AMAX:1.6, RATE:0.12, HALF:0.85};
+const GAL=(()=>{ // 고르게 흩어진 은하(시드 고정)
+  let s=20261029; const rnd=()=>((s=(s*1664525+1013904223)>>>0)/4294967296);
+  const out=[]; let tries=0;
+  while(out.length<170&&tries<40000){tries++; const x=(rnd()*2-1)*2.0, y=(rnd()*2-1)*2.0;
+    if(out.every(g=>Math.hypot(g.x-x,g.y-y)>0.2)) out.push({x,y,ang:rnd()*Math.PI,e:0.45+rnd()*0.4});}
+  out.sort((p,q)=>Math.hypot(p.x,p.y)-Math.hypot(q.x,q.y)); return out;
+})();
+const BAL=(()=>{let s=7; const rnd=()=>((s=(s*1664525+1013904223)>>>0)/4294967296); const cols=['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1'];
+  return Array.from({length:46},(_,i)=>({lat:Math.asin(rnd()*1.9-0.95),lon:(rnd()*2-1)*Math.PI,c:cols[i%cols.length]}));})();
+let exA=1, exPlaying=false, exCam={x:GAL[0].x,y:GAL[0].y}, exLast=0;
+const exC=$('exC'), ecx=exC.getContext('2d'), exG=$('exG'), egx=exG.getContext('2d'); let EW=0,EH=0,FW=0,FH=0;
+const exObs=()=>GAL[S.ex.obs]||GAL[0];
+function resizeEx(){
+  const dpr=Math.max(1,window.devicePixelRatio||1);
+  let w=exC.parentElement.clientWidth; if(w>=100){const h=Math.round(Math.min(w,440)); EW=w;EH=h;exC.style.height=h+'px';exC.width=Math.round(w*dpr);exC.height=Math.round(h*dpr);ecx.setTransform(dpr,0,0,dpr,0,0);}
+  w=exG.parentElement.clientWidth; if(w>=100){const h=Math.round(Math.max(200,Math.min(w*0.55,280))); FW=w;FH=h;exG.style.height=h+'px';exG.width=Math.round(w*dpr);exG.height=Math.round(h*dpr);egx.setTransform(dpr,0,0,dpr,0,0);}
+  drawEx();
+}
+const exScale=()=>Math.min(EW,EH)/2/EX.HALF;
+function exScreen(g,a){ const k=exScale(); return [EW/2+(g.x-exCam.x)*a*k, EH/2-(g.y-exCam.y)*a*k]; }
+function galaxyIcon(c,x,y,g,col){ c.save();c.translate(x,y);c.rotate(g.ang);
+  c.fillStyle=col;c.globalAlpha=.35;c.beginPath();c.ellipse(0,0,9,9*g.e,0,0,7);c.fill();c.globalAlpha=1;
+  c.beginPath();c.ellipse(0,0,4.5,4.5*g.e,0,0,7);c.fill();c.restore(); }
+function arrow(c,x1,y1,x2,y2,col,w){ const L=Math.hypot(x2-x1,y2-y1); if(L<3) return; const ux=(x2-x1)/L, uy=(y2-y1)/L;
+  c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-ux*6,y2-uy*6);c.stroke();
+  c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-ux*9-uy*5,y2-uy*9+ux*5);c.lineTo(x2-ux*9+uy*5,y2-uy*9-ux*5);c.closePath();c.fill(); }
+function exVisible(){ const o=exObs(), k=exScale(), pts=[];
+  GAL.forEach((g,i)=>{ if(i===S.ex.obs) return; const [x,y]=exScreen(g,exA); if(x<8||x>EW-8||y<8||y>EH-8) return;
+    const d=Math.hypot(g.x-o.x,g.y-o.y)*exA; pts.push({i,g,x,y,d,v:Math.hypot(g.x-o.x,g.y-o.y)*EX.RATE}); }); return pts; }
+function drawEx(){
+  if(!EW) return; const c=ecx; c.clearRect(0,0,EW,EH);
+  c.fillStyle=css('--plot');c.fillRect(0,0,EW,EH);
+  if(S.ex.view==='balloon'){ drawBalloon(c); drawExGraph(); return; }
+  const ink=css('--ink'), mu=css('--muted'), ac=css('--accent'), fit=css('--fit'), font=css('--font');
+  const o=exObs(), k=exScale();
+  if(S.ex.ghost&&exA>1.005){ c.strokeStyle=mu;c.lineWidth=1.2;c.globalAlpha=.6;
+    GAL.forEach(g=>{const [x,y]=exScreen(g,1);c.beginPath();c.arc(x,y,4,0,7);c.stroke();}); c.globalAlpha=1; }
+  const pts=exVisible();
+  if(S.ex.arrow){ const rate=(exPlaying?1:1); pts.forEach(p=>{ const dx=p.x-EW/2, dy=p.y-EH/2, L=Math.hypot(dx,dy); if(L<1) return;
+    const len=Math.min(70,0.24*L*rate/exA*1.0); arrow(c,p.x+dx/L*11,p.y+dy/L*11,p.x+dx/L*(11+len),p.y+dy/L*(11+len),fit,3); }); }
+  GAL.forEach((g,i)=>{ if(i===S.ex.obs) return; const [x,y]=exScreen(g,exA); if(x<-20||x>EW+20||y<-20||y>EH+20) return; galaxyIcon(c,x,y,g,ink); });
+  const [ox,oy]=exScreen(o,exA); galaxyIcon(c,ox,oy,o,ac);
+  c.strokeStyle=ac;c.lineWidth=2.5;c.beginPath();c.arc(ox,oy,15,0,7);c.stroke();
+  c.font=`800 14px ${font}`;c.textAlign='center';c.textBaseline='bottom';c.fillStyle=css('--card');c.globalAlpha=.85;
+  const lab=S.ex.obs===0?'우리은하':'우리'; const tw=c.measureText(lab).width; c.fillRect(ox-tw/2-4,oy-37,tw+8,19);c.globalAlpha=1;c.fillStyle=ac;c.fillText(lab,ox,oy-19);
+  drawExGraph();
+}
+function drawBalloon(c){
+  const ink=css('--ink'), mu=css('--muted'), font=css('--font');
+  const R=Math.min(EW,EH)*0.22*exA, cx=EW/2, cy=EH/2+14;
+  const gg=c.createRadialGradient(cx-R*.35,cy-R*.4,R*.1,cx,cy,R); gg.addColorStop(0,'#ffd1e3');gg.addColorStop(1,'#f06292');
+  c.fillStyle=gg;c.beginPath();c.arc(cx,cy,R,0,7);c.fill();
+  c.fillStyle='#ec407a';c.beginPath();c.moveTo(cx-7,cy+R+10);c.lineTo(cx+7,cy+R+10);c.lineTo(cx,cy+R-2);c.closePath();c.fill();
+  BAL.forEach(b=>{ const z=Math.cos(b.lat)*Math.cos(b.lon); if(z<0.05) return; const x=cx+R*Math.cos(b.lat)*Math.sin(b.lon), y=cy-R*Math.sin(b.lat);
+    c.fillStyle=b.c;c.beginPath();c.ellipse(x,y,5*Math.max(.35,z),5,Math.atan2(y-cy,x-cx),0,7);c.fill(); });
+  c.fillStyle=ink;c.font=`700 14px ${font}`;c.textAlign='left';c.textBaseline='top';c.fillText('풍선의 겉면 = 우주 (비유)',10,10);
+  c.fillStyle=mu;c.font=`600 13px ${font}`;c.fillText('점(은하)의 크기는 그대로',10,30);
+}
+function drawExGraph(){
+  if(!FW) return; const c=egx, ink=css('--ink'), mu=css('--muted'), gr=css('--grid'), font=css('--font');
+  c.clearRect(0,0,FW,FH); const P={l:40,r:12,t:12,b:40}, xa=P.l, xb=FW-P.r, ya=P.t, yb=FH-P.b;
+  c.fillStyle=css('--plot');c.fillRect(xa,ya,xb-xa,yb-ya);
+  const XM=Math.hypot(EW/2,EH/2)/exScale()*1.02, YM=XM*EX.RATE; // 축 범위는 화면 크기로만 정함(관측자를 바꿔도 같은 축)
+  const X=d=>xa+d/XM*(xb-xa), Y=v=>yb-v/YM*(yb-ya);
+  c.strokeStyle=gr;c.lineWidth=1; for(let i=1;i<=4;i++){c.beginPath();c.moveTo(X(XM*i/4),ya);c.lineTo(X(XM*i/4),yb);c.moveTo(xa,Y(YM*i/4));c.lineTo(xb,Y(YM*i/4));c.stroke();}
+  c.strokeStyle=css('--line');c.strokeRect(xa+.5,ya+.5,xb-xa-1,yb-ya-1);
+  c.fillStyle=ink;c.font=`700 13px ${font}`;c.textAlign='center';c.textBaseline='bottom';c.fillText('관측자로부터의 거리',(xa+xb)/2,FH-6);
+  c.save();c.translate(13,(ya+yb)/2);c.rotate(-Math.PI/2);c.textBaseline='middle';c.fillText('멀어지는 속도',0,0);c.restore();
+  c.fillStyle=mu;c.font=`600 12px ${font}`;c.textAlign='left';c.textBaseline='top';c.fillText('0',xa-12,yb+4);
+  if(S.ex.view==='balloon'){c.fillStyle=mu;c.font=`600 14px ${font}`;c.textAlign='center';c.textBaseline='middle';c.fillText('평면 모형에서 볼 수 있어요',(xa+xb)/2,(ya+yb)/2);return;}
+  const pts=exVisible(); c.save();c.beginPath();c.rect(xa,ya,xb-xa,yb-ya);c.clip();
+  c.strokeStyle=css('--muted');c.setLineDash([5,4]);c.lineWidth=1.5;c.beginPath();c.moveTo(X(0),Y(0));c.lineTo(X(XM),Y(XM*EX.RATE/exA));c.stroke();c.setLineDash([]);
+  pts.forEach(p=>{c.strokeStyle=css('--real');c.lineWidth=2.2;c.fillStyle=css('--plot');c.beginPath();c.arc(X(p.d),Y(p.v),4.5,0,7);c.fill();c.stroke();});
+  c.restore();
+}
+function exTick(t){ if(!exPlaying) return; const dt=Math.min(.05,(t-exLast)/1000); exLast=t;
+  exA=Math.min(EX.AMAX,exA+EX.RATE*dt*1.0); if(exA>=EX.AMAX){exPlaying=false;}
+  if(!SIM&&exA>=1.25&&!S.ex.played){S.ex.played=true;save();renderEx();}
+  syncExA(); drawEx(); if(exPlaying) requestAnimationFrame(exTick); else renderExBtns(); }
+function syncExA(){ $('exA').value=exA; $('exAVal').textContent=exA.toFixed(2)+'배'; }
+function renderExBtns(){ $('exPlay').textContent=exPlaying?'일시정지 ❚❚':(exA>=EX.AMAX?'다시 팽창 ▶':'팽창 ▶'); }
+$('exPlay').onclick=()=>{ if(exPlaying){exPlaying=false;renderExBtns();return;} if(exA>=EX.AMAX) exA=1; exPlaying=true; exLast=performance.now(); renderExBtns(); requestAnimationFrame(exTick); };
+$('exReset').onclick=()=>{ exPlaying=false; exA=1; syncExA(); renderExBtns(); drawEx(); };
+$('exA').addEventListener('input',e=>{ exA=+e.target.value; exPlaying=false; renderExBtns(); $('exAVal').textContent=exA.toFixed(2)+'배';
+  if(!SIM&&exA>=1.25&&!S.ex.played){S.ex.played=true;save();renderEx();} drawEx(); });
+document.querySelectorAll('#exView button').forEach(b=>b.onclick=()=>{S.ex.view=b.dataset.v;save();renderEx();drawEx();});
+document.querySelectorAll('#exOpt button').forEach(b=>b.onclick=()=>{const k=b.dataset.v;S.ex[k]=!S.ex[k];save();renderEx();drawEx();});
+let camAnim=null;
+exC.addEventListener('pointerdown',e=>{ if(S.ex.view!=='plane') return; const r=exC.getBoundingClientRect(), px=e.clientX-r.left, py=e.clientY-r.top;
+  let best=-1,bd=26; GAL.forEach((g,i)=>{const [x,y]=exScreen(g,exA);const d=Math.hypot(x-px,y-py);if(d<bd){bd=d;best=i;}});
+  if(best<0||best===S.ex.obs) return; S.ex.obs=best;
+  if(!SIM){ if(!S.ex.seen.includes(best)) S.ex.seen.push(best); save(); }
+  const from={...exCam}, to={x:GAL[best].x,y:GAL[best].y}, t0=performance.now(); cancelAnimationFrame(camAnim);
+  const step=t=>{const u=Math.min(1,(t-t0)/450), s=u*u*(3-2*u); exCam={x:from.x+(to.x-from.x)*s,y:from.y+(to.y-from.y)*s}; drawEx(); if(u<1) camAnim=requestAnimationFrame(step);};
+  camAnim=requestAnimationFrame(step); renderEx(); });
+const EXP_T={a:'우리은하가 중심이다',b:'다른 은하에서 보아도 똑같이 보일 것이다',c:'잘 모르겠다'};
+document.querySelectorAll('#exPredOpts button').forEach(b=>b.onclick=()=>{ if(S.ex.pred) return; S.ex.pred=b.dataset.v; save(); renderEx(); relayout(); });
+document.querySelectorAll('#exCenterOpts button').forEach(b=>b.onclick=()=>{ if(S.ex.cOK) return; S.ex.cAns=b.dataset.v; if(b.dataset.v==='a') S.ex.cOK=true; save(); renderEx(); });
+document.querySelectorAll('#exBoundOpts button').forEach(b=>b.onclick=()=>{ if(S.ex.bOK) return; S.ex.bAns=b.dataset.v; if(b.dataset.v==='b') S.ex.bOK=true; save(); renderEx(); });
+function renderEx(){
+  const E=S.ex, started=SIM||!!E.pred;
+  ['exCard','exGCard'].forEach(id=>$(id).classList.toggle('hidden',!started));
+  document.querySelectorAll('#exPredOpts button').forEach(b=>{b.setAttribute('aria-pressed',E.pred===b.dataset.v);b.disabled=!!E.pred;});
+  const pf=$('exPredFb'); pf.classList.toggle('hidden',!E.pred); if(E.pred) pf.innerHTML=`내 예측: <b>${EXP_T[E.pred]}</b>. 모형으로 확인해 봐요.`;
+  document.querySelectorAll('#exView button').forEach(b=>b.setAttribute('aria-pressed',E.view===b.dataset.v));
+  document.querySelectorAll('#exOpt button').forEach(b=>b.setAttribute('aria-pressed',!!E[b.dataset.v]));
+  $('exOpt').classList.toggle('hidden',E.view!=='plane'); $('balloonNote').classList.toggle('hidden',E.view!=='balloon');
+  $('exObsTag').textContent=E.obs===0?'관측자: 우리은하':'관측자: 다른 은하';
+  const L=[`<span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="${css('--accent')}"/></svg>관측자('우리')</span>`,
+    `<span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="${css('--ink')}"/></svg>은하</span>`];
+  if(E.ghost) L.push(`<span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="none" stroke="${css('--muted')}" stroke-width="1.5"/></svg>처음 위치</span>`);
+  if(E.arrow) L.push(`<span><svg viewBox="0 0 14 14"><path d="M1 7h9M8 3l5 4-5 4" fill="none" stroke="${css('--fit')}" stroke-width="2.4"/></svg>멀어지는 속도(화살표 길이)</span>`);
+  $('exLegend').innerHTML=E.view==='plane'?L.join(''):'';
+  const others=E.seen.filter(i=>i!==0).length;
+  let g=''; if(!E.played) g='[팽창 ▶]을 누르거나 막대를 밀어, 은하 사이가 어떻게 변하는지 보세요.';
+  else if(others<2) g=`이번에는 다른 은하를 눌러 관측자를 바꿔 보세요. 화살표와 아래 그래프가 어떻게 되나요? (${others}/2곳)`;
+  else if(!E.cOK) g='두 곳 이상에서 관측했어요. 아래 질문에 답해 보세요.';
+  else g='잘했어요. 풍선 그림도 보고, 생각 거리에 답해 보세요.';
+  $('exGuide').textContent=g;
+  $('exCenterCard').classList.toggle('hidden',!(E.played&&others>=2));
+  document.querySelectorAll('#exCenterOpts button').forEach(b=>{b.setAttribute('aria-pressed',E.cAns===b.dataset.v);b.disabled=E.cOK;});
+  const cf=$('exCenterFb'); cf.classList.toggle('hidden',!E.cAns); cf.classList.remove('good','hint');
+  if(E.cOK){cf.classList.add('good');cf.innerHTML=`맞아요. 우주가 고르게 팽창하면 <b>어느 은하에서 관측해도</b> 먼 은하일수록 빨리 멀어져요. 허블-르메트르 법칙이 어디서나 성립하니, 우리은하가 우주의 중심이라고 할 수 없어요. <b>우주에는 중심이 없어요.</b> 처음 예측은 '<b>${EXP_T[E.pred]||'-'}</b>'였어요.`;}
+  else if(E.cAns){cf.classList.add('hint');cf.textContent='관측자를 바꾼 뒤 화살표 길이와 아래 그래프의 점들을 다시 보세요. 관측자에게서 먼 은하의 화살표는 어떤가요?';}
+  $('exBoundCard').classList.toggle('hidden',!(SIM||E.cOK));
+  document.querySelectorAll('#exBoundOpts button').forEach(b=>{b.setAttribute('aria-pressed',E.bAns===b.dataset.v);b.disabled=E.bOK;});
+  const bf=$('exBoundFb'); bf.classList.toggle('hidden',SIM||!E.bAns); bf.classList.remove('good','hint');
+  if(E.bOK){bf.classList.add('good');bf.innerHTML='맞아요. 태양계, 은하, 은하단처럼 <b>중력으로 묶인 천체는 팽창하지 않아요.</b> 원자나 우리 몸도 그대로예요. 그래서 모형에서도 은하 그림의 크기는 그대로 두었어요. 늘어나는 것은 서로 묶이지 않은 은하단 사이의 공간이에요.';}
+  else if(E.bAns){bf.classList.add('hint');bf.textContent='모형에서 팽창할 때 은하 그림의 크기가 커졌나요? 태양 둘레를 도는 행성은 무엇으로 묶여 있을까요?';}
+  renderExBtns();
+}
+
+function exSyncCam(){ const o=exObs(); exCam={x:o.x,y:o.y}; }
+
+function renderAll(){ renderQ(); renderPick(); renderCalc(); renderTable(); renderGraphCtl(); drawSpec(); drawGraph(); renderEx(); drawEx(); }
+
+/* ---------- 탭과 주소 ---------- */
+const TABS=['redshift','law','expand','age'];
+let TAB='redshift';
+function showTab(k,push){
+  if(!TABS.includes(k)) k='redshift'; TAB=k;
+  TABS.forEach(t=>$('t-'+t).classList.toggle('hidden',t!==k));
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===k));
+  if(push!==false){ try{const u=new URL(location.href); u.searchParams.set('tab',k); history.replaceState(null,'',u);}catch(e){} }
+  relayout();
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+function relayout(){ if(TAB==='law'){resizeSpec();resizeGraph();} if(TAB==='expand') resizeEx(); }
+new ResizeObserver(()=>relayout()).observe(document.querySelector('.wrap'));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{renderGraphCtl();drawSpec();drawGraph();renderEx();drawEx();});
+
+/* ---------- 모드: 탐구 모드 / 시뮬레이션 모드 (dating-sim.html과 같은 구조) ----------
+   모드는 주소로만 정함: ?mode=sim 이면 시뮬레이션 모드, 없으면 항상 탐구 모드(기기에 기억하지 않음).
+   시뮬레이션 모드에서는 저장소를 읽지도 쓰지도 않음. 탐구 진행은 메모리에 보관했다가 돌아오면 되살림. */
+function readMode(){ let m=null; try{ m=new URLSearchParams(location.search).get('mode'); }catch(e){} return m==='sim'?'sim':'inq'; }
+function setMode(m){
+  const toSim=m==='sim';
+  if(toSim&&!SIM){ inqSnap=JSON.parse(JSON.stringify(S));
+    S=Object.assign(fresh(),{pred:'fast',tb:[true,true,true],rel:'a',relOK:true,rm:[true,true],added:REAL.length-N_MANUAL,fitOK:true,H:60,sel:{k:'tb',i:0},
+      ex:Object.assign(fresh().ex,{pred:'b',played:true,seen:[0,1,2],cAns:'a',cOK:true,bAns:'b',bOK:true})});
+    document.querySelectorAll('details.mguide').forEach(d=>d.open=true); // 모형 안내는 펼쳐서 시작
+  } else if(!toSim&&SIM){ if(inqSnap){S=inqSnap;inqSnap=null;} if(!loaded){load();loaded=true;} document.querySelectorAll('details.mguide').forEach(d=>d.open=false); }
+  SIM=toSim; exSyncCam();
+  document.body.classList.toggle('sim',SIM);
+  $('modeNow').textContent=SIM?'시뮬레이션 모드':'탐구 모드';
+  $('modeBtn').textContent=SIM?'탐구 모드로':'시뮬레이션 모드로';
+  try{ const u=new URL(location.href); if(SIM) u.searchParams.set('mode','sim'); else u.searchParams.delete('mode'); history.replaceState(null,'',u); }catch(e){}
+  renderAll(); relayout();
+}
+$('modeBtn').onclick=()=>setMode(SIM?'inq':'sim');
+
+let tab0=null; try{ tab0=new URLSearchParams(location.search).get('tab'); }catch(e){}
+if(readMode()==='sim') setMode('sim'); else { load(); loaded=true; exSyncCam(); renderAll(); }
+setMk(S.mk);
+showTab(TABS.includes(tab0)?tab0:'redshift', !!tab0);
+})();
+</script>
+</body>
+</html>

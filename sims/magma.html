@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>마그마의 생성</title>
+<meta name="description" content="ESS Lab 지구과학 [12지구02-03] 마그마의 생성 시뮬레이션 — 지하의 온도 분포와 용융 곡선, 마그마가 생기는 세 가지 길, 생성 장소와 화성암">
+<style>
+:root{
+  --bg:#f5f3ee; --card:#ffffff; --ink:#1c2330; --muted:#5a6372; --line:#e0dbd1;
+  --accent:#1d7656; --warn:#b2461a; --chip:#eeeae2; --chipOn:#1c2330; --chipOnInk:#ffffff;
+  --geo:#d9661a; --mantle:#2a6bd4; --granite:#2f8a3a; --melt:#d23c2c; --crust:#c9a27a; --grid:#ebe6dc;
+  --xsSky:#e6eef5; --xsSea:#bcd3e0; --xsAst:#e0a26c; --xsOce:#5b7a94; --xsCon:#8a7a5c; --xsCrust:#b5a37e; --xsVol:#b8321f; --xsMag:#d23c2c; --xsRhy:#f0a830; --xsWater:#1f6fd1;
+  --font: "Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#13161b; --card:#1c2027; --ink:#eef1f5; --muted:#a7b0bd; --line:#333944;
+    --accent:#4cc394; --warn:#ff8b5e; --chip:#262b34; --chipOn:#eef1f5; --chipOnInk:#13161b;
+    --geo:#ff9b47; --mantle:#6aa5ff; --granite:#5cc46a; --melt:#ff6b5b; --crust:#8a6d4c; --grid:#262b33;
+    --xsSky:#1f2833; --xsSea:#16303f; --xsAst:#a8703f; --xsOce:#4a6780; --xsCon:#6e6248; --xsCrust:#8a7c5c; --xsVol:#c4402c; --xsMag:#e8483a; --xsRhy:#f0b040; --xsWater:#6aa5ff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#13161b; --card:#1c2027; --ink:#eef1f5; --muted:#a7b0bd; --line:#333944;
+  --accent:#4cc394; --warn:#ff8b5e; --chip:#262b34; --chipOn:#eef1f5; --chipOnInk:#13161b;
+  --geo:#ff9b47; --mantle:#6aa5ff; --granite:#5cc46a; --melt:#ff6b5b; --crust:#8a6d4c; --grid:#262b33;
+    --xsSky:#1f2833; --xsSea:#16303f; --xsAst:#a8703f; --xsOce:#4a6780; --xsCon:#6e6248; --xsCrust:#8a7c5c; --xsVol:#c4402c; --xsMag:#e8483a; --xsRhy:#f0b040; --xsWater:#6aa5ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-text-size-adjust:100%}
+body{padding-bottom:40px}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+header{padding:18px 0 8px}
+header .sub{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+header h1{font-size:22px;margin:4px 0 0;line-height:1.3}
+nav.tabs{display:flex;gap:5px;margin:12px 0 14px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5}
+nav.tabs button{flex:1 1 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 14px var(--font);padding:11px 3px;border-radius:12px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;scroll-margin-top:72px}
+.card h2{font-size:17px;margin:0 0 10px}
+.lab{font-size:13px;color:var(--muted);font-weight:600}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;vertical-align:middle}
+.tag.real{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.tag.model{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
+.chips{display:flex;gap:6px}
+.chips button{flex:1;border:1px solid var(--line);background:var(--chip);color:var(--ink);font:700 15px var(--font);padding:10px 4px;border-radius:12px;cursor:pointer;line-height:1.25}
+.chips button small{display:block;font-size:12px;font-weight:600;color:inherit;opacity:.8}
+.chips button[aria-pressed="true"]{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+.chips button .ck{color:var(--accent);margin-left:2px}
+.chips button[aria-pressed="true"] .ck{color:inherit}
+.canvasBox{position:relative}
+.canvasBox canvas{display:block;width:100%;height:clamp(250px,42vh,330px);touch-action:pan-y}
+.gcap{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.5;word-break:keep-all}
+.gcap .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;background:color-mix(in srgb,var(--melt) 18%,transparent);border:1px solid color-mix(in srgb,var(--melt) 45%,transparent)}
+.read3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.read3>div{background:var(--chip);border-radius:12px;padding:8px 10px}
+.read3 .v{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;white-space:nowrap}
+.read3 .v.r{color:var(--ink)} .read3 .v.m{color:var(--mantle)}
+.status{margin-top:10px;border-radius:12px;padding:10px 12px;font-size:16px;font-weight:700;line-height:1.45;word-break:keep-all;background:var(--chip)}
+.status.melt{background:color-mix(in srgb,var(--melt) 15%,transparent);color:var(--ink)}
+.status .def{display:block;font-size:14px;font-weight:500;margin-top:4px;color:var(--muted)}
+.ctrl{margin-top:8px}
+.ctrl .mini{border:1px solid var(--line);background:var(--chip);color:var(--ink);font:700 13px var(--font);border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap}
+.ctrl .row .val{margin-left:auto}
+.ctrl .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctrl .row b{font-size:15px}
+input[type=range]{width:100%;height:36px;accent-color:var(--geo);margin:4px 0}
+input[type=range]:disabled{opacity:.35}
+.btnRow{display:flex;gap:8px;margin-top:8px}
+.btnRow button{flex:1;height:46px;border-radius:12px;font:700 15px var(--font);cursor:pointer;border:1px solid var(--line)}
+.primary{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)!important}
+.ghost{background:var(--chip);color:var(--ink)}
+button:disabled{opacity:.4;cursor:default}
+.lock{margin-top:8px;font-size:14px;line-height:1.5;color:var(--warn);display:flex;align-items:center;gap:8px;flex-wrap:wrap;word-break:keep-all}
+.lock button{border:1px solid var(--warn);background:none;color:var(--warn);font:700 14px var(--font);border-radius:999px;padding:5px 12px;cursor:pointer}
+.q{font-size:17px;font-weight:700;line-height:1.45;margin:4px 0 10px;word-break:keep-all}
+.qnum{font-size:13px;color:var(--muted);font-weight:700}
+.opts{display:grid;grid-template-columns:1fr;gap:8px}
+.opts button{border:2px solid var(--line);background:var(--card);color:var(--ink);font:700 16px var(--font);padding:12px 14px;border-radius:12px;cursor:pointer;text-align:left;line-height:1.4;word-break:keep-all}
+.opts button.sel{border-color:var(--chipOn)}
+.opts button.ok{border-color:var(--accent)}
+.opts button:disabled{opacity:.6;cursor:default}
+.opts button.ok:disabled,.opts button.sel:disabled{opacity:1}
+.fb{margin-top:10px;font-size:15px;line-height:1.55;border-radius:12px;padding:10px 12px;word-break:keep-all}
+.fb.wait{background:var(--chip)}
+.fb.ok{background:color-mix(in srgb,var(--accent) 15%,transparent)}
+.fb.no{background:color-mix(in srgb,var(--warn) 13%,transparent)}
+.expl{font-size:15.5px;line-height:1.6;word-break:keep-all}
+.expl p{margin:0 0 6px}
+.expl b{color:var(--ink)}
+table.sum{width:100%;border-collapse:collapse;font-size:15px;line-height:1.45}
+table.sum th{font-size:13px;color:var(--muted);text-align:left;padding:4px;font-weight:700}
+table.sum td{border-top:1px solid var(--line);padding:9px 4px;vertical-align:top;word-break:keep-all}
+table.sum td:first-child{font-weight:800;white-space:nowrap}
+table.sum td.blank{color:var(--muted)}
+table.sum td.abc{text-align:center;font-weight:800}
+.terms{font-size:15px;line-height:1.6;margin:0;padding-left:18px;word-break:keep-all}
+.terms li{margin:3px 0}
+details{font-size:15px;line-height:1.6}
+details summary{font-weight:700;cursor:pointer;padding:2px 0}
+table.diff{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px;line-height:1.5}
+table.diff th{font-size:13px;color:var(--muted);text-align:left;padding:4px}
+table.diff td{border-top:1px solid var(--line);padding:8px 4px;vertical-align:top;word-break:keep-all}
+table.diff td:first-child{color:var(--muted);width:42%}
+.miscon{margin:10px 0 0;padding-left:18px;font-size:14.5px;line-height:1.6;word-break:keep-all}
+.placeholder{color:var(--muted);font-size:16px;line-height:1.6;text-align:center;padding:30px 10px}
+.canvasBox canvas.short{height:clamp(210px,32vh,270px)}
+#xsBox svg{display:block;width:100%;height:auto;border-radius:10px}
+#xsBox .xl text{font:700 13px var(--font);fill:var(--ink);paint-order:stroke;stroke:var(--card);stroke-width:3px;stroke-linejoin:round}
+#xsBox .xsWaterS{stroke:var(--xsWater)} #xsBox .xsWaterF{fill:var(--xsWater)}
+#xsBox .xl text.xsWaterF{fill:var(--xsWater)}
+#xsBox .site{cursor:pointer;outline:none}
+#xsBox .site .hit{fill:transparent}
+#xsBox .site .mk{fill:var(--card);stroke:var(--ink);stroke-width:2}
+#xsBox .site text{font:800 14px var(--font);fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#xsBox .site.done .mk{stroke:var(--accent);stroke-width:3}
+#xsBox .site.sel .mk{fill:var(--ink)} #xsBox .site.sel text{fill:var(--card)}
+#xsBox .site:focus-visible .mk{stroke-width:4}
+@keyframes pulse{0%,100%{r:12}50%{r:15}}
+#xsBox .site.hint .mk{animation:pulse 1.4s ease-in-out infinite}
+.whereGrid{display:block}
+#xsBox svg{max-height:40vh;margin:0 auto}
+.predIn{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+@media (min-width:760px){
+  .whereGrid{display:grid;grid-template-columns:1.15fr 1fr;gap:12px;align-items:start}
+  .whereGrid>.card{margin-bottom:12px}
+  #whGraphCard{position:sticky;top:64px}
+  #xsBox svg{max-height:none}
+}
+.mrow{display:grid;grid-template-columns:76px 1fr;gap:4px 10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.mrow:first-child{border-top:0;padding-top:2px}
+.mrow .mn{font-weight:800;font-size:16px;line-height:1.25;word-break:keep-all}
+.mrow .mn small{display:block;font-size:12px;font-weight:600;color:var(--muted)}
+.mrow .bars{display:grid;gap:5px}
+.mbar2{display:grid;grid-template-columns:44px 1fr auto;gap:6px;align-items:center;font-size:13px}
+.mbar2 .tr{height:12px;background:var(--chip);border-radius:6px;overflow:hidden}
+.mbar2 .fl{height:100%;border-radius:6px}
+.mbar2 .vl{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;min-width:64px;text-align:right}
+.mrow .where{grid-column:2;font-size:13px;color:var(--muted);word-break:keep-all}
+.rockOut{display:grid;grid-template-columns:128px 1fr;gap:12px;align-items:center;margin-top:12px;background:var(--chip);border-radius:14px;padding:10px}
+.rockOut canvas{width:128px;height:128px;border-radius:10px;display:block}
+.rockName{font-size:26px;font-weight:800;line-height:1.2}
+.rockSub{font-size:14px;font-weight:700;color:var(--muted);margin-top:2px}
+.rockTxt{font-size:14.5px;line-height:1.5;margin-top:6px;word-break:keep-all}
+table.rtab{width:100%;border-collapse:separate;border-spacing:4px;margin-top:10px;table-layout:fixed}
+table.rtab th{font-size:12.5px;color:var(--muted);font-weight:700;padding:2px;text-align:center;word-break:keep-all;line-height:1.3}
+table.rtab th.rh{text-align:left}
+table.rtab td{background:var(--chip);border:2px solid transparent;border-radius:10px;text-align:center;font-weight:800;font-size:15.5px;padding:10px 2px;cursor:pointer}
+table.rtab td.blank{color:var(--muted);font-weight:600}
+table.rtab td.on{border-color:var(--ink)}
+.chips.lockd button{opacity:.4;pointer-events:none}
+.hidden{display:none!important}
+.foot{margin:18px 0 8px;padding-top:12px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);line-height:1.6;word-break:keep-all}
+.foot div+div{margin-top:4px}
+@media (max-width:380px){nav.tabs button{font-size:13px;padding:11px 2px}.read3{gap:6px}.read3>div{padding:7px 8px}.read3 .v{font-size:17px}}
+/* ---------- 모드 (탐구 / 시뮬레이션) — dating-sim.html과 같은 모양 ---------- */
+.modeSw{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-bottom:4px}
+.modeSw .now{font:800 12px var(--font);color:var(--ink);background:var(--chip);border:1px solid var(--line);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.modeSw button{font:600 12px var(--font);color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer;white-space:nowrap}
+.modeSw button:hover{color:var(--ink);border-color:var(--muted)}
+body.sim .inq-only{display:none!important}
+body:not(.sim) .sim-only{display:none!important}
+body.sim .wrap{max-width:960px}
+.simNote{font-size:15px;line-height:1.55;word-break:keep-all}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="modeSw"><span class="now" id="modeNow">탐구 모드</span><button id="modeBtn" type="button">시뮬레이션 모드로</button></div>
+    <div class="sub">ESS Lab · 지구과학 [12지구02-03]</div>
+    <h1>마그마의 생성</h1>
+  </header>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="why" aria-selected="false">① 왜 안 녹나</button>
+    <button role="tab" data-tab="three" aria-selected="true">② 세 가지 길</button>
+    <button role="tab" data-tab="where" aria-selected="false">③ 어디서</button>
+    <button role="tab" data-tab="rock" aria-selected="false">④ 어떤 암석</button>
+  </nav>
+
+  <!-- ① 왜 안 녹아 있을까 -->
+  <section id="why" class="hidden">
+    <div class="card inq-only">
+      <div class="q" style="margin-top:0">땅속으로 깊이 들어갈수록 온도가 높아져요.<br>그렇다면 깊은 땅속은 녹아 있을까요?</div>
+      <div class="lab" style="line-height:1.5">먼저 예측하고, 그래프로 확인해 보세요.</div>
+    </div>
+    <div class="card sim-only"><div class="simNote">깊이에 따른 <b>지하의 온도</b>와 암석이 <b>녹는 온도</b>를 비교해요. 슬라이더로 깊이를 바꿔 두 값을 견주어 보세요.</div></div>
+
+    <div class="card">
+      <ul class="terms">
+        <li><b>지하의 온도 분포</b>: 깊이에 따라 땅속 온도가 어떻게 변하는지 이은 선</li>
+        <li><b>용융 곡선</b>: 깊이마다 암석이 녹기 시작하는 온도를 이은 선. 이 선의 오른쪽(더 뜨거운 쪽)이면 녹아요.</li>
+      </ul>
+    </div>
+
+    <div class="card inq-only" id="wPredCard">
+      <div class="qnum">예측</div>
+      <div class="q">깊이 100km의 맨틀은 어떤 상태일까요?</div>
+      <div class="opts" id="wPredOpts"></div>
+      <div class="fb wait hidden" id="wPredFb">예측을 기록했어요. 아래 슬라이더로 깊이를 내려가며 두 온도를 비교해 보세요.</div>
+    </div>
+
+    <div class="card" id="wGraphCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <b style="font-size:16px">지하의 온도와 녹는 온도</b>
+        <span class="tag real">교과서 수록값</span>
+      </div>
+      <div class="canvasBox"><canvas id="cv1" aria-label="깊이에 따른 지하의 온도 분포와 물이 포함되지 않은 맨틀의 용융 곡선 그래프"></canvas></div>
+      <div class="ctrl">
+        <div class="row"><b>깊이</b><span class="lab val" id="wVal">0km</span><button class="mini" type="button" id="wDown">끝까지 내려가기</button></div>
+        <input type="range" id="wSl" min="0" max="140" step="1" value="0" aria-label="깊이">
+      </div>
+      <div class="lock hidden" id="wLock">🔒 먼저 위에서 예측을 골라 주세요. <button type="button" id="wGoPred">예측하러 가기</button></div>
+      <p class="gcap"><span class="sw"></span> 붉은 영역: 용융 곡선의 오른쪽, 녹는 조건 · 세로축은 <b>아래로 갈수록 깊어져요</b>.</p>
+      <div class="read3">
+        <div><div class="lab">깊이</div><div class="v" id="wD">–</div></div>
+        <div><div class="lab">지하 온도</div><div class="v" id="wT" style="color:var(--geo)">–</div></div>
+        <div><div class="lab">녹는 온도</div><div class="v m" id="wM">–</div></div>
+      </div>
+      <div class="status" id="wStatus"></div>
+    </div>
+
+    <div class="card inq-only hidden" id="wChk1">
+      <div class="qnum">확인 1</div>
+      <div class="q">깊이 100km에서 더 높은 것은 무엇인가요?</div>
+      <div class="opts" id="wOpts1"></div>
+      <div class="fb hidden" id="wFb1"></div>
+    </div>
+    <div class="card inq-only hidden" id="wChk2">
+      <div class="qnum">확인 2</div>
+      <div class="q">깊어질수록 온도가 높아지는데도 녹지 않는 까닭은 무엇일까요?</div>
+      <div class="opts" id="wOpts2"></div>
+      <div class="fb hidden" id="wFb2"></div>
+    </div>
+
+    <div class="card hidden" id="wExpl">
+      <h2>정리 — 맨틀은 고체예요</h2>
+      <div class="expl">
+        <p class="inq-only" id="wRecall"></p>
+        <p><b>두 곡선은 만나지 않아요.</b> 깊이 들어가면 지하 온도가 높아지지만, 압력도 함께 커져서 <b>녹는 온도는 더 높아져요</b>.</p>
+        <p>그래서 지하 온도는 늘 녹는 온도보다 낮고, <b>맨틀은 고체</b>예요. 아주 오랜 시간에 걸쳐 느리게 흐르지만 액체가 아니에요.</p>
+        <p>지진파 탐구에서 <b>S파가 맨틀을 지나가는 것</b>을 봤다면 같은 결론이에요. S파는 고체 속만 지나가요.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q" style="margin-top:0">그런데 화산은 분명히 있어요.<br>고체인 암석은 어떻게 녹을까요?</div>
+      <div class="btnRow" style="margin-top:0"><button class="primary" type="button" id="goThree">② 세 가지 길로 가기</button></div>
+    </div>
+  </section>
+
+  <!-- ② 녹이는 세 가지 길 -->
+  <section id="three">
+    <div class="card inq-only">
+      <div class="q" style="margin-top:0">깊은 땅속은 녹아 있지 않아요. 그런데 화산은 있죠.<br>암석을 녹이는 방법은 무엇일까요?</div>
+      <div class="lab" style="line-height:1.5">세 가지 길을 하나씩 해 보세요. 길마다 먼저 예측하고, 그래프로 확인해요.</div>
+    </div>
+    <div class="card sim-only"><div class="simNote">암석이 녹는 세 가지 길이에요. 길을 고른 뒤 슬라이더나 단추로 조작해 보세요. 점이 <b>용융 곡선</b>을 넘으면 녹기 시작해요.</div></div>
+
+    <div class="card">
+      <ul class="terms">
+        <li><b>지하의 온도 분포</b>: 깊이에 따라 땅속 온도가 어떻게 변하는지 이은 선</li>
+        <li><b>용융 곡선</b>: 깊이마다 암석이 녹기 시작하는 온도를 이은 선</li>
+      </ul>
+    </div>
+
+    <div class="chips" id="pathChips" style="margin-bottom:12px">
+      <button data-p="heat" aria-pressed="true">(가) 온도<small>올리기</small></button>
+      <button data-p="dec" aria-pressed="false">(나) 압력<small>낮추기</small></button>
+      <button data-p="water" aria-pressed="false">(다) 물<small>넣기</small></button>
+    </div>
+
+    <!-- 예측 (탐구 모드) -->
+    <div class="card inq-only" id="predCard">
+      <div class="qnum" id="predNum">예측</div>
+      <div class="q" id="predQ"></div>
+      <div class="opts" id="predOpts"></div>
+      <div class="fb wait hidden" id="predFb"></div>
+    </div>
+
+    <!-- 그래프와 조작 -->
+    <div class="card" id="graphCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <b id="sceneTitle" style="font-size:16px"></b>
+        <span class="tag real">교과서 수록값</span>
+      </div>
+      <div class="canvasBox"><canvas id="cv" aria-label="깊이에 따른 지하의 온도 분포와 용융 곡선 그래프"></canvas></div>
+      <div class="ctrl" id="ctrl"></div>
+      <div class="lock hidden" id="lock">🔒 먼저 위에서 예측을 골라 주세요. <button type="button" id="goPred">예측하러 가기</button></div>
+      <p class="gcap"><span class="sw"></span> 붉은 영역: 용융 곡선의 오른쪽, 녹기 시작하는 조건 · 세로축은 <b>아래로 갈수록 깊어져요</b>.</p>
+      <div class="read3">
+        <div><div class="lab">깊이</div><div class="v" id="rD">–</div></div>
+        <div><div class="lab">암석 온도</div><div class="v r" id="rT">–</div></div>
+        <div><div class="lab">녹는 온도</div><div class="v m" id="rM">–</div></div>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+
+    <!-- 확인 질문 (탐구 모드, 녹은 뒤) -->
+    <div class="card inq-only hidden" id="chkCard">
+      <div class="qnum">확인</div>
+      <div class="q" id="chkQ"></div>
+      <div class="opts" id="chkOpts"></div>
+      <div class="fb hidden" id="chkFb"></div>
+    </div>
+
+    <!-- 해설 (탐구: 맞힌 뒤 / 시뮬레이션: 늘) -->
+    <div class="card hidden" id="explCard"><h2 id="explH"></h2><div class="expl" id="expl"></div></div>
+
+    <div class="card">
+      <h2>세 가지 길 비교</h2>
+      <table class="sum">
+        <thead><tr><th>길</th><th>그래프에서 움직인 것</th><th style="text-align:center">교과서</th></tr></thead>
+        <tbody id="sumBody"></tbody>
+      </table>
+      <p class="gcap">'교과서'는 미래엔 그림 Ⅱ-19의 화살표 기호예요.</p>
+    </div>
+
+    <div class="card">
+      <div class="q" style="margin-top:0">실제 지구에서는 어느 길이 어디에서 일어날까요?</div>
+      <div class="btnRow" style="margin-top:0"><button class="primary" type="button" id="goWhere">③ 어디서 생기나로 가기</button></div>
+    </div>
+  </section>
+
+  <!-- ③ 어디서 생기나 -->
+  <section id="where" class="hidden">
+    <div class="card inq-only">
+      <div class="q" style="margin-top:0">세 가지 길은 실제 지구의 어디에서 일어날까요?</div>
+      <div class="lab" style="line-height:1.5">단면도에서 번호를 골라, 그곳이 어느 길인지 맞혀 보세요.</div>
+    </div>
+    <div class="card sim-only"><div class="simNote">단면도의 번호를 누르면, 그곳에서 마그마가 생기는 길이 아래 그래프에서 재생돼요.</div></div>
+
+    <div class="whereGrid">
+    <div class="card" id="xsCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <b style="font-size:16px">판 경계 단면</b>
+        <span class="tag model">모식도 · 세로 과장</span>
+      </div>
+      <div id="xsBox">
+<svg viewBox="0 0 400 230" role="img" aria-label="해령, 섭입대, 섭입대 상부를 나타낸 판 경계 단면 모식도">
+  <defs>
+    <marker id="ahW" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" fill="#fff"/></marker>
+    <marker id="ahB" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 Z" class="xsWaterF"/></marker>
+  </defs>
+  <rect width="400" height="230" fill="var(--xsSky)"/>
+  <rect y="56" width="400" height="174" fill="var(--xsAst)"/>
+  <path d="M0,34 L244,34 L238,63 L120,57 L60,50 L0,62 Z" fill="var(--xsSea)"/>
+  <path d="M52,180 Q57,105 60,51 Q63,105 68,180 Z" fill="var(--xsMag)" opacity=".9"/>
+  <path d="M0,62 L56,50 L57,60 L0,74 Z" fill="var(--xsOce)"/>
+  <path d="M64,50 L120,57 L236,63 L372,190 L357,206 L221,79 L120,72 L63,60 Z" fill="var(--xsOce)"/>
+  <path d="M238,63 L246,30 L400,30 L400,95 L270,95 Z" fill="var(--xsCon)"/>
+  <path d="M246,30 L400,30 L400,62 L239,62 Z" fill="var(--xsCrust)"/>
+  <path d="M312,31 L330,13 L348,31 Z" fill="var(--xsVol)"/>
+  <path d="M328,44 L328,24 L332,24 L332,44 Z" fill="var(--xsRhy)"/>
+  <ellipse cx="330" cy="50" rx="11" ry="6" fill="var(--xsRhy)"/>
+  <ellipse cx="330" cy="69" rx="20" ry="6" fill="var(--xsMag)"/>
+  <path d="M312,104 Q318,88 326,74" fill="none" stroke="var(--xsMag)" stroke-width="2.5" stroke-dasharray="3 3"/>
+  <ellipse cx="308" cy="108" rx="5" ry="7" fill="var(--xsMag)"/>
+  <ellipse cx="322" cy="116" rx="4" ry="6" fill="var(--xsMag)"/>
+  <g stroke-width="2" class="xsWaterS" marker-end="url(#ahB)">
+    <path d="M290,112 L299,102"/><path d="M310,131 L320,121"/><path d="M330,150 L340,140"/>
+  </g>
+  <g stroke="#fff" stroke-width="2" marker-end="url(#ahW)">
+    <path d="M44,67 L16,71"/><path d="M80,62 L112,65"/><path d="M262,98 L312,145"/>
+  </g>
+  <g class="xl">
+    <text x="60" y="45" text-anchor="middle">해령</text>
+    <text x="240" y="24" text-anchor="middle">해구</text>
+    <text x="160" y="49" text-anchor="middle">해양판</text>
+    <text x="372" y="22" text-anchor="middle">대륙</text>
+    <text x="110" y="200" text-anchor="middle">연약권(맨틀)</text>
+    <text x="276" y="160" text-anchor="middle">섭입</text>
+    <text x="352" y="160" text-anchor="middle" class="xsWaterF">물</text>
+  </g>
+  <g class="site" data-site="ridge" tabindex="0" role="button" aria-label="① 해령·열곡대"><circle class="hit" cx="60" cy="122" r="20"/><circle class="mk" cx="60" cy="122" r="12"/><text x="60" y="122">1</text></g>
+  <g class="site" data-site="sub" tabindex="0" role="button" aria-label="② 섭입대"><circle class="hit" cx="354" cy="120" r="20"/><circle class="mk" cx="354" cy="120" r="12"/><text x="354" y="120">2</text></g>
+  <g class="site" data-site="upper" tabindex="0" role="button" aria-label="③ 섭입대 상부"><circle class="hit" cx="372" cy="66" r="20"/><circle class="mk" cx="372" cy="66" r="12"/><text x="372" y="66">3</text></g>
+</svg>
+      </div>
+      <div class="chips" id="siteChips" style="margin-top:8px">
+        <button data-site="ridge" aria-pressed="false">① 해령<small>열곡대</small></button>
+        <button data-site="sub" aria-pressed="false">② 섭입대<small>해구 아래</small></button>
+        <button data-site="upper" aria-pressed="false">③ 섭입대<small>상부</small></button>
+      </div>
+    <div class="inq-only hidden predIn" id="sitePred">
+        <div class="qnum" id="sitePredNum">예측</div>
+        <div class="q" id="siteQ">이곳에서는 어느 길로 마그마가 생길까요?</div>
+        <div class="opts" id="siteOpts"></div>
+        <div class="fb hidden" id="siteFb"></div>
+      </div>
+    </div>
+
+    <div class="card" id="whGraphCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+        <b style="font-size:16px" id="whTitle">지하의 온도와 녹는 온도</b>
+        <span class="tag real">교과서 수록값</span>
+      </div>
+      <div class="canvasBox"><canvas id="cv2" class="short" aria-label="고른 장소에서 마그마가 생기는 길을 보여 주는 그래프"></canvas></div>
+      <div class="btnRow"><button class="ghost" type="button" id="whReplay" disabled>▶ 다시 보기</button></div>
+      <div class="status" id="whStatus">단면도에서 번호를 골라 보세요.</div>
+    </div>
+
+    </div>
+    <div class="card hidden" id="siteExpl"><h2 id="siteExplH"></h2><div class="expl" id="siteExplB"></div>
+      <p class="gcap" style="margin-top:8px">마그마는 생긴 곳에서 위로 올라와요. 땅속에 있으면 <b>마그마</b>, 땅 위로 나오면 <b>용암</b>이에요.</p></div>
+
+    <div class="card">
+      <h2>장소와 길 정리</h2>
+      <table class="sum">
+        <thead><tr><th>장소</th><th>길</th><th>생기는 마그마</th></tr></thead>
+        <tbody id="siteSum"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <details>
+        <summary>더 알아보기 — 판 경계가 아닌 곳의 화산(열점)</summary>
+        <p style="margin:8px 0 0;word-break:keep-all">하와이처럼 판의 한가운데에도 화산이 있어요. 맨틀 깊은 곳에서 뜨거운 물질(<b>플룸</b>)이 올라오면서 <b>압력이 낮아져</b> 녹아요. 길 (나)와 같은 원리이고, 주로 현무암질 마그마가 생겨요. 지구시스템과학에서 자세히 다뤄요.</p>
+      </details>
+    </div>
+
+    <div class="card">
+      <div class="q" style="margin-top:0">이렇게 생긴 마그마는 식어서 어떤 암석이 될까요?</div>
+      <div class="btnRow" style="margin-top:0"><button class="primary" type="button" id="goRock">④ 어떤 암석이 되나로 가기</button></div>
+    </div>
+  </section>
+
+  <!-- ④ 어떤 암석이 되나 -->
+  <section id="rock" class="hidden">
+    <div class="card inq-only">
+      <div class="q" style="margin-top:0">③에서 생긴 마그마는 식어서 어떤 암석이 될까요?</div>
+      <div class="lab" style="line-height:1.5">마그마의 성질을 비교하고, 식는 곳에 따라 암석이 어떻게 달라지는지 확인해요.</div>
+    </div>
+    <div class="card sim-only"><div class="simNote">마그마 세 종류의 성질과, 식는 곳에 따라 만들어지는 화성암을 비교해요. 마그마와 식는 곳을 골라 보세요.</div></div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <h2 style="margin:0">마그마 세 종류</h2><span class="tag real">교과서 분류 기준</span>
+      </div>
+      <div id="magmaCards"></div>
+      <p class="gcap"><b>SiO₂</b>(이산화 규소): 마그마 성분 가운데 가장 많은 것. 많을수록 마그마가 끈끈해요. 막대 길이는 상대적인 크기예요.</p>
+    </div>
+
+    <div class="card inq-only" id="rC1">
+      <div class="qnum">확인 1</div>
+      <div class="q">위 막대를 보세요. SiO₂가 많은 마그마일수록 어떤가요?</div>
+      <div class="opts" id="rOpts1"></div>
+      <div class="fb hidden" id="rFb1"></div>
+    </div>
+
+    <div class="card inq-only" id="rPredCard">
+      <div class="qnum">예측</div>
+      <div class="q">지표 근처에서 빨리 식은 암석과 지하 깊은 곳에서 천천히 식은 암석 중, 알갱이(결정)가 더 큰 것은?</div>
+      <div class="opts" id="rPredOpts"></div>
+      <div class="fb wait hidden" id="rPredFb">예측을 기록했어요. 아래에서 마그마와 식는 곳을 바꿔 가며 확인해 보세요.</div>
+    </div>
+
+    <div class="card" id="rockCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <h2 style="margin:0">마그마가 식으면</h2><span class="tag model">암석 그림은 모형</span>
+      </div>
+      <div class="lab" style="margin-bottom:4px">어떤 마그마?</div>
+      <div class="chips" id="rMag"></div>
+      <div class="lab" style="margin:10px 0 4px">어디에서 식을까?</div>
+      <div class="chips" id="rPlace">
+        <button data-pl="v" aria-pressed="true">지표 근처<small>빨리 식음</small></button>
+        <button data-pl="p" aria-pressed="false">지하 깊은 곳<small>천천히 식음</small></button>
+      </div>
+      <div class="lock hidden" id="rLock">🔒 먼저 위에서 예측을 골라 주세요. <button type="button" id="rGoPred">예측하러 가기</button></div>
+      <div class="rockOut" id="rockOut">
+        <canvas id="tex" width="128" height="128" aria-label="암석 단면 모형 그림"></canvas>
+        <div>
+          <div class="rockName" id="rName"></div>
+          <div class="rockSub" id="rSub"></div>
+          <div class="rockTxt" id="rTxt"></div>
+        </div>
+      </div>
+      <table class="rtab" id="rTab"></table>
+      <p class="gcap" id="rTabCap">표의 칸을 눌러도 골라져요.</p>
+    </div>
+
+    <div class="card inq-only hidden" id="rC2">
+      <div class="qnum">확인 2</div>
+      <div class="q">표에서 같은 세로줄(같은 마그마)의 두 암석은 무엇이 같고 무엇이 다른가요?</div>
+      <div class="opts" id="rOpts2"></div>
+      <div class="fb hidden" id="rFb2"></div>
+    </div>
+
+    <div class="card hidden" id="rExpl">
+      <h2>정리 — 생긴 곳이 암석을 정해요</h2>
+      <div class="expl">
+        <p class="inq-only" id="rRecall"></p>
+        <p><b>성분</b>은 마그마가 정해요. 맨틀이 녹으면 SiO₂가 적은 <b>현무암질</b>, 대륙 지각이 녹으면 SiO₂가 많은 <b>유문암질</b> 마그마가 돼요.</p>
+        <p><b>알갱이 크기</b>는 식는 곳이 정해요. 지표 근처에서 빨리 식으면 결정이 자랄 시간이 짧아 알갱이가 작은 <b>화산암</b>(세립질), 지하 깊은 곳에서 천천히 식으면 알갱이가 큰 <b>심성암</b>(조립질)이 돼요.</p>
+        <p>그래서 해령에서 만들어지는 <b>해양 지각은 주로 현무암·반려암</b>, 섭입대 위의 <b>대륙 지각에는 화강암</b>이 많아요.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>한반도에서 찾아보기</h2>
+      <ul class="terms">
+        <li><b>현무암</b>: 제주도, 한탄강 주상 절리 — 지표로 흘러나온 용암이 빨리 식었어요.</li>
+        <li><b>화강암</b>: 북한산 인수봉, 설악산 울산바위 — 지하 깊은 곳에서 천천히 식은 뒤, 위의 암석이 깎여 드러났어요.</li>
+      </ul>
+      <p class="gcap">국가지질공원의 암석은 <b>GEODEX 한반도 국가지질공원</b>에서 더 볼 수 있어요.</p>
+    </div>
+
+    <div class="card">
+      <details>
+        <summary>더 알아보기 — 마그마의 성질과 화산의 모양</summary>
+        <p style="margin:8px 0 0;word-break:keep-all">묽은 현무암질 용암은 멀리 흘러 경사가 완만한 <b>순상 화산</b>을, 끈끈한 마그마는 경사가 급한 <b>성층 화산</b>을 잘 만들어요. 지구시스템과학 [12지시01-04]에서 자세히 다뤄요.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- 모형 안내 (모든 탭 공통) -->
+  <div class="card">
+    <details id="modelNote">
+      <summary>이 시뮬레이션이 실제와 다른 점</summary>
+      <table class="diff">
+        <thead><tr><th>시뮬레이션</th><th>실제</th></tr></thead>
+        <tbody>
+          <tr><td>곡선을 넘으면 '녹기 시작'이라고만 보여 줘요</td><td>암석 전체가 아니라 <b>일부만 녹아요</b>(부분 용융). 녹은 부분이 빠져나와 마그마가 돼요.</td></tr>
+          <tr><td>용융 곡선이 한 줄이에요</td><td>암석의 성분에 따라 달라요. 녹기 시작하는 온도와 다 녹는 온도 사이에 폭이 있어요.</td></tr>
+          <tr><td>지하의 온도 분포가 한 줄이에요</td><td>지역마다 달라요. 해령 아래는 뜨겁고, 오래된 대륙 아래는 차가워요.</td></tr>
+          <tr><td>곡선 값은 교과서 그림을 읽은 값이에요</td><td>대표적인 모양을 보여 주는 그림이에요. 실제 값은 측정 방법과 지역에 따라 달라요.</td></tr>
+          <tr><td>(나)에서 올라오는 동안 온도가 그대로예요</td><td>올라오면서 온도가 조금 내려가요. 하지만 녹는 온도가 훨씬 더 많이 내려가서 녹게 돼요.</td></tr>
+          <tr><td>(다)에서 곡선이 옮겨 가는 중간 모습</td><td>보기 쉽게 만든 모형이에요. 실제로는 들어간 물의 양에 따라 녹는 온도가 정해져요.</td></tr>
+          <tr><td>물을 '넣는' 단추를 눌러요</td><td>섭입하는 지각 속 함수 광물에서 물이 서서히 빠져나와 맨틀로 들어가요. 누가 부어 넣는 것이 아니에요.</td></tr>
+          <tr><td>몇 초 만에 녹아요</td><td>마그마가 생기고 올라오는 데 <b>수천 년에서 수십만 년</b>이 걸려요.</td></tr>
+          <tr><td>암석 그림(④)</td><td>알갱이 크기의 차이를 보여 주는 모형 그림이에요. 실제 암석은 광물마다 색과 모양이 달라요.</td></tr>
+          <tr><td>마그마를 세 종류로 딱 나눠요</td><td>SiO₂ 함량은 이어져 있어요. 52%, 63%는 분류를 위한 기준이에요.</td></tr>
+          <tr><td>녹는 곳이 한 점이에요</td><td>넓은 영역에서 조금씩 일어나요. 녹은 마그마는 알갱이 사이에 스며 있다가 모여요.</td></tr>
+        </tbody>
+      </table>
+      <div class="lab" style="margin-top:12px">자주 하는 오해</div>
+      <ul class="miscon">
+        <li>맨틀은 액체다 → 아니에요. <b>고체</b>이고, 아주 오랜 시간에 걸쳐 느리게 흘러요.</li>
+        <li>압력이 높으면 녹기 쉽다 → 반대예요. 압력이 높을수록 <b>녹기 어려워요</b>.</li>
+        <li>물을 넣으면 식어서 굳는다 → 아니에요. 녹는 온도가 낮아져 <b>오히려 녹아요</b>.</li>
+        <li>마그마와 용암은 같은 말이다 → 땅속에 있으면 마그마, 땅 위로 나오면 용암이에요.</li>
+      </ul>
+    </details>
+  </div>
+
+  <footer class="foot">
+    <div><b>Earth Science School Lab</b> · bae_earth(배지구)</div>
+    <div>지구과학 [12지구02-03] 변동대에서 마그마가 생성되고, 그 조성에 따라 다양한 화성암이 생성됨을 설명할 수 있다.</div>
+    <div>연계: 지구시스템과학 [12지시01-04]. 판이 어디서 벌어지고 들어가는지는 <b>판구조론 탐구</b>를 먼저 하면 좋아요.</div>
+    <div>곡선 자료: 미래엔 고등학교 『지구과학』 그림 Ⅱ-19 '깊이에 따른 지하의 온도 분포와 암석의 용융 곡선'을 읽은 근삿값(±20°C, ±3km).</div>
+  </footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+let SIM=false;
+
+/* ---------- 곡선 자료 ----------
+   미래엔 『지구과학』 그림 Ⅱ-19를 눈금에 맞춰 읽은 값 [깊이 km, 온도 °C].
+   점 몇 개만 두고 단조 3차 보간으로 부드럽게 잇는다(매 프레임 식 계산 없음). */
+const DMAX=140, TMAX=1800, STEP=0.5;
+const P_GEO=[[0,0],[10,165],[18,295],[30,470],[41,625],[50,730],[61,858],[75,1000],[90,1120],[100,1190],[113,1283],[121,1333],[130,1370],[140,1405]];
+const P_DRY=[[0,1175],[140,1631]];                                   // 물이 포함되지 않은 맨틀
+const P_WET=[[0,1175],[13,1117],[26,1058],[40,1020],[50,1005],[67,995],[85,1010],[100,1045],[121,1125],[140,1210]]; // 물이 포함된 맨틀
+const P_GRA=[[0,925],[3,840],[6,785],[10,730],[17,675],[28,637],[35,628]]; // 물이 포함된 화강암(대륙 지각 안에서만)
+const CRUST=35;
+
+function sampler(pts,dEnd){ // 단조 3차(Fritsch–Carlson) → STEP 간격 배열
+  const n=pts.length, x=pts.map(p=>p[0]), y=pts.map(p=>p[1]);
+  const d=[],m=new Array(n);
+  for(let i=0;i<n-1;i++) d.push((y[i+1]-y[i])/(x[i+1]-x[i]));
+  m[0]=d[0]; m[n-1]=d[n-2];
+  for(let i=1;i<n-1;i++) m[i]=(d[i-1]*d[i]<=0)?0:(d[i-1]+d[i])/2;
+  for(let i=0;i<n-1;i++){ if(d[i]===0){m[i]=m[i+1]=0;continue;} const a=m[i]/d[i],b=m[i+1]/d[i],s=a*a+b*b; if(s>9){const t=3/Math.sqrt(s);m[i]=t*a*d[i];m[i+1]=t*b*d[i];} }
+  const out=[]; const end=dEnd??x[n-1];
+  for(let z=0;z<=end+1e-9;z+=STEP){
+    let i=0; while(i<n-2&&z>x[i+1]) i++;
+    const h=x[i+1]-x[i], t=(z-x[i])/h, t2=t*t, t3=t2*t;
+    out.push((2*t3-3*t2+1)*y[i]+(t3-2*t2+t)*h*m[i]+(-2*t3+3*t2)*y[i+1]+(t3-t2)*h*m[i+1]);
+  }
+  return out;
+}
+const GEO=sampler(P_GEO), DRY=sampler(P_DRY), WET=sampler(P_WET), GRA=sampler(P_GRA);
+const at=(arr,z)=>{ const f=z/STEP, i=Math.max(0,Math.min(arr.length-2,Math.floor(f))), t=f-i; return arr[i]*(1-t)+arr[i+1]*t; };
+const blend=(z,s)=>at(DRY,z)*(1-s)+at(WET,z)*s;  // (다) 곡선 이동 — 보기 위한 모형
+
+/* ---------- 세 가지 길 ---------- */
+const PATH={
+  heat:{name:'(가) 온도 올리기', abc:'A', moved:'점이 오른쪽으로 (암석 온도 ↑)', z0:18,
+    pred:{q:'깊이 18km 대륙 지각 속 암석을 뜨겁게 데우면 어떻게 될까요?', o:['녹는다','녹지 않는다','잘 모르겠다']},
+    chk:{q:'이때 그래프에서 움직인 것은 무엇이었나요?', o:['점이 오른쪽으로','점이 위로','용융 곡선이 왼쪽으로'], a:0, hint:'슬라이더를 움직일 때 무엇이 움직였는지 다시 보세요. 깊이 칸과 암석 온도 칸 중 어느 숫자가 변했나요?'},
+    expl:'<p>암석의 <b>온도가 올라가서</b> 점이 오른쪽으로 움직였어요. 깊이는 그대로예요.</p><p>물이 포함된 화강암은 녹는 온도가 낮아요(약 650~700°C). 그래서 대륙 지각은 아래에서 뜨거운 마그마가 올라와 데워 주면 녹을 수 있어요.</p><p>교과서 그림의 <b>A</b>예요.</p>'},
+  dec:{name:'(나) 압력 낮추기', abc:'B', moved:'점이 위로 (깊이 ↓, 압력 ↓)', z0:113,
+    pred:{q:'깊이 113km의 맨틀 물질이 온도는 그대로인 채 위로 올라오면 어떻게 될까요?', o:['녹는다','녹지 않는다','잘 모르겠다']},
+    chk:{q:'온도가 그대로인데 녹은 까닭은 무엇일까요?', o:['온도가 올라가서','얕아져 압력이 낮아지자 녹는 온도가 낮아져서','물이 들어가서'], a:1, hint:'녹는 온도 칸을 보면서 점을 다시 올려 보세요. 암석 온도와 녹는 온도 중 어느 쪽이 변했나요?'},
+    expl:'<p>위로 올라오면 위에서 누르는 암석이 줄어 <b>압력이 낮아져요</b>. 압력이 낮을수록 <b>녹는 온도가 낮아요</b>.</p><p>그래서 온도는 그대로인데 점이 용융 곡선을 넘었어요. 이것을 <b>압력 감소에 의한 용융</b>(감압 용융)이라고 해요.</p><p>교과서 그림의 <b>B</b>예요.</p>'},
+  water:{name:'(다) 물 넣기', abc:'C', moved:'용융 곡선이 왼쪽으로 (녹는 온도 ↓)', z0:121,
+    pred:{q:'깊이 121km의 맨틀에 물이 들어가면 어떻게 될까요?', o:['식어서 더 단단히 굳는다','녹는다','아무 변화가 없다']},
+    chk:{q:'이때 그래프에서 움직인 것은 무엇이었나요?', o:['점이 오른쪽으로','점이 위로','용융 곡선이 왼쪽으로'], a:2, hint:'물 넣기를 다시 눌러 보세요. 점은 그대로였나요? 무엇이 옮겨 갔나요?'},
+    expl:'<p>암석의 온도와 깊이는 그대로예요. 대신 물이 들어가자 <b>용융 곡선이 통째로 낮은 온도 쪽으로</b> 옮겨 갔어요.</p><p>물은 암석을 식히는 것이 아니라 <b>녹는 온도를 낮춰요</b>. 그래서 같은 온도에서도 녹게 돼요.</p><p>교과서 그림의 <b>C</b>예요.</p>'}
+};
+const ORDER=['heat','dec','water'];
+const fresh=()=>({pred:null,chk:null,ok:false,crossed:false});
+let st={heat:fresh(),dec:fresh(),water:fresh()};
+let cur='heat';
+let heatDT=0;          // (가) 가열량 °C
+let decZ=113;          // (나) 현재 깊이 km
+let wS=0, wAnim=null;  // (다) 곡선 이동 0~1
+
+function scene(p){ // 현재 점과 그 깊이의 녹는 온도
+  if(p==='heat'){ const z=18, T=at(GEO,z)+heatDT; return {z,T,M:at(GRA,z)}; }
+  if(p==='dec'){ const z=decZ, T=at(GEO,113); return {z,T,M:at(DRY,z)}; }
+  const z=121, T=at(GEO,z); return {z,T,M:blend(z,wS)};
+}
+function crossing(p){ // 녹기 시작하는 지점: 계산으로 구함(부호가 바뀌는 구간 보간)
+  if(p==='heat'){ const z=18; return {z,T:at(GRA,z)}; }
+  if(p==='dec'){ const T=at(GEO,113); for(let i=0;i<DRY.length-1;i++){ const a=DRY[i]-T,b=DRY[i+1]-T; if(a<=0&&b>0){ const t=a/(a-b); return {z:(i+t)*STEP,T}; } } return null; }
+  const z=121, T=at(GEO,z); return {z,T};
+}
+
+/* ---------- 그래프 ---------- */
+const VIEWS={three:{cv:$('cv')},why:{cv:$('cv1')},where:{cv:$('cv2')}};
+Object.values(VIEWS).forEach(v=>{v.ctx=v.cv.getContext('2d');v.W=0;v.H=0;});
+let ctx=VIEWS.three.ctx, W=0,H=0,C={};
+const PAD={l:44,r:10,t:44,b:12};
+// 좌표 변환은 여기 한 곳에만 — 세로축은 아래로 갈수록 깊다
+const X=T=>PAD.l+(T/TMAX)*(W-PAD.l-PAD.r);
+const Y=z=>PAD.t+(z/DMAX)*(H-PAD.t-PAD.b);
+function readColors(){ const s=getComputedStyle(document.documentElement); ['bg','card','ink','muted','line','geo','mantle','granite','melt','crust','grid','font'].forEach(k=>C[k]=s.getPropertyValue('--'+k).trim()); }
+function resizeV(k){ const v=VIEWS[k], r=v.cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1; v.W=r.width; v.H=r.height; if(!v.W) return; v.cv.width=Math.round(v.W*dpr); v.cv.height=Math.round(v.H*dpr); v.ctx.setTransform(dpr,0,0,dpr,0,0); paint(k); }
+function paint(k){ const v=VIEWS[k]; if(!v.W) return; ctx=v.ctx; W=v.W; H=v.H; ctx.clearRect(0,0,W,H); drawAxes(); (k==='why'?drawWhy:k==='where'?drawWhere:draw)(); }
+function path(arr,z1){ ctx.beginPath(); const n=Math.min(arr.length-1,Math.round((z1??DMAX)/STEP)); for(let i=0;i<=n;i++){ const x=X(arr[i]),y=Y(i*STEP); i?ctx.lineTo(x,y):ctx.moveTo(x,y);} }
+function line(arr,color,w,dash,alpha,z1){ ctx.save(); ctx.globalAlpha=alpha??1; ctx.strokeStyle=color; ctx.lineWidth=w; ctx.setLineDash(dash||[]); path(arr,z1); ctx.stroke(); ctx.restore(); }
+function tint(arr,z1){ // 용융 곡선 오른쪽(녹는 조건) 칠하기
+  const n=Math.min(arr.length-1,Math.round(z1/STEP));
+  ctx.save(); ctx.fillStyle=C.melt; ctx.globalAlpha=.12; ctx.beginPath(); ctx.moveTo(X(TMAX),Y(0));
+  for(let i=0;i<=n;i++) ctx.lineTo(X(Math.min(TMAX,arr[i])),Y(i*STEP));
+  ctx.lineTo(X(TMAX),Y(n*STEP)); ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function label(lines,x,y,color,align,leader){
+  ctx.save(); ctx.font=`700 12px ${C.font}`; ctx.textAlign=align||'left'; ctx.textBaseline='middle';
+  const lh=14, w=Math.max(...lines.map(s=>ctx.measureText(s).width));
+  const x0=align==='right'?x-w:x;
+  ctx.fillStyle=C.card; ctx.globalAlpha=.85; ctx.fillRect(x0-3,y-lh/2-2,w+6,lh*lines.length+4); ctx.globalAlpha=1;
+  if(leader){ ctx.strokeStyle=color; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(leader[0],leader[1]); ctx.lineTo(align==='right'?x+4:x-4,y+lh*(lines.length-1)/2); ctx.stroke(); ctx.beginPath(); ctx.arc(leader[0],leader[1],2.2,0,7); ctx.fillStyle=color; ctx.fill(); }
+  ctx.fillStyle=color; lines.forEach((s,i)=>ctx.fillText(s,x,y+i*lh)); ctx.restore();
+}
+function arrow(x0,y0,x1,y1,color){
+  const L=Math.hypot(x1-x0,y1-y0); if(L<4) return;
+  ctx.save(); ctx.strokeStyle=color; ctx.fillStyle=color; ctx.globalAlpha=.45; ctx.lineWidth=7; ctx.lineCap='butt';
+  const ux=(x1-x0)/L, uy=(y1-y0)/L, hx=x1-ux*10, hy=y1-uy*10;
+  ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(hx,hy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(hx-uy*9,hy+ux*9); ctx.lineTo(hx+uy*9,hy-ux*9); ctx.closePath(); ctx.fill(); ctx.restore();
+}
+function drawAxes(){
+  ctx.font=`600 12px ${C.font}`;
+  // 격자와 축
+  ctx.strokeStyle=C.grid; ctx.lineWidth=1;
+  for(let T=0;T<=TMAX;T+=250){ ctx.beginPath(); ctx.moveTo(X(T),Y(0)); ctx.lineTo(X(T),Y(DMAX)); ctx.stroke(); }
+  for(let z=0;z<=DMAX;z+=25){ ctx.beginPath(); ctx.moveTo(X(0),Y(z)); ctx.lineTo(X(TMAX),Y(z)); ctx.stroke(); }
+  ctx.fillStyle=C.muted; ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.font=`700 13px ${C.font}`;
+  [0,500,1000,1500].forEach(T=>ctx.fillText(T,X(T),PAD.t-5));
+  ctx.textAlign='right'; ctx.fillText('온도(°C) →',W-PAD.r,PAD.t-24);
+  ctx.textBaseline='middle';
+  [0,50,100].forEach(z=>ctx.fillText(z,PAD.l-6,Y(z)));
+  ctx.save(); ctx.translate(13,Y(75)); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.fillText('깊이(km)',0,0); ctx.restore();
+  ctx.strokeStyle=C.muted; ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(X(0),Y(DMAX)); ctx.lineTo(X(0),Y(0)); ctx.lineTo(X(TMAX),Y(0)); ctx.stroke();
+}
+function draw(){
+
+  const S=scene(cur), melted=S.T>=S.M-0.01, cr=crossing(cur);
+
+  // 장면별 배경과 곡선
+  if(cur==='heat'){
+    ctx.save(); ctx.fillStyle=C.crust; ctx.globalAlpha=.22; ctx.fillRect(X(0),Y(0),X(TMAX)-X(0),Y(CRUST)-Y(0)); ctx.restore();
+    ctx.save(); ctx.fillStyle=C.muted; ctx.font=`700 12px ${C.font}`; ctx.textAlign='right'; ctx.textBaseline='bottom'; ctx.fillText('대륙 지각',X(TMAX)-5,Y(CRUST)-3); ctx.restore();
+    tint(GRA,CRUST);
+    line(DRY,C.mantle,1.5,[],.25);
+    line(GRA,C.granite,3,[3,4],1,CRUST);
+    label(['물이 포함된 화강암','용융 곡선'],X(at(GRA,24))+14,Y(24),C.granite,'left',[X(at(GRA,24)),Y(24)]);
+  } else if(cur==='dec'){
+    tint(DRY,DMAX);
+    line(DRY,C.mantle,3,[],1);
+    label(['물이 포함되지','않은 맨틀','용융 곡선'],X(at(DRY,50))+10,Y(50),C.mantle,'left',[X(at(DRY,50)),Y(50)]);
+  } else {
+    const B=DRY.map((v,i)=>v*(1-wS)+WET[i]*wS);
+    tint(B,DMAX);
+    if(wS>0) line(DRY,C.mantle,1.5,[],.3);
+    line(B,C.mantle,3,wS>0?[7,5]:[],1);
+    if(wS>0.98) label(['물이 포함된','맨틀 용융 곡선'],X(560),Y(84),C.mantle,'right',[X(at(WET,92)),Y(92)]);
+    label(wS>0?['물이 포함되지','않은 맨틀','용융 곡선']:['물이 포함되지','않은 맨틀','용융 곡선'],X(at(DRY,50))+10,Y(50),C.mantle,'left',[X(at(DRY,50)),Y(50)]);
+  }
+  // 지하의 온도 분포 (늘)
+  line(GEO,C.geo,3,[],1);
+  label(['지하의','온도 분포'],X(at(GEO,64))-14,Y(64),C.geo,'right',[X(at(GEO,64)),Y(64)]);
+
+  // 출발점 → 현재 점 화살표
+  const x0=cur==='heat'?X(at(GEO,18)):cur==='dec'?X(S.T):X(S.T), y0=cur==='dec'?Y(113):Y(S.z);
+  if(cur!=='water') arrow(x0,y0,X(S.T),Y(S.z),C.muted);
+  else if(wS>0.02){ arrow(X(at(DRY,S.z)),Y(S.z)+16,X(blend(S.z,wS)),Y(S.z)+16,C.muted); }
+
+  // 녹기 시작 지점 표시
+  if(melted&&cr){
+    ctx.save(); ctx.strokeStyle=C.melt; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(X(cr.T),Y(cr.z),9,0,7); ctx.stroke(); ctx.restore();
+    const txt=`녹기 시작 · 약 ${Math.round(cr.z)}km, ${Math.round(cr.T/10)*10}°C`;
+    ctx.save(); ctx.font=`800 13px ${C.font}`; const w=ctx.measureText(txt).width+14;
+    let bx=X(cr.T)-w/2, by=Y(cr.z)-40; if(cur==='heat') by=Y(CRUST)+6;
+    if(cur==='dec'){ bx=X(cr.T)-w-14; by=Y(cr.z)-11; }
+    bx=Math.max(PAD.l+2,Math.min(W-PAD.r-w,bx));
+    ctx.fillStyle=C.melt; ctx.beginPath(); ctx.roundRect?ctx.roundRect(bx,by,w,22,6):ctx.rect(bx,by,w,22); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(txt,bx+7,by+11); ctx.restore();
+  }
+  // 암석 점
+  ctx.save(); ctx.beginPath(); ctx.arc(X(S.T),Y(S.z),7,0,7); ctx.fillStyle=melted?C.melt:C.ink; ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle=C.card; ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.font=`800 12.5px ${C.font}`; ctx.fillStyle=melted?C.melt:C.ink; ctx.textBaseline='middle';
+  const lx=X(S.T), ly=Y(S.z);
+  if(cur==='dec'){ ctx.textAlign='right'; ctx.fillText('맨틀 물질',lx-11,ly+1); }
+  else if(cur==='heat'){ ctx.textAlign='center'; ctx.fillText('대륙 지각 암석',lx,ly-14); }
+  else { ctx.textAlign='left'; ctx.fillText('맨틀 물질',lx+11,ly+1); }
+  ctx.restore();
+}
+
+/* ---------- 화면 갱신 ---------- */
+function unlocked(p){ return SIM||st[p].pred!==null; }
+function renderCtrl(){
+  const p=cur, dis=unlocked(p)?'':'disabled';
+  let h='';
+  const rs=`<button class="mini" type="button" id="reset" ${dis}>처음으로</button>`;
+  if(p==='heat') h=`<div class="row"><b>가열하기</b><span class="lab val">+${heatDT}°C</span>${rs}</div><input type="range" id="sl" min="0" max="600" step="5" value="${heatDT}" ${dis} aria-label="가열량">`;
+  else if(p==='dec') h=`<div class="row"><b>위로 올라오기</b><span class="lab val">깊이 ${Math.round(decZ)}km</span>${rs}</div><input type="range" id="sl" min="0" max="108" step="1" value="${113-decZ}" ${dis} aria-label="올라온 거리">`;
+  else h=`<div class="btnRow" style="margin-top:0"><button class="primary" type="button" id="wGo" ${dis} style="flex:2">💧 물 넣기</button><button class="ghost" type="button" id="reset" ${dis}>처음으로</button></div>`;
+  $('ctrl').innerHTML=h;
+  $('lock').classList.toggle('hidden',unlocked(p));
+  const sl=$('sl');
+  if(sl) sl.oninput=()=>{ if(p==='heat') heatDT=+sl.value; else decZ=113-+sl.value; update(); };
+  if($('wGo')) $('wGo').onclick=()=>animWater();
+  $('reset').onclick=()=>{ if(p==='heat') heatDT=0; else if(p==='dec') decZ=113; else { if(wAnim) cancelAnimationFrame(wAnim); wAnim=null; wS=0; } renderCtrl(); update(); };
+}
+function animWater(){ // 곡선이 천천히 옮겨 가는 모습 (약 3초)
+  if(wAnim) cancelAnimationFrame(wAnim);
+  const s0=wS>=1?0:wS, t0=performance.now(), dur=3000*(1-s0);
+  const step=t=>{ const k=Math.min(1,(t-t0)/dur), e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2; wS=s0+(1-s0)*e; update(); if(k<1) wAnim=requestAnimationFrame(step); else wAnim=null; };
+  wAnim=requestAnimationFrame(step);
+}
+function update(){
+  const S=scene(cur), melted=S.T>=S.M-0.01;
+  $('rD').textContent=`${Math.round(S.z)} km`;
+  $('rT').textContent=`${Math.round(S.T/5)*5}°C`;
+  $('rM').textContent=`${Math.round(S.M/5)*5}°C`;
+  const lab=document.querySelector('#ctrl .row .lab'); if(lab) lab.textContent=cur==='heat'?`+${heatDT}°C`:`깊이 ${Math.round(decZ)}km`;
+  const stEl=$('status');
+  if(melted){ stEl.className='status melt'; stEl.innerHTML='🔴 암석 온도가 녹는 온도보다 높아요 → <b>녹기 시작</b><span class="def"><b>부분 용융</b>: 암석 전체가 아니라 일부만 녹아요. 녹은 부분이 모여 <b>마그마</b>가 돼요.</span>'; }
+  else { stEl.className='status'; stEl.innerHTML='⚪ 암석 온도가 녹는 온도보다 낮아요 → <b>고체</b>'; }
+  if(melted&&!st[cur].crossed){ st[cur].crossed=true; renderQA(); }
+  paint('three');
+}
+function renderPaths(){
+  document.querySelectorAll('#pathChips button').forEach(b=>{
+    const p=b.dataset.p; b.setAttribute('aria-pressed',p===cur);
+    const done=!SIM&&st[p].ok; const base=PATH[p].name.split(' ');
+    b.innerHTML=`${base[0]} ${base[1]}${done?'<span class="ck">✓</span>':''}<small>${base[2]}</small>`;
+  });
+  $('sceneTitle').textContent=PATH[cur].name;
+}
+function renderQA(){
+  const P=PATH[cur], s=st[cur];
+  // 예측
+  $('predNum').textContent=`예측 · ${P.name}`;
+  $('predQ').textContent=P.pred.q;
+  $('predOpts').innerHTML=P.pred.o.map((o,i)=>`<button type="button" data-i="${i}" class="${s.pred===i?'sel':''}" ${s.pred!==null?'disabled':''}>${o}</button>`).join('');
+  $('predOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>{ s.pred=+b.dataset.i; renderQA(); renderCtrl(); });
+  const pf=$('predFb'); pf.classList.toggle('hidden',s.pred===null);
+  pf.textContent='예측을 기록했어요. 이제 아래 그래프에서 직접 해 보고 확인하세요.';
+  // 확인
+  $('chkCard').classList.toggle('hidden',!s.crossed);
+  $('chkQ').textContent=P.chk.q;
+  $('chkOpts').innerHTML=P.chk.o.map((o,i)=>`<button type="button" data-i="${i}" class="${s.ok&&i===P.chk.a?'ok':(s.chk===i?'sel':'')}" ${s.ok?'disabled':''}>${o}</button>`).join('');
+  $('chkOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>{ s.chk=+b.dataset.i; s.ok=s.chk===P.chk.a; renderQA(); renderPaths(); renderSum(); });
+  const cf=$('chkFb');
+  if(s.chk===null){ cf.className='fb hidden'; }
+  else if(s.ok){ cf.className='fb ok'; cf.textContent='맞아요! 아래 해설을 읽어 보세요.'; }
+  else { cf.className='fb no'; cf.textContent='💡 '+P.chk.hint; }
+  // 해설
+  const showExpl=SIM||s.ok;
+  $('explCard').classList.toggle('hidden',!showExpl);
+  $('explH').textContent=`${P.name} — 정리`;
+  $('expl').innerHTML=P.expl;
+}
+function renderSum(){
+  $('sumBody').innerHTML=ORDER.map(p=>{ const show=SIM||st[p].ok; return `<tr><td>${PATH[p].name.split(' ').slice(0,2).join(' ')}</td><td class="${show?'':'blank'}">${show?PATH[p].moved:'? 해 본 뒤 채워져요'}</td><td class="abc">${show?PATH[p].abc:'?'}</td></tr>`; }).join('');
+}
+function selectPath(p){ if(wAnim&&p!=='water'){cancelAnimationFrame(wAnim);wAnim=null;} cur=p; renderPaths(); renderQA(); renderCtrl(); update(); }
+document.querySelectorAll('#pathChips button').forEach(b=>b.onclick=()=>selectPath(b.dataset.p));
+$('goPred').onclick=()=>$('predCard').scrollIntoView({behavior:'smooth',block:'start'});
+
+
+/* ---------- ① 왜 안 녹아 있을까 ---------- */
+const WHY={
+  pred:['녹아 있다 (액체)','고체다','잘 모르겠다'],
+  c1:{o:['지하 온도','녹는 온도','둘이 같다'],a:1,hint:'깊이를 100km에 맞추고 지하 온도 칸과 녹는 온도 칸의 숫자를 비교해 보세요.'},
+  c2:{o:['깊을수록 압력이 커져 녹는 온도도 함께 높아지기 때문에','깊은 곳은 오히려 온도가 낮기 때문에','맨틀은 원래 절대 녹지 않는 물질이기 때문에'],a:0,hint:'녹는 온도 칸을 보면서 깊이를 0km에서 140km까지 바꿔 보세요. 녹는 온도는 어떻게 변하나요?'}
+};
+let wst={pred:null,c1:null,ok1:false,c2:null,ok2:false,maxZ:0};
+let whyZ=0, whyAnim=null;
+function dot(x,y,c){ ctx.save(); ctx.beginPath(); ctx.arc(x,y,6.5,0,7); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle=C.card; ctx.stroke(); ctx.restore(); }
+function drawWhy(){
+  tint(DRY,DMAX);
+  line(DRY,C.mantle,3,[],1);
+  label(['물이 포함되지','않은 맨틀','용융 곡선'],X(at(DRY,50))+10,Y(50),C.mantle,'left',[X(at(DRY,50)),Y(50)]);
+  line(GEO,C.geo,3,[],1);
+  label(['지하의','온도 분포'],X(at(GEO,64))-14,Y(64),C.geo,'right',[X(at(GEO,64)),Y(64)]);
+  const z=whyZ, g=at(GEO,z), m=at(DRY,z), y=Y(z);
+  ctx.save(); ctx.strokeStyle=C.ink; ctx.globalAlpha=.45; ctx.setLineDash([4,4]); ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(X(0),y); ctx.lineTo(X(TMAX),y); ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.strokeStyle=C.ink; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(g)+9,y); ctx.lineTo(X(m)-9,y); ctx.stroke();
+  [[X(g)+9,1],[X(m)-9,-1]].forEach(([x,d])=>{ ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+7*d,y-5); ctx.moveTo(x,y); ctx.lineTo(x+7*d,y+5); ctx.stroke(); });
+  ctx.restore();
+  dot(X(g),y,C.geo); dot(X(m),y,C.mantle);
+  const txt=`차이 ${Math.round((m-g)/10)*10}°C`;
+  ctx.save(); ctx.font=`800 13px ${C.font}`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const tw=ctx.measureText(txt).width+12, cx=Math.max(PAD.l+tw/2,Math.min(W-PAD.r-tw/2,(X(g)+X(m))/2)), cy=z<10?y+16:y-15;
+  ctx.fillStyle=C.card; ctx.globalAlpha=.92; ctx.fillRect(cx-tw/2,cy-10,tw,20); ctx.globalAlpha=1;
+  ctx.fillStyle=C.ink; ctx.fillText(txt,cx,cy); ctx.restore();
+}
+function optsHTML(list,sel,ok,ans,lock){ return list.map((o,i)=>`<button type="button" data-i="${i}" class="${ok&&i===ans?'ok':(sel===i?'sel':'')}" ${lock?'disabled':''}>${o}</button>`).join(''); }
+function renderWhy(){
+  const open=SIM||wst.pred!==null;
+  $('wPredOpts').innerHTML=optsHTML(WHY.pred,wst.pred,false,-1,wst.pred!==null);
+  $('wPredOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>{ wst.pred=+b.dataset.i; renderWhy(); });
+  $('wPredFb').classList.toggle('hidden',wst.pred===null);
+  $('wSl').disabled=!open; $('wDown').disabled=!open;
+  $('wLock').classList.toggle('hidden',open);
+  // 확인 1
+  $('wChk1').classList.toggle('hidden',wst.maxZ<100);
+  $('wOpts1').innerHTML=optsHTML(WHY.c1.o,wst.c1,wst.ok1,WHY.c1.a,wst.ok1);
+  $('wOpts1').querySelectorAll('button').forEach(b=>b.onclick=()=>{ wst.c1=+b.dataset.i; wst.ok1=wst.c1===WHY.c1.a; renderWhy(); });
+  fbSet('wFb1',wst.c1,wst.ok1,'맞아요! 녹는 온도가 더 높아요.',WHY.c1.hint);
+  // 확인 2
+  $('wChk2').classList.toggle('hidden',!wst.ok1);
+  $('wOpts2').innerHTML=optsHTML(WHY.c2.o,wst.c2,wst.ok2,WHY.c2.a,wst.ok2);
+  $('wOpts2').querySelectorAll('button').forEach(b=>b.onclick=()=>{ wst.c2=+b.dataset.i; wst.ok2=wst.c2===WHY.c2.a; renderWhy(); });
+  fbSet('wFb2',wst.c2,wst.ok2,'맞아요! 아래 정리를 읽어 보세요.',WHY.c2.hint);
+  // 정리
+  $('wExpl').classList.toggle('hidden',!(SIM||wst.ok2));
+  $('wRecall').textContent=wst.pred===null?'':`처음 예측: '${WHY.pred[wst.pred]}' — 그래프로 확인한 결과와 비교해 보세요.`;
+  updateWhy();
+}
+function fbSet(id,sel,ok,okTxt,hint){ const f=$(id); if(sel===null){f.className='fb hidden';return;} if(ok){f.className='fb ok';f.textContent=okTxt;} else {f.className='fb no';f.textContent='💡 '+hint;} }
+function updateWhy(){
+  const z=whyZ, g=at(GEO,z), m=at(DRY,z);
+  $('wSl').value=Math.round(z); $('wVal').textContent=`${Math.round(z)}km`;
+  $('wD').textContent=`${Math.round(z)} km`; $('wT').textContent=`${Math.round(g/5)*5}°C`; $('wM').textContent=`${Math.round(m/5)*5}°C`;
+  $('wStatus').innerHTML=`⚪ 지하 온도가 녹는 온도보다 <b>${Math.round((m-g)/10)*10}°C 낮아요</b> → <b>고체</b>`;
+  if(z>wst.maxZ){ const was=wst.maxZ; wst.maxZ=z; if(was<100&&z>=100&&!SIM) $('wChk1').classList.remove('hidden'); }
+  paint('why');
+}
+$('wSl').oninput=()=>{ if(whyAnim){cancelAnimationFrame(whyAnim);whyAnim=null;} whyZ=+$('wSl').value; updateWhy(); };
+$('wDown').onclick=()=>{ // 0km에서 140km까지 천천히 내려가기
+  if(whyAnim) cancelAnimationFrame(whyAnim);
+  const z0=whyZ>=139?0:whyZ, t0=performance.now(), dur=4000*(1-z0/DMAX);
+  const step=t=>{ const k=Math.min(1,(t-t0)/dur); whyZ=z0+(DMAX-z0)*k; updateWhy(); whyAnim=k<1?requestAnimationFrame(step):null; };
+  whyAnim=requestAnimationFrame(step);
+};
+$('wGoPred').onclick=()=>$('wPredCard').scrollIntoView({behavior:'smooth',block:'start'});
+$('goThree').onclick=()=>{ showTab('three',true); window.scrollTo(0,0); };
+
+
+/* ---------- ③ 어디서 생기나 ---------- */
+const SITES={
+  ridge:{name:'① 해령·열곡대',path:'dec',magma:'현무암질',
+    hint:'단면도에서 해령 아래 맨틀 물질은 어느 방향으로 움직이나요? 위로 올라오면 깊이(압력)는 어떻게 될까요?',
+    expl:'<p>판이 양쪽으로 갈라지면 그 아래 맨틀 물질이 <b>위로 올라와요</b>. 온도는 거의 그대로인데 <b>압력이 낮아져</b> 녹는 온도가 내려가요.</p><p>맨틀이 부분 용융해 <b>현무암질 마그마</b>가 생겨요. 길 <b>(나) 압력 낮추기</b>예요.</p>'},
+  sub:{name:'② 섭입대',path:'water',magma:'현무암질',
+    hint:'단면도의 파란 화살표를 보세요. 섭입하는 판에서 무엇이 빠져나와 위쪽 맨틀로 가나요?',
+    expl:'<p>섭입하는 해양 지각에는 물을 품은 광물(<b>함수 광물</b>)이 있어요. 깊이 들어가 온도와 압력이 높아지면 <b>물이 빠져나와 위쪽 맨틀로</b> 들어가요.</p><p>물이 들어간 맨틀은 녹는 온도가 낮아져 부분 용융하고, <b>현무암질 마그마</b>가 생겨요. 길 <b>(다) 물 넣기</b>예요.</p><p>섭입하는 판이 통째로 녹는 것이 아니라, <b>그 위의 맨틀</b>이 녹아요.</p>'},
+  upper:{name:'③ 섭입대 상부',path:'heat',magma:'유문암질 (섞이면 안산암질)',
+    hint:'대륙 지각 바로 아래에 무엇이 올라와 고였나요? 뜨거운 마그마가 닿으면 지각의 온도는 어떻게 될까요?',
+    expl:'<p>섭입대에서 생긴 현무암질 마그마가 올라와 <b>대륙 지각 아래</b>에 닿으면 지각이 데워져요.</p><p>대륙 지각이 부분 용융해 <b>유문암질 마그마</b>가 생겨요. 길 <b>(가) 온도 올리기</b>예요.</p><p>현무암질 마그마와 유문암질 마그마가 섞이거나, 마그마가 식으며 먼저 생긴 광물이 빠져나가면 <b>안산암질 마그마</b>가 돼요.</p>'}
+};
+const SITE_ORDER=['ridge','sub','upper'];
+const PATH_OPTS=['heat','dec','water'];
+let wh={site:null,ans:{ridge:null,sub:null,upper:null},ok:{ridge:false,sub:false,upper:false}};
+let whK=0, whAnim=null;
+const whOpen=k=>SIM||wh.ok[k];
+function drawWhere(){
+  const k=wh.site;
+  if(!k||!whOpen(k)){
+    line(DRY,C.mantle,3,[],1);
+    label(['물이 포함되지','않은 맨틀','용융 곡선'],X(at(DRY,50))+10,Y(50),C.mantle,'left',[X(at(DRY,50)),Y(50)]);
+    line(GEO,C.geo,3,[],1);
+    label(['지하의','온도 분포'],X(at(GEO,64))-14,Y(64),C.geo,'right',[X(at(GEO,64)),Y(64)]);
+    return;
+  }
+  const sv=[cur,heatDT,decZ,wS], pth=SITES[k].path, e=whK<.5?2*whK*whK:1-Math.pow(-2*whK+2,2)/2;
+  cur=pth; heatDT=Math.round(480*e); decZ=113-(113-15)*e; wS=e;
+  draw();
+  [cur,heatDT,decZ,wS]=sv;
+}
+function playWhere(){
+  if(whAnim) cancelAnimationFrame(whAnim);
+  const t0=performance.now(), dur=3200; whK=0;
+  const step=t=>{ whK=Math.min(1,(t-t0)/dur); paint('where'); whStatus(); whAnim=whK<1?requestAnimationFrame(step):null; };
+  whAnim=requestAnimationFrame(step);
+}
+function whStatus(){
+  const k=wh.site, el=$('whStatus');
+  if(!k){ el.className='status'; el.textContent='단면도에서 번호를 골라 보세요.'; return; }
+  if(!whOpen(k)){ el.className='status'; el.textContent='위에서 어느 길인지 먼저 골라 보세요. 맞히면 그래프가 재생돼요.'; return; }
+  if(whK<1){ el.className='status'; el.textContent=`${PATH[SITES[k].path].name} 재생 중…`; return; }
+  el.className='status melt'; el.innerHTML=`🔴 용융 곡선을 넘어 <b>녹기 시작</b> → <b>${SITES[k].magma} 마그마</b>`;
+}
+function selectSite(k){
+  wh.site=k; whK=0;
+  renderWhere();
+  if(whOpen(k)) playWhere();
+  if(!$('sitePred').classList.contains('hidden')&&!wh.ok[k]) $('sitePred').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function renderWhere(){
+  const k=wh.site;
+  document.querySelectorAll('#xsBox .site').forEach(g=>{ const s=g.dataset.site; g.classList.toggle('sel',s===k); g.classList.toggle('done',!SIM&&wh.ok[s]); g.classList.toggle('hint',!k); });
+  document.querySelectorAll('#siteChips button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.site===k));
+  // 예측
+  const showPred=!!k&&!SIM;
+  $('sitePred').classList.toggle('hidden',!showPred);
+  if(k){
+    $('sitePredNum').textContent=`예측 · ${SITES[k].name}`;
+    const a=wh.ans[k], ok=wh.ok[k], right=PATH_OPTS.indexOf(SITES[k].path);
+    $('siteOpts').innerHTML=optsHTML(PATH_OPTS.map(p=>PATH[p].name),a,ok,right,ok);
+    $('siteOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>{ wh.ans[k]=+b.dataset.i; wh.ok[k]=wh.ans[k]===right; renderWhere(); if(wh.ok[k]){ whK=0; playWhere(); if(window.innerWidth<760) $('xsCard').scrollIntoView({behavior:'smooth',block:'start'}); } });
+    fbSet('siteFb',a,ok,`✓ ${PATH[SITES[k].path].name} — 맞아요!`,SITES[k].hint);
+    $('siteQ').classList.toggle('hidden',ok); $('siteOpts').classList.toggle('hidden',ok); $('sitePredNum').classList.toggle('hidden',ok);
+    $('siteFb').style.marginTop=ok?'0':'';
+  }
+  $('whTitle').textContent=k&&whOpen(k)?`${SITES[k].name} → ${PATH[SITES[k].path].name}`:'지하의 온도와 녹는 온도';
+  $('whReplay').disabled=!(k&&whOpen(k));
+  $('siteExpl').classList.toggle('hidden',!(k&&whOpen(k)));
+  if(k){ $('siteExplH').textContent=`${SITES[k].name} — 정리`; $('siteExplB').innerHTML=SITES[k].expl; }
+  $('siteSum').innerHTML=SITE_ORDER.map(s=>{ const o=whOpen(s); return `<tr><td>${SITES[s].name}</td><td class="${o?'':'blank'}">${o?PATH[SITES[s].path].name:'?'}</td><td class="${o?'':'blank'}">${o?SITES[s].magma:'?'}</td></tr>`; }).join('');
+  whStatus(); paint('where');
+}
+document.querySelectorAll('#xsBox .site').forEach(g=>{ g.onclick=()=>selectSite(g.dataset.site); g.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); selectSite(g.dataset.site); } }; });
+document.querySelectorAll('#siteChips button').forEach(b=>b.onclick=()=>selectSite(b.dataset.site));
+$('whReplay').onclick=()=>playWhere();
+$('goRock').onclick=()=>{ showTab('rock',true); window.scrollTo(0,0); };
+
+
+/* ---------- ④ 어떤 암석이 되나 ---------- */
+const MAGMA=[
+  {k:'b',name:'현무암질',si:'52% 이하',siV:.45,visc:'작음',vV:.22,temp:'높음',where:'해령·섭입대에서 맨틀이 녹아 생겨요',
+   v:'현무암',p:'반려암',pal:['#262626','#34312d','#3f3b36','#4d4a45','#1b1b1b','#6f6c66','#8a8780']},
+  {k:'a',name:'안산암질',si:'52~63%',siV:.66,visc:'중간',vV:.55,temp:'중간',where:'섭입대 상부에서 섞이거나 성분이 변해 생겨요',
+   v:'안산암',p:'섬록암',pal:['#5f5c57','#7a766f','#46433f','#9b968d','#2c2a27','#c2bdb3','#e2ddd4']},
+  {k:'r',name:'유문암질',si:'63% 이상',siV:.88,visc:'큼',vV:.92,temp:'낮음',where:'섭입대 상부에서 대륙 지각이 녹아 생겨요',
+   v:'유문암',p:'화강암',pal:['#ebe4d9','#dccbb9','#f4efe8','#cfa995','#e9d9c7','#bfb4a6','#2b2826']}
+];
+const ROCKQ={
+  c1:{o:['더 끈끈하다','더 묽다','끈끈한 정도와는 상관없다'],a:0,hint:'SiO₂ 막대가 가장 긴 마그마의 끈끈함 막대를 보세요. 가장 짧은 것과 비교해 보세요.'},
+  pred:['빨리 식은 쪽','천천히 식은 쪽','둘이 같다'],
+  c2:{o:['성분은 같고, 알갱이 크기가 다르다','알갱이 크기는 같고, 성분이 다르다','성분도 알갱이 크기도 다르다'],a:0,hint:'같은 마그마를 고른 채 식는 곳만 바꿔 보세요. 암석 그림의 색과 알갱이 크기 중 무엇이 변하나요?'}
+};
+let rs={c1:null,ok1:false,pred:null,seen:{},c2:null,ok2:false};
+let rMagSel=0, rPl='v';
+const rOpen=()=>SIM||rs.pred!==null;
+const allSeen=()=>MAGMA.every((m,i)=>rs.seen[i+'v']&&rs.seen[i+'p']);
+function rng(seed){ let x=seed>>>0||1; return ()=>{ x^=x<<13; x>>>=0; x^=x>>17; x^=x<<5; x>>>=0; return x/4294967296; }; }
+function drawTex(mi,pl){
+  const c=$('tex'), dpr=window.devicePixelRatio||1, S=128; c.width=S*dpr; c.height=S*dpr; const g=c.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+  const pal=MAGMA[mi].pal, r=rng(97+mi*31+(pl==='p'?7:0));
+  g.fillStyle=pal[0]; g.fillRect(0,0,S,S);
+  const coarse=pl==='p', n=coarse?70:2600, size=coarse?20:3.2;
+  for(let i=0;i<n;i++){
+    const x=r()*S, y=r()*S, w=size*(.6+r()*.9), h=w*(.45+r()*.7), a=r()*Math.PI;
+    let ci=Math.floor(r()*pal.length); if(ci===pal.length-1&&r()<.6) ci=Math.floor(r()*(pal.length-1)); // 드문 광물
+    g.save(); g.translate(x,y); g.rotate(a); g.fillStyle=pal[ci]; g.fillRect(-w/2,-h/2,w,h);
+    if(coarse){ g.strokeStyle='rgba(0,0,0,.18)'; g.lineWidth=.8; g.strokeRect(-w/2,-h/2,w,h); }
+    g.restore();
+  }
+}
+function renderRock(){
+  const css=getComputedStyle(document.documentElement), fSi=css.getPropertyValue('--geo').trim(), fV=css.getPropertyValue('--mantle').trim();
+  $('magmaCards').innerHTML=MAGMA.map(m=>`<div class="mrow"><div class="mn">${m.name}<small>마그마</small></div>
+    <div class="bars">
+      <div class="mbar2"><span class="lab">SiO₂</span><div class="tr"><div class="fl" style="width:${m.siV*100}%;background:${fSi}"></div></div><span class="vl">${m.si}</span></div>
+      <div class="mbar2"><span class="lab">끈끈함</span><div class="tr"><div class="fl" style="width:${m.vV*100}%;background:${fV}"></div></div><span class="vl">${m.visc}</span></div>
+    </div><div class="where">온도 ${m.temp} · ${m.where}</div></div>`).join('');
+  // 확인 1
+  $('rOpts1').innerHTML=optsHTML(ROCKQ.c1.o,rs.c1,rs.ok1,ROCKQ.c1.a,rs.ok1);
+  $('rOpts1').querySelectorAll('button').forEach(b=>b.onclick=()=>{ rs.c1=+b.dataset.i; rs.ok1=rs.c1===ROCKQ.c1.a; renderRock(); });
+  fbSet('rFb1',rs.c1,rs.ok1,'맞아요! SiO₂가 많을수록 끈끈해요.',ROCKQ.c1.hint);
+  // 예측
+  $('rPredOpts').innerHTML=optsHTML(ROCKQ.pred,rs.pred,false,-1,rs.pred!==null);
+  $('rPredOpts').querySelectorAll('button').forEach(b=>b.onclick=()=>{ rs.pred=+b.dataset.i; rs.seen[rMagSel+rPl]=true; renderRock(); });
+  $('rPredFb').classList.toggle('hidden',rs.pred===null);
+  // 조작
+  const open=rOpen();
+  $('rLock').classList.toggle('hidden',open);
+  $('rMag').classList.toggle('lockd',!open); $('rPlace').classList.toggle('lockd',!open);
+  $('rMag').innerHTML=MAGMA.map((m,i)=>`<button data-i="${i}" aria-pressed="${i===rMagSel}">${m.name}<small>마그마</small></button>`).join('');
+  $('rMag').querySelectorAll('button').forEach(b=>b.onclick=()=>selRock(+b.dataset.i,rPl));
+  $('rPlace').querySelectorAll('button').forEach(b=>{ b.setAttribute('aria-pressed',b.dataset.pl===rPl); b.onclick=()=>selRock(rMagSel,b.dataset.pl); });
+  const m=MAGMA[rMagSel], v=rPl==='v';
+  $('rockOut').style.opacity=open?1:.35;
+  $('rName').textContent=open?(v?m.v:m.p):'?';
+  $('rSub').textContent=open?(v?'화산암 · 세립질':'심성암 · 조립질'):'';
+  $('rTxt').textContent=open?(v?'알갱이가 아주 작아요.':'알갱이가 커서 눈으로 보여요.'):'예측을 고르면 보여요.';
+  drawTex(rMagSel,open?rPl:'v');
+  // 2×3 표
+  const cell=(i,pl)=>{ const show=SIM||rs.seen[i+pl], on=open&&i===rMagSel&&pl===rPl; return `<td class="${show?'':'blank'} ${on?'on':''}" data-i="${i}" data-pl="${pl}">${show?(pl==='v'?MAGMA[i].v:MAGMA[i].p):'?'}</td>`; };
+  $('rTab').innerHTML=`<tr><th class="rh"></th>${MAGMA.map(x=>`<th>${x.name}</th>`).join('')}</tr>
+    <tr><th class="rh">화산암<br>(지표 근처)</th>${MAGMA.map((x,i)=>cell(i,'v')).join('')}</tr>
+    <tr><th class="rh">심성암<br>(지하 깊은 곳)</th>${MAGMA.map((x,i)=>cell(i,'p')).join('')}</tr>`;
+  $('rTab').querySelectorAll('td').forEach(td=>td.onclick=()=>{ if(open) selRock(+td.dataset.i,td.dataset.pl); });
+  $('rTabCap').textContent=SIM?'표의 칸을 눌러도 골라져요.':(allSeen()?'여섯 칸을 모두 채웠어요.':`표의 칸을 눌러도 골라져요. 여섯 칸을 모두 채워 보세요 (${Object.keys(rs.seen).length}/6).`);
+  // 확인 2와 정리
+  $('rC2').classList.toggle('hidden',!allSeen());
+  $('rOpts2').innerHTML=optsHTML(ROCKQ.c2.o,rs.c2,rs.ok2,ROCKQ.c2.a,rs.ok2);
+  $('rOpts2').querySelectorAll('button').forEach(b=>b.onclick=()=>{ rs.c2=+b.dataset.i; rs.ok2=rs.c2===ROCKQ.c2.a; renderRock(); });
+  fbSet('rFb2',rs.c2,rs.ok2,'맞아요! 아래 정리를 읽어 보세요.',ROCKQ.c2.hint);
+  $('rExpl').classList.toggle('hidden',!(SIM||rs.ok2));
+  $('rRecall').textContent=rs.pred===null?'':`처음 예측: '${ROCKQ.pred[rs.pred]}' — 천천히 식을수록 결정이 자랄 시간이 길어 알갱이가 커요.`;
+}
+function selRock(i,pl){ rMagSel=i; rPl=pl; rs.seen[i+pl]=true; renderRock(); }
+$('rGoPred').onclick=()=>$('rPredCard').scrollIntoView({behavior:'smooth',block:'start'});
+
+/* ---------- 탭 (?tab=why|three|where|rock) ---------- */
+const TABS=['why','three','where','rock'];
+function showTab(t,push){
+  if(!TABS.includes(t)) t='why';
+  TABS.forEach(k=>$(k).classList.toggle('hidden',k!==t));
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  if(push){ try{ const u=new URL(location.href); u.searchParams.set('tab',t); history.replaceState(null,'',u); }catch(e){} }
+  if(VIEWS[t]) requestAnimationFrame(()=>resizeV(t));
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>{ showTab(b.dataset.tab,true); window.scrollTo(0,0); });
+$('goWhere').onclick=()=>{ showTab('where',true); window.scrollTo(0,0); };
+
+/* ---------- 모드: 탐구 모드 / 시뮬레이션 모드 (dating-sim.html과 같은 구조) ----------
+   모드는 주소로만 정함: ?mode=sim 이면 시뮬레이션 모드, 없으면 항상 탐구 모드(기기에 기억하지 않음).
+   시뮬레이션 모드로 바꿀 때 탐구 진행 상태를 메모리에 보관했다가, 돌아오면 그대로 되살림. */
+let inqSnap=null;
+function readMode(){
+  let m=null; try{ m=new URLSearchParams(location.search).get('mode'); }catch(e){}
+  return m==='sim'?'sim':'inq';
+}
+function setMode(m){
+  const toSim=m==='sim';
+  if(toSim && !SIM){
+    inqSnap={st:JSON.parse(JSON.stringify(st)),heatDT,decZ,wS,cur,noteOpen:$('modelNote').open,wst:JSON.parse(JSON.stringify(wst)),whyZ,wh:JSON.parse(JSON.stringify(wh)),whK,rs:JSON.parse(JSON.stringify(rs)),rMagSel,rPl};
+    $('modelNote').open=true; // 모형 안내는 펼쳐서 시작
+  } else if(!toSim && SIM && inqSnap){
+    rs=inqSnap.rs; rMagSel=inqSnap.rMagSel; rPl=inqSnap.rPl;
+    wh=inqSnap.wh; whK=inqSnap.whK; if(whAnim){cancelAnimationFrame(whAnim);whAnim=null;}
+    wst=inqSnap.wst; whyZ=inqSnap.whyZ; if(whyAnim){cancelAnimationFrame(whyAnim);whyAnim=null;}
+    st=inqSnap.st; heatDT=inqSnap.heatDT; decZ=inqSnap.decZ; wS=inqSnap.wS; cur=inqSnap.cur; $('modelNote').open=inqSnap.noteOpen;
+    if(wAnim){cancelAnimationFrame(wAnim);wAnim=null;}
+    inqSnap=null;
+  }
+  SIM=toSim;
+  document.body.classList.toggle('sim',SIM);
+  $('modeNow').textContent=SIM?'시뮬레이션 모드':'탐구 모드';
+  $('modeBtn').textContent=SIM?'탐구 모드로':'시뮬레이션 모드로';
+  renderPaths(); renderQA(); renderCtrl(); renderSum(); update(); renderWhy(); renderWhere(); renderRock();
+  try{ const u=new URL(location.href); if(SIM) u.searchParams.set('mode','sim'); else u.searchParams.delete('mode'); history.replaceState(null,'',u); }catch(e){}
+}
+$('modeBtn').onclick=()=>setMode(SIM?'inq':'sim');
+
+readColors();
+Object.keys(VIEWS).forEach(k=>new ResizeObserver(()=>resizeV(k)).observe(VIEWS[k].cv));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColors();paint('three');paint('why');paint('where');renderRock();});
+let tab0=null; try{ tab0=new URLSearchParams(location.search).get('tab'); }catch(e){}
+showTab(tab0||'why',false);
+if(readMode()==='sim') setMode('sim'); else { renderPaths(); renderQA(); renderCtrl(); renderSum(); update(); renderWhy(); renderWhere(); renderRock(); }
+})();
+</script>
+</body>
+</html>
