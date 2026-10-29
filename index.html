@@ -128,7 +128,7 @@ footer{margin-top:34px;font-size:.85rem;color:var(--muted)}
 
 <div class="bar"><div class="wrap">
   <div class="courses" id="courses" role="group" aria-label="과목"></div>
-  <input class="search" id="q" type="search" placeholder="제목이나 성취기준으로 찾기 (예: 저기압, 12지구01)">
+  <input class="search" id="q" type="search" placeholder="제목, 성취기준, 내용으로 찾기 (예: 엘니뇨, 12지구0103, ㅌㅍ)">
 </div></div>
 
 <main class="wrap" id="list"></main>
@@ -689,7 +689,54 @@ if(studentMode)$('#modeBanner').hidden=true;
 
 function visible(){return SIMS.filter(s=>!studentMode||pickParam.some(k=>k===s.id||k.startsWith(s.id+'~')));}
 function inCourse(s,k){return k==='all'||(s.codes.length?s.codes.some(c=>courseOf(c).key===k):k==='etc');}
-function matches(s){if(!query)return true;const t=(s.title+' '+s.desc+' '+s.codes.join(' ')).toLowerCase();return query.toLowerCase().split(/\s+/).every(w=>t.includes(w));}
+/* ===== 검색: 띄어쓰기·기호 무시, 비슷한 말 묶기, 초성 검색, 교사용 안내까지 =====
+   비슷한 말은 아래 묶음에 낱말을 더하면 됨(띄어쓰기·기호는 신경 쓰지 않아도 됨) */
+const SYNONYMS=[
+  ['엘니뇨','라니냐','enso','엔소','남방진동','엘니뇨남방진동'],
+  ['중위도저기압','온대저기압','온대성저기압','전선','한랭전선','온난전선'],
+  ['태풍','열대저기압','허리케인','사이클론'],
+  ['기압','바람','고기압','기압차'],
+  ['대기대순환','대기순환','해들리순환','페렐순환','극순환','무역풍','편서풍','전향력','코리올리'],
+  ['해류','표층해류','표층순환'],
+  ['판구조론','판구조','판의이동','대륙이동','해저확장','맨틀대류','플룸','열점'],
+  ['지진파','지진','p파','s파','진앙','진원','암영대','그림자대','모호면','지구내부','지구내부구조','단층촬영'],
+  ['상대연령','지사학','지층','지층누중','부정합','관입','동물군천이'],
+  ['절대연령','반감기','방사성동위원소','방사성붕괴','연대측정'],
+  ['지질공원','국가지질공원','지오파크','geopark','geodex','지오덱스'],
+  ['stratify','스트래티파이','지층쌓기'],
+  ['외계행성','시선속도','도플러','중심별','행성탐사'],
+  ['일식','월식','식현상','개기일식','부분일식','금환일식','개기월식'],
+  ['역행','순행','겉보기운동','회합주기','최대이각','내행성','외행성'],
+  ['천구','좌표계','지평좌표계','적도좌표계','적경','적위','방위각','고도'],
+  ['hr도','헤르츠스프룽러셀도','별의물리량','표면온도','광도','절대등급','색지수','분광형'],
+  ['별의진화','별의일생','항성진화','주계열성','적색거성','백색왜성','초신성','중성자별','블랙홀','원시성','성운','전향점'],
+  ['해시계','앙부일구','태양시','남중고도']
+];
+const norm=t=>String(t).normalize('NFC').toLowerCase().replace(/[^0-9a-z가-힣ㄱ-ㅎ]/g,'');
+const CHO='ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+const chosung=t=>t.replace(/[가-힣]/g,c=>CHO[Math.floor((c.charCodeAt(0)-0xAC00)/588)]);
+const SYN=SYNONYMS.map(g=>g.map(norm));
+const IDX=new Map();
+function idxOf(s){
+  if(!IDX.has(s.id)){
+    const raw=[s.title,s.desc,s.codes.join(' '),(s.teacher||[]).join(' '),s.extras.map(x=>x.label).join(' '),s.main.label].join(' ');
+    const n=norm(raw);IDX.set(s.id,{n,c:chosung(norm(s.title))});   // 초성은 제목에서만(설명까지 보면 너무 많이 걸림)
+  }
+  return IDX.get(s.id);
+}
+function hitWord(ix,w){
+  if(!w)return true;
+  if(/^[ㄱ-ㅎ]+$/.test(w))return ix.c.includes(w);            // 초성만 입력
+  if(ix.n.includes(w))return true;
+  if(w.length<2)return false;
+  return SYN.some(g=>g.some(t=>t===w||t.startsWith(w))&&g.some(t=>ix.n.includes(t)));  // 비슷한 말
+}
+function matches(s){
+  if(!query)return true;
+  const ix=idxOf(s),whole=norm(query);
+  if(hitWord(ix,whole))return true;                             // 띄어쓰기 무시하고 통째로
+  return query.split(/\s+/).map(norm).filter(Boolean).every(w=>hitWord(ix,w));  // 낱말마다
+}
 
 function renderCourses(){
   const box=$('#courses');box.innerHTML='';
@@ -732,6 +779,9 @@ function render(){
   groups.forEach(g=>{
     const items=sims.filter(s=>course==='all'?mainCourse(s).key===g.key:inCourse(s,g.key));
     if(!items.length)return;shown+=items.length;
+    /* 과목 안에서 성취기준 순으로 정렬(그 과목 코드 중 가장 앞 번호 기준, 같으면 원래 순서) */
+    const ck=s=>{const c=s.codes.filter(x=>courseOf(x).key===g.key).sort((a,b)=>a.localeCompare(b,'ko',{numeric:true}));return c[0]||'\uffff';};
+    items.sort((a,b)=>ck(a).localeCompare(ck(b),'ko',{numeric:true}));
     const sec=document.createElement('section');sec.className='group';sec.style.setProperty('--cc','var('+g.color+')');
     sec.innerHTML='<h2><i></i>'+esc(g.name)+' <small>'+items.length+'개</small></h2>';
     const grid=document.createElement('div');grid.className='grid';items.forEach(s=>grid.appendChild(card(s,g)));
