@@ -96,6 +96,23 @@ table.dat tr.sep td{font-family:var(--font);font-weight:600;color:var(--muted);f
 .legend svg{width:14px;height:14px}
 .hidden{display:none!important}
 .ph{font-size:15px;color:var(--muted);line-height:1.6}
+table.dat input{width:4.6em;font:600 14px var(--mono);padding:6px 4px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);text-align:right}
+table.dat input.bad{border-color:var(--warn)}
+table.dat td .ok{color:var(--accent);font-weight:800;font-family:var(--font)}
+.calc .ln input{width:7em;font:600 15px var(--mono);padding:6px;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);text-align:right}
+.calc .ln input.bad{border-color:var(--warn)}
+#cDisp{width:100%;font:700 22px var(--mono);text-align:right;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--plot);color:var(--ink)}
+.calcPad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;max-width:360px}
+.calcPad button{font:700 18px var(--mono);padding:11px 0;border-radius:10px;border:1px solid var(--line);background:var(--chip);color:var(--ink);cursor:pointer}
+.calcPad button.op{background:color-mix(in srgb,var(--accent) 14%,var(--chip))}
+.calcPad button.eq{background:var(--chipOn);color:var(--chipOnInk)}
+.agGrid{display:grid;gap:12px}
+@media (min-width:760px){.agGrid{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start}}
+.duo{display:block}
+.wide-only{display:none}
+@media (min-width:760px){.wide-only{display:block}}
+@media (min-width:760px){.duo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}.duo .stick{position:sticky;top:72px}}
+@media (min-width:900px){.wrap,body.sim .wrap{max-width:1080px}}
 /* ---------- 모드 (탐구 / 시뮬레이션) — dating-sim.html과 같은 배너 ---------- */
 .modeSw{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-bottom:4px}
 .modeSw .now{font:800 12px var(--font);color:var(--ink);background:var(--chip);border:1px solid var(--line);padding:4px 10px;border-radius:999px;white-space:nowrap}
@@ -154,9 +171,131 @@ details .body h4{margin:0 0 4px;font-size:16px}
     <button role="tab" data-tab="age" aria-selected="false">④ 우주의 나이</button>
   </nav>
 
-  <!-- ① 적색 편이 (다음 단계에서 제작) -->
+  <!-- ① 적색 편이 -->
   <section id="t-redshift" class="hidden">
-    <div class="card"><h2>① 적색 편이</h2><div class="ph">이 탭은 다음 단계에서 만들어요.</div></div>
+    <div class="card sim-only"><div class="simNote">은하를 고르면 정지 상태 스펙트럼과 은하의 스펙트럼이 나란히 나와요. 세 흡수선(칼슘, Hβ, Hα)이 모두 같은 비율로 밀린 것을 표에서 볼 수 있어요. [흡수선 확대]로 고른 흡수선 둘레를 크게 볼 수 있어요. 안드로메다은하는 청색 편이가 나타나요.</div></div>
+
+    <div class="card inq-only" id="rsPredCard">
+      <div class="q">은하가 우리에게서 멀어지면, 은하 스펙트럼의 흡수선은 어떻게 보일까요?</div>
+      <div class="opts" id="rsPredOpts">
+        <button data-v="long">파장이 긴 쪽(빨간색 쪽)으로 이동한다</button>
+        <button data-v="short">파장이 짧은 쪽(파란색 쪽)으로 이동한다</button>
+        <button data-v="none">움직이지 않는다</button>
+        <button data-v="red">흡수선은 그대로이고 은하가 붉은색으로 보인다</button>
+      </div>
+      <div class="fb note hidden" id="rsPredFb"></div>
+    </div>
+
+    <div class="card" id="rsCard">
+      <h2>정지 상태와 은하의 스펙트럼</h2>
+      <div class="tags"><span class="tag model">모형 스펙트럼</span><span class="tag model" id="rsSrc">은하 값: 모형</span></div>
+      <div class="fb note inq-only" id="rsGuide" style="margin:0 0 10px"></div>
+      <div class="inq-only" style="margin-bottom:12px"><div class="lab" style="margin-bottom:6px">계산 방법 고르기</div>
+        <div class="chips" id="rsCm"><button data-v="auto" aria-pressed="true">자동 계산</button><button data-v="manual" aria-pressed="false">직접 계산 (계산기)</button></div>
+        <div class="txt" id="rsCmNote" style="font-size:14px;color:var(--muted);margin-top:6px"></div></div>
+      <div class="lab" style="margin-bottom:6px">은하</div>
+      <div class="chips" id="rsGal"></div>
+      <div class="lab" style="margin:10px 0 6px">잴 흡수선</div>
+      <div class="chips" id="rsLine"></div>
+      <div class="row" style="margin-top:8px"><button class="btn sec" id="rsZoom" type="button" aria-pressed="false">흡수선 확대</button></div>
+      <div class="canvasBox" style="margin-top:10px"><canvas id="rsC" aria-label="정지 상태와 은하의 스펙트럼"></canvas></div>
+      <div id="rsMeasure">
+        <input type="range" id="rsMk" min="380" max="720" step="0.1" value="500" aria-label="흡수선 위치 표시">
+        <div class="row" style="margin-top:0;justify-content:space-between"><div class="readout">표시 위치 <b id="rsMkVal">500.0 nm</b></div><button class="btn" id="rsMkBtn" type="button">이 위치로 재기</button></div>
+      </div>
+      <div class="fb hint hidden" id="rsMkFb"></div>
+    </div>
+
+    <div class="card" id="rsTblCard">
+      <h2 id="rsTblTitle">잰 결과</h2>
+      <div class="tblWrap"><table class="dat"><thead><tr><th>흡수선</th><th>고유 파장<br>λ₀ (nm)</th><th>관측 파장<br>(nm)</th><th>파장 변화량<br>Δλ (nm)</th><th>Δλ ÷ λ₀</th></tr></thead><tbody id="rsTbody"></tbody></table></div>
+      <div class="calc hidden" id="rsCalc"></div>
+      <div class="hidden" id="rsManual">
+        <div class="row"><button class="btn" id="rsCheck" type="button">답 확인</button></div>
+        <div class="fb hidden" id="rsChkFb"></div>
+        <div class="calcBox">
+          <div class="lab" style="margin:12px 0 6px">계산기</div>
+          <input type="text" id="cDisp" readonly aria-label="계산기 화면" value="0">
+          <div class="calcPad" id="cPad"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card inq-only hidden" id="rsDirCard">
+      <div class="q">은하 2의 흡수선은 어느 쪽으로 이동했나요?</div>
+      <div class="opts" id="rsDirOpts">
+        <button data-v="short">파장이 짧은 쪽(파란색 쪽)</button>
+        <button data-v="long">파장이 긴 쪽(빨간색 쪽)</button>
+        <button data-v="red">흡수선은 그대로이고 띠 전체가 붉어졌다</button>
+      </div>
+      <div class="fb hidden" id="rsDirFb"></div>
+    </div>
+
+    <div class="card inq-only hidden" id="rsRatioCard">
+      <div class="q">세 흡수선의 파장 변화량(Δλ)은 서로 달라요. 그렇다면 Δλ ÷ λ₀는 어떨까요? 표의 값으로 계산해 보세요.</div>
+      <div class="opts" id="rsRatioOpts">
+        <button data-v="long">고유 파장이 긴 흡수선일수록 크다</button>
+        <button data-v="same">세 흡수선 모두 거의 같다</button>
+        <button data-v="short">고유 파장이 짧은 흡수선일수록 크다</button>
+      </div>
+      <div class="fb hidden" id="rsRatioFb"></div>
+    </div>
+
+    <div class="card inq-only hidden" id="rsAndCard">
+      <div class="q">모든 은하가 멀어지고 있을까요? 안드로메다은하의 흡수선을 확대해서 재 보세요. 안드로메다은하는 어떻게 움직이고 있나요?</div>
+      <div class="opts" id="rsAndOpts">
+        <button data-v="away">우리에게서 멀어지고 있다</button>
+        <button data-v="toward">우리에게 다가오고 있다</button>
+        <button data-v="still">움직이지 않는다</button>
+      </div>
+      <div class="fb hidden" id="rsAndFb"></div>
+    </div>
+
+    <div class="extras">
+      <details class="mguide">
+        <summary>모형 안내 — 시뮬레이션이 실제와 다른 점</summary>
+        <div class="body"><div class="mlist">
+          <div class="mc"><h4>1. 스펙트럼</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><rect class="band" x="4" y="18" width="112" height="28" rx="3"/><path d="M10 18v28M48 18v28M96 18v28" stroke-width="3"/></svg>
+              <p>흡수선 <b>세 개</b>만 그린 모형 스펙트럼이다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><rect class="band" x="4" y="18" width="112" height="28" rx="3"/><path d="M8 18v28M11 18v28M22 18v28M41 18v28M48 18v28M58 18v28M71 18v28M86 18v28M96 18v28M108 18v28" stroke-width="1.6"/><path class="m" d="M4 52l4-2 4 3 4-3 4 2 4-3 4 3 4-2 4 3 4-3 4 2 4-3 4 3 4-2 4 3 4-3 4 2 4-3 4 3 4-2 4 3 4-3 4 2 4-3 4 3 4-2 4 3 4-3" stroke-width="1.2"/></svg>
+              <p>별 수천억 개의 빛이 섞여 흡수선이 아주 많고 잡음이 있다. 칼슘선도 실제로는 두 줄(393, 397 nm)인데 교과서처럼 395 nm 하나로 그렸다.</p></div></div></div>
+          <div class="mc"><h4>2. 은하 1~3의 값</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><text x="60" y="30" text-anchor="middle">z = 0.040</text><text class="sm" x="60" y="48" text-anchor="middle">만든 값</text></svg>
+              <p>은하 1~3의 적색 편이는 수업용으로 정한 값이다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="m" d="M12 52h96M12 52V8"/><circle cx="34" cy="40" r="3"/><circle cx="52" cy="34" r="3"/><circle cx="70" cy="26" r="3"/><circle cx="92" cy="18" r="3"/></svg>
+              <p>② 탭의 실제 은하는 관측된 적색 편이(Pantheon+)를 쓴다. 안드로메다은하의 속도도 관측값이다.</p></div></div></div>
+          <div class="mc"><h4>3. 후퇴 속도 식</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="m" d="M12 6v50h100"/><path class="rd" d="M12 56L104 10"/><text x="70" y="50" text-anchor="middle">v = c·z</text></svg>
+              <p>v = c·z 근사식만 쓴다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="m" d="M12 6v50h100"/><path class="m" d="M12 56L104 10" stroke-dasharray="4 4"/><path class="rd" d="M12 56C40 42 70 30 106 24"/><text class="sm" x="84" y="46" text-anchor="middle">z가 클 때</text></svg>
+              <p>z가 대략 0.1보다 크면 이 식이 맞지 않는다. 이 식대로라면 z가 1보다 큰 은하는 빛보다 빨리 멀어지는 것처럼 계산되지만, 실제로는 다른 식을 쓴다.</p></div></div></div>
+        </div></div>
+      </details>
+      <details>
+        <summary>더 알아보기</summary>
+        <div class="body">
+          <div><h4>적색 편이는 은하가 빨갛게 보이는 것이 아니에요</h4><p>적색 편이는 스펙트럼 속 흡수선의 파장이 길어지는(빨간색 쪽으로 밀리는) 현상이에요. 은하의 색이 빨갛게 바뀌는 것이 아니에요. 흡수선 위치를 정지 상태와 비교해야 알 수 있어요.</p></div>
+          <div><h4>외계행성 탐사의 도플러 효과와 다른 점</h4><p>외계행성을 거느린 별은 앞뒤로 흔들려서 흡수선이 <b>주기적으로</b> 짧은 쪽과 긴 쪽을 오가요. 먼 은하의 흡수선은 <b>한 방향(긴 파장 쪽)</b>으로 밀려 있고, 더 먼 은하일수록 많이 밀려 있어요.</p></div>
+          <div><h4>가까운 은하는 다가오기도 해요</h4><p>안드로메다은하는 우리은하와 서로 중력으로 끌어당겨 초속 약 300 km로 다가오고 있어요. 이렇게 가까운 은하는 우주 팽창보다 서로 끌어당기는 움직임이 더 커요. 허블-르메트르 법칙은 <b>멀리 있는 은하</b>에서 뚜렷하게 나타나요(② 탭).</p></div>
+        </div>
+      </details>
+      <details>
+        <summary>자료 출처</summary>
+        <div class="body">
+          <p><span class="tag tbk">교과서 수록값</span> 칼슘 흡수선 고유 파장 395 nm, 광속 3×10⁵ km/s: 미래엔 「지구과학」 171~172쪽.</p>
+          <p><span class="tag real">표준값</span> 수소 흡수선 Hβ 486.1 nm, Hα 656.3 nm(공기 중 파장, 미국 국립표준기술연구소 NIST 원자 스펙트럼 자료).</p>
+          <p><span class="tag real">실제 자료</span> 안드로메다은하(M31)의 시선 속도 약 −300 km/s(NASA/IPAC 외부은하 데이터베이스 NED).</p>
+          <p><span class="tag model">모형</span> 은하 1~3의 적색 편이(0.010, 0.040, 0.080)와 스펙트럼 띠.</p>
+        </div>
+      </details>
+    </div>
   </section>
 
   <!-- ② 법칙 찾기 -->
@@ -173,6 +312,7 @@ details .body h4{margin:0 0 4px;font-size:16px}
       <div class="fb note hidden" id="predFb"></div>
     </div>
 
+    <div class="duo"><div class="col">
     <div class="card" id="specCard">
       <h2>스펙트럼에서 칼슘 흡수선 재기</h2>
       <div class="tags"><span class="tag model">모형 스펙트럼</span><span class="tag tbk" id="specSrcTb">교과서 탐구 자료</span><span class="tag real hidden" id="specSrcReal">실제 자료 · 거리와 z</span></div>
@@ -194,6 +334,7 @@ details .body h4{margin:0 0 4px;font-size:16px}
       <div class="row hidden" id="addRow"><button class="btn" id="addBtn" type="button">나머지 실제 은하 관측하기</button></div>
     </div>
 
+    </div><div class="col stick">
     <div class="card" id="graphCard">
       <h2>거리와 후퇴 속도</h2>
       <div class="chips" id="dsChips">
@@ -218,6 +359,7 @@ details .body h4{margin:0 0 4px;font-size:16px}
       <div class="fb note hidden" id="h29Note"></div>
     </div>
 
+    </div></div>
     <div class="card inq-only hidden" id="relCard">
       <div class="q">세 은하의 거리와 후퇴 속도 사이에는 어떤 관계가 있나요?</div>
       <div class="opts" id="relOpts">
@@ -301,7 +443,7 @@ details .body h4{margin:0 0 4px;font-size:16px}
   </section>
 
   <section id="t-expand" class="hidden">
-    <div class="card sim-only"><div class="simNote">은하가 흩어진 평면이 고르게 늘어나는 모형이에요. [팽창 ▶]을 누르거나 막대를 밀어 보세요. 아무 은하나 누르면 그 은하가 관측자('우리')가 되어 가운데로 와요. [풍선 그림]으로 교과서의 풍선 모형도 볼 수 있어요.</div></div>
+    <div class="card sim-only"><div class="simNote">은하가 흩어진 평면이 고르게 늘어나는 모형이에요. [팽창 ▶]을 누르거나 막대를 밀어 보세요. 아무 은하나 누르면 그 은하가 관측자('우리')가 되어 가운데로 와요. 아래 그래프는 화면에 보이는 은하의 처음 거리와 늘어난 거리예요. [풍선 그림]으로 교과서의 풍선 모형도 볼 수 있어요.</div></div>
 
     <div class="card inq-only" id="exPredCard">
       <div class="q">모든 은하가 우리은하에서 멀어지고 있어요. 그렇다면 우리은하는 우주의 중심일까요?</div>
@@ -313,6 +455,7 @@ details .body h4{margin:0 0 4px;font-size:16px}
       <div class="fb note hidden" id="exPredFb"></div>
     </div>
 
+    <div class="duo"><div class="col">
     <div class="card" id="exCard">
       <h2>팽창하는 우주 모형</h2>
       <div class="tags"><span class="tag model">모형</span></div>
@@ -321,34 +464,63 @@ details .body h4{margin:0 0 4px;font-size:16px}
         <button data-v="plane" aria-pressed="true">평면 모형</button>
         <button data-v="balloon" aria-pressed="false">풍선 그림</button>
       </div>
+      <div id="exCtlNarrow">
+      <div class="row hidden" id="exMRow">
+        <button class="btn" id="exStep" type="button">1단계 팽창시키기 ▶</button>
+        <button class="btn sec" id="exUndo" type="button">고른 은하 지우기</button>
+      </div>
+      <div id="exFree">
+        <div class="row">
+          <button class="btn" id="exPlay" type="button">팽창 ▶</button>
+          <button class="btn sec" id="exReset" type="button">처음으로</button>
+        </div>
+        <input type="range" id="exA" min="1" max="1.6" step="0.01" value="1" aria-label="은하 사이 거리 배율">
+        <div class="readout">은하 사이 거리: 처음의 <b id="exAVal">1.00배</b></div>
+        <div class="chips" id="exOpt" style="margin-top:10px">
+          <button data-v="ghost" aria-pressed="true">이전 모습 겹쳐 보기</button>
+          <button data-v="arrow" aria-pressed="true">속도 화살표</button>
+        </div>
+      </div>
+      </div>
       <div class="canvasBox" style="margin-top:10px"><canvas id="exC" aria-label="은하가 흩어진 평면이 늘어나는 모형"></canvas></div>
+      <div class="fb hint hidden" id="exMsg"></div>
       <div class="legend" id="exLegend"></div>
-      <div class="row">
-        <button class="btn" id="exPlay" type="button">팽창 ▶</button>
-        <button class="btn sec" id="exReset" type="button">처음으로</button>
-      </div>
-      <input type="range" id="exA" min="1" max="1.6" step="0.01" value="1" aria-label="은하 사이 거리 배율">
-      <div class="readout">은하 사이 거리: 처음의 <b id="exAVal">1.00배</b></div>
-      <div class="chips" id="exOpt" style="margin-top:10px">
-        <button data-v="ghost" aria-pressed="true">이전 모습 겹쳐 보기</button>
-        <button data-v="arrow" aria-pressed="true">속도 화살표</button>
-      </div>
       <div class="fb note hidden" id="balloonNote" style="margin-top:10px">풍선이 부풀면 겉면에 붙인 점 사이의 거리가 모두 멀어져요. 이 비유에서는 <b>풍선의 겉면만이 우주</b>예요. 풍선의 안쪽이나 바깥쪽은 우주가 아니에요. 그리고 점(은하)의 크기는 커지지 않아요.</div>
     </div>
 
+    </div><div class="col">
+    <div class="card wide-only" id="exCtlCard"><h2>조작</h2><div id="exCtlWide"></div></div>
+    <div class="card inq-only hidden" id="exTblCard">
+      <h2>잰 결과 <span class="tag model">모형</span></h2>
+      <p style="font-size:14px;color:var(--muted)">거리 단위 '칸'은 화면 오른쪽 아래 막대자로 잰 길이예요. 1단계 동안 늘어난 거리가 곧 멀어지는 속도예요.</p>
+      <div class="tblWrap"><table class="dat"><thead><tr><th>은하</th><th>처음 거리<br>(칸)</th><th>나중 거리<br>(칸)</th><th>늘어난 거리<br>(칸/단계)</th><th id="exRatioTh">늘어난 거리<br>÷ 처음 거리</th></tr></thead><tbody id="exTbody"></tbody></table></div>
+    </div>
+
     <div class="card" id="exGCard">
-      <h2>관측자가 본 거리와 멀어지는 속도</h2>
+      <h2 id="exGTitle">처음 거리와 늘어난 거리</h2>
       <div class="tags"><span class="tag model">모형</span><span class="tag model" id="exObsTag">관측자: 우리은하</span></div>
-      <div class="canvasBox"><canvas id="exG" aria-label="관측자에서 본 거리와 멀어지는 속도 그래프"></canvas></div>
-      <p style="margin-top:8px;font-size:14px;color:var(--muted)">화면에 보이는 은하만 찍었어요. 단위는 모형 단위예요.</p>
+      <div class="canvasBox"><canvas id="exG" aria-label="관측자에서 본 거리와 늘어난 거리 그래프"></canvas></div>
+      <div class="legend" id="exGLegend"></div>
+      <p id="exGNote" style="margin-top:8px;font-size:14px;color:var(--muted)"></p>
+    </div>
+
+    </div></div>
+    <div class="card inq-only hidden" id="exRatioCard">
+      <div class="q">그래프의 점들은 어떻게 놓여 있나요?</div>
+      <div class="opts" id="exRatioOpts">
+        <button data-v="b">거리와 관계없이 늘어난 거리가 비슷하다</button>
+        <button data-v="a">원점을 지나는 직선 위에 놓인다 (늘어난 거리가 처음 거리에 비례)</button>
+        <button data-v="c">먼 은하일수록 늘어난 거리가 작다</button>
+      </div>
+      <div class="fb hidden" id="exRatioFb"></div>
     </div>
 
     <div class="card inq-only hidden" id="exCenterCard">
-      <div class="q">다른 은하에서 관측해 보니 어떤가요?</div>
+      <div class="q">다른 은하에서 재 보니 어떤가요?</div>
       <div class="opts" id="exCenterOpts">
         <button data-v="b">관측자를 바꾸면 가까운 은하가 더 빨리 멀어진다</button>
-        <button data-v="a">어느 은하에서 보아도 먼 은하일수록 더 빨리 멀어진다</button>
-        <button data-v="c">처음 우리은하에서 볼 때만 모든 은하가 멀어진다</button>
+        <button data-v="a">어느 은하에서 재도 같은 직선(같은 기울기)이 나온다</button>
+        <button data-v="c">처음 우리은하에서 잴 때만 비례 관계가 나온다</button>
       </div>
       <div class="fb hidden" id="exCenterFb"></div>
     </div>
@@ -430,7 +602,120 @@ details .body h4{margin:0 0 4px;font-size:16px}
     </div>
   </section>
   <section id="t-age" class="hidden">
-    <div class="card"><h2>④ 우주의 나이</h2><div class="ph">이 탭은 다음 단계에서 만들어요.</div></div>
+    <div class="card sim-only"><div class="simNote">시간 막대를 오른쪽으로 밀면 팽창을 거꾸로 돌려 과거로 가요. 허블 상수를 바꾸면 은하들이 한 점에 모이는 시간(허블 시간)이 바뀌어요. 우주가 늘 같은 빠르기로 팽창했다고 가정한 값이에요.</div></div>
+
+    <div class="card inq-only" id="agPredCard">
+      <div class="q">지금 은하들은 서로 멀어지고 있어요. 시간을 거꾸로 돌리면 은하 사이의 거리는 어떻게 될까요?</div>
+      <div class="opts" id="agPredOpts">
+        <button data-v="zero">점점 가까워져 결국 모두 한 점에 모인다</button>
+        <button data-v="same">변하지 않는다</button>
+        <button data-v="far">점점 더 멀어진다</button>
+      </div>
+      <div class="fb note hidden" id="agPredFb"></div>
+    </div>
+
+    <div class="card" id="agCard">
+      <h2>팽창을 거꾸로 돌리기</h2>
+      <div class="tags"><span class="tag model">모형</span><span class="tag model">일정한 속도로 팽창했다고 가정</span></div>
+      <div class="fb note inq-only" id="agGuide" style="margin:0 0 10px"></div>
+      <div class="agGrid">
+        <div class="canvasBox"><canvas id="agC" aria-label="팽창을 거꾸로 돌린 은하 분포"></canvas></div>
+        <div>
+          <input type="range" id="agT" min="0" max="300" step="1" value="0" aria-label="과거로 간 시간 (억 년)">
+          <div class="row" style="margin-top:0;justify-content:space-between">
+            <div class="readout">지금으로부터 <b id="agTVal">0억 년</b> 전</div>
+            <div class="readout">은하 사이 거리: 지금의 <b id="agAVal">100%</b></div>
+          </div>
+          <div class="row"><button class="btn" id="agPlay" type="button">거꾸로 돌리기 ◀◀</button><button class="btn sec" id="agNow" type="button">지금으로</button></div>
+          <div class="canvasBox" style="margin-top:12px"><canvas id="agG" aria-label="시간에 따른 은하 사이 거리 그래프"></canvas></div>
+          <div id="agHBox" class="hidden" style="margin-top:12px">
+            <div class="hBig"><span class="l">허블 상수 H</span><span class="v" id="agHVal">70</span><span class="u">km/s/Mpc</span></div>
+            <input type="range" id="agH" min="50" max="100" step="1" value="70" aria-label="허블 상수">
+            <div class="fb note inq-only" id="agHLock">허블 상수 막대는 아래 질문에 답하면 움직일 수 있어요.</div>
+            <div class="hBig" style="margin-top:8px"><span class="l">허블 시간 1/H ≈</span><span class="v" id="agAge">140억</span><span class="u">년</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="agHCard">
+      <h2>허블 시간 구하기</h2>
+      <div class="calc" id="agCalc"></div>
+      <p style="font-size:14px;color:var(--muted);margin-top:10px">우주가 <b>늘 같은 빠르기로 팽창했다고 가정</b>했을 때, 모든 은하가 한 점에 모여 있던 때까지의 시간이에요. 우주의 나이를 어림한 값이에요.</p>
+    </div>
+
+    <div class="card inq-only hidden" id="agInvCard">
+      <div class="q">허블 상수가 70보다 크다면(우주가 더 빨리 팽창한다면), 허블 시간은 어떻게 될까요?</div>
+      <div class="opts" id="agInvOpts">
+        <button data-v="long">더 길어진다</button>
+        <button data-v="same">변하지 않는다</button>
+        <button data-v="short">더 짧아진다</button>
+      </div>
+      <div class="fb hidden" id="agInvFb"></div>
+    </div>
+
+    <div class="card inq-only hidden" id="agH29Card">
+      <div class="q">허블이 1929년에 구한 허블 상수는 약 500 km/s/Mpc였어요. 이 값으로 구한 허블 시간은 약 얼마이고, 무엇이 문제였을까요? (지구의 나이는 약 46억 년이에요.)</div>
+      <div class="opts" id="agH29Opts">
+        <button data-v="a">약 1,000억 년 — 우주가 너무 늙었다</button>
+        <button data-v="b">약 20억 년 — 우주가 지구보다 젊다</button>
+        <button data-v="c">약 140억 년 — 지금 값과 같아 문제가 없다</button>
+      </div>
+      <div class="fb hidden" id="agH29Fb"></div>
+    </div>
+
+    <div class="extras">
+      <details class="mguide">
+        <summary>모형 안내 — 시뮬레이션이 실제와 다른 점</summary>
+        <div class="body"><div class="mlist">
+          <div class="mc"><h4>1. 일정한 팽창</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="m" d="M12 6v50h100"/><path class="rd" d="M22 56L104 12"/></svg>
+              <p>우주가 늘 같은 빠르기로 팽창했다고 보았다. 그래서 거리 그래프가 곧은 직선이다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="m" d="M12 6v50h100"/><path class="m" d="M22 56L104 12" stroke-dasharray="4 4"/><path class="rd" d="M26 56C34 40 52 32 70 28S96 18 104 12"/></svg>
+              <p>팽창 빠르기는 시간에 따라 변해 왔다. 처음에는 점점 느려지다가 최근에는 점점 빨라지고 있다(가속 팽창). 그래서 허블 시간(약 140억 년)과 실제 나이(약 138억 년)가 조금 다르다.</p></div></div></div>
+          <div class="mc"><h4>2. 허블 상수 값</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><text x="60" y="42" text-anchor="middle" style="font-size:26px">70</text></svg>
+              <p>기본값을 교과서 값 70 km/s/Mpc로 두었다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><text x="34" y="42" text-anchor="middle" style="font-size:24px">67</text><text x="86" y="42" text-anchor="middle" style="font-size:24px">73</text><path class="m" d="M56 24v24"/></svg>
+              <p>측정 방법에 따라 약 67~73으로 아직 조금 다르다. 이 차이만으로도 허블 시간이 10억 년 넘게 달라진다.</p></div></div></div>
+          <div class="mc"><h4>3. 한 점에 모인다</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle class="f" cx="60" cy="32" r="4"/><path class="m" d="M20 12l30 14M100 12L70 26M20 52l30-14M100 52L70 38"/></svg>
+              <p>은하들이 화면 가운데로 모여든다. 가운데는 관측자(우리은하)를 놓은 자리일 뿐이다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><path class="m" d="M10 20h100M10 32h100M10 44h100" stroke-dasharray="2 5"/><path class="rd" d="M40 8l40 48M80 8L40 56" stroke-width="3"/></svg>
+              <p>한 점에서 폭발해 빈 공간으로 퍼진 것이 아니다. 공간 <b>모든 곳</b> 사이의 거리가 0에 가까웠던 것이고, 어느 은하를 기준으로 거꾸로 돌려도 같은 시간이 나온다.</p></div></div></div>
+          <div class="mc"><h4>4. 과거의 은하</h4><div class="pair">
+            <div class="pn s"><span class="tg">시뮬레이션</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><ellipse cx="36" cy="32" rx="12" ry="7"/><ellipse cx="84" cy="32" rx="12" ry="7"/><text class="sm" x="60" y="56" text-anchor="middle">과거에도 그대로</text></svg>
+              <p>먼 과거에도 지금과 같은 은하를 그려 두었다.</p></div>
+            <div class="pn r"><span class="tg">실제</span>
+              <svg viewBox="0 0 120 64" aria-hidden="true"><circle class="fm" cx="30" cy="24" r="2"/><circle class="fm" cx="48" cy="40" r="2"/><circle class="fm" cx="70" cy="20" r="2"/><circle class="fm" cx="88" cy="44" r="2"/><circle class="fm" cx="60" cy="30" r="2"/><text class="sm" x="60" y="60" text-anchor="middle">은하 생기기 전</text></svg>
+              <p>아주 이른 우주에는 은하가 없었다. 은하는 우주가 생기고 수억 년이 지난 뒤에 만들어졌다.</p></div></div></div>
+        </div></div>
+      </details>
+      <details>
+        <summary>더 알아보기</summary>
+        <div class="body">
+          <div><h4>실제 우주의 나이는 약 138억 년</h4><p>플랑크 위성이 우주 배경 복사를 관측해 구한 우주의 나이는 약 138억 년이에요. 허블 시간(약 140억 년)과 비슷하지만 같지는 않아요. 팽창 빠르기가 시간에 따라 변해 왔기 때문이에요.</p></div>
+          <div><h4>허블의 1929년 값과 우주의 나이 문제</h4><p>허블이 구한 값 약 500 km/s/Mpc로 허블 시간을 계산하면 약 20억 년이에요. 지구의 암석이 이보다 오래되었다는 것이 알려지면서 큰 문제가 되었어요. 나중에 은하까지의 거리를 다시 재면서 허블 상수가 작아지고, 우주의 나이는 더 길어졌어요.</p></div>
+          <div><h4>다음에 배울 것</h4><p>우주가 한 점처럼 작고 뜨거운 상태에서 팽창해 왔다는 <b>빅뱅 우주론</b>, 그 증거인 <b>우주 배경 복사</b>, 아주 짧은 순간의 <b>급팽창</b>, 지금 팽창이 빨라지는 <b>가속 팽창</b>과 <b>암흑 에너지</b>는 다음 앱에서 이어져요.</p></div>
+        </div>
+      </details>
+      <details>
+        <summary>자료 출처</summary>
+        <div class="body">
+          <p><span class="tag tbk">교과서 수록값</span> 허블 상수 약 70 km/s/Mpc, 허블 시간 약 140억 년, 1 Mpc ≈ 3.1×10¹⁹ km: 미래엔 「지구과학」 172~173쪽.</p>
+          <p><span class="tag real">실제 자료</span> 우주의 나이 약 138억 년: 플랑크 위성 관측(Planck Collaboration 2020, A&amp;A 641, A6).</p>
+          <p><span class="tag real">실제 자료</span> 허블의 1929년 값 약 500 km/s/Mpc: Hubble, E. (1929), PNAS 15, 168.</p>
+          <p><span class="tag model">모형</span> 은하 분포(③ 탭과 같은 모형)와 일정한 팽창 가정.</p>
+        </div>
+      </details>
+    </div>
   </section>
 </div>
 
@@ -464,9 +749,11 @@ const HALL=slopeOf(ALL.map(([r,z])=>[r,z*U.C]));
 const H29FIT=slopeOf(H29);
 
 /* ---------- 상태 ---------- */
-const KEY='ess-hubble-lemaitre-v1';
+const KEY='ess-hubble-lemaitre-v2';
 const fresh=()=>({pred:null,tb:[false,false,false],rel:null,relOK:false,rm:[false,false],added:0,fitOK:false,use:null,useOK:false,H:50,H29:300,sel:{k:'tb',i:0},mk:400,ds:{tb:true,real:true,all:false},v29:false,best:false,
-  ex:{pred:null,played:false,seen:[0],cAns:null,cOK:false,bAns:null,bOK:false,obs:0,view:'plane',ghost:true,arrow:true}});
+  ex:{pred:null,m1:{obs:0,t:[],done:false},rAns:null,rOK:false,m2:{obs:null,t:[],done:false},cAns:null,cOK:false,bAns:null,bOK:false,obs:0,view:'plane',ghost:true,arrow:true},
+  rs:{pred:null,sel:'g2',line:'ca',mk:500,meas:{},dirAns:null,dirOK:false,ratioAns:null,ratioOK:false,andAns:null,andOK:false,zoom:false,cm:'auto',inp:{},ok:{}},
+  ag:{pred:null,reached:false,invAns:null,invOK:false,h29Ans:null,h29OK:false,H:70}});
 let S=fresh(), SIM=false, inqSnap=null, loaded=false;
 function load(){ try{const t=localStorage.getItem(KEY); if(t) S=Object.assign(fresh(),JSON.parse(t));}catch(e){} }
 function save(){ if(SIM) return; try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} }
@@ -750,9 +1037,10 @@ function renderQ(){
 }
 
 /* ================= ③ 팽창 모형 =================
-   은하 위치 x0(모형 단위)는 고정, 늘어나는 정도 a(1.00~1.60배)만 바뀜 → 화면 위치 = a × (x0 − 관측자 x0).
-   멀어지는 속도 = (da/dt) × x0 = (da/dt ÷ a) × 현재 거리 → 어느 관측자에게나 거리에 비례(허블-르메트르 법칙). */
-const EX={AMAX:1.6, RATE:0.12, HALF:0.85};
+   은하 위치 x0(모형 단위)는 고정, 늘어나는 정도 a만 바뀜 → 화면 위치 = a × (x0 − 관측자 x0).
+   거리 단위 '칸' = 모형 단위 0.05 (막대자는 팽창하지 않음).
+   1단계 팽창: a 1.0 → 1.5. 늘어난 거리 = 0.5 × 처음 거리 → 어느 관측자에게나 비례(허블-르메트르 법칙). */
+const EX={AMAX:1.6, RATE:0.12, HALF:0.85, CELL:0.05, STEP:1.5, DMIN:2.0, DMAX:10.5, DGAP:0.7};
 const GAL=(()=>{ // 고르게 흩어진 은하(시드 고정)
   let s=20261029; const rnd=()=>((s=(s*1664525+1013904223)>>>0)/4294967296);
   const out=[]; let tries=0;
@@ -762,13 +1050,28 @@ const GAL=(()=>{ // 고르게 흩어진 은하(시드 고정)
 })();
 const BAL=(()=>{let s=7; const rnd=()=>((s=(s*1664525+1013904223)>>>0)/4294967296); const cols=['#e53935','#1e88e5','#43a047','#fdd835','#8e24aa','#fb8c00','#00acc1'];
   return Array.from({length:46},(_,i)=>({lat:Math.asin(rnd()*1.9-0.95),lon:(rnd()*2-1)*Math.PI,c:cols[i%cols.length]}));})();
-let exA=1, exPlaying=false, exCam={x:GAL[0].x,y:GAL[0].y}, exLast=0;
+const LET1=['A','B','C'], LET2=['D','E','F'];
+let exA=1, exPlaying=false, exCam={x:GAL[0].x,y:GAL[0].y}, exLast=0, exAnim=false;
 const exC=$('exC'), ecx=exC.getContext('2d'), exG=$('exG'), egx=exG.getContext('2d'); let EW=0,EH=0,FW=0,FH=0;
 const exObs=()=>GAL[S.ex.obs]||GAL[0];
+const d0=(i,o)=>Math.hypot(GAL[i].x-GAL[o].x,GAL[i].y-GAL[o].y)/EX.CELL; // 처음 거리(칸)
+const rd1=x=>Math.round(x*10)/10;
+function mRows(m,a){ return m.t.map(i=>{const p=rd1(d0(i,m.obs)), q=rd1(d0(i,m.obs)*a); return {i,p,q,dd:rd1(q-p)};}); }
+function exStage(){ if(SIM) return 'free'; const E=S.ex;
+  if(!E.pred) return 'pred';
+  if(!E.m1.done) return E.m1.t.length<3?'m1pick':'m1exp';
+  if(!E.rOK) return 'ratio';
+  if(E.m2.obs==null) return 'm2obs';
+  if(!E.m2.done) return E.m2.t.length<3?'m2pick':'m2exp';
+  if(!E.cOK) return 'center';
+  return 'free'; }
+const isPick=st=>st==='m1pick'||st==='m2pick'||st==='m1exp'||st==='m2exp';
+const curM=()=>{const st=exStage(); return (st.startsWith('m2')||st==='center')?S.ex.m2:S.ex.m1;};
+function exAForStage(){ const st=exStage(); if(st==='ratio'||st==='center') exA=EX.STEP; else if(st!=='free') exA=1; }
 function resizeEx(){
   const dpr=Math.max(1,window.devicePixelRatio||1);
   let w=exC.parentElement.clientWidth; if(w>=100){const h=Math.round(Math.min(w,440)); EW=w;EH=h;exC.style.height=h+'px';exC.width=Math.round(w*dpr);exC.height=Math.round(h*dpr);ecx.setTransform(dpr,0,0,dpr,0,0);}
-  w=exG.parentElement.clientWidth; if(w>=100){const h=Math.round(Math.max(200,Math.min(w*0.55,280))); FW=w;FH=h;exG.style.height=h+'px';exG.width=Math.round(w*dpr);exG.height=Math.round(h*dpr);egx.setTransform(dpr,0,0,dpr,0,0);}
+  w=exG.parentElement.clientWidth; if(w>=100){const h=Math.round(Math.max(220,Math.min(w*0.62,300))); FW=w;FH=h;exG.style.height=h+'px';exG.width=Math.round(w*dpr);exG.height=Math.round(h*dpr);egx.setTransform(dpr,0,0,dpr,0,0);}
   drawEx();
 }
 const exScale=()=>Math.min(EW,EH)/2/EX.HALF;
@@ -779,25 +1082,37 @@ function galaxyIcon(c,x,y,g,col){ c.save();c.translate(x,y);c.rotate(g.ang);
 function arrow(c,x1,y1,x2,y2,col,w){ const L=Math.hypot(x2-x1,y2-y1); if(L<3) return; const ux=(x2-x1)/L, uy=(y2-y1)/L;
   c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-ux*6,y2-uy*6);c.stroke();
   c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-ux*9-uy*5,y2-uy*9+ux*5);c.lineTo(x2-ux*9+uy*5,y2-uy*9-ux*5);c.closePath();c.fill(); }
-function exVisible(){ const o=exObs(), k=exScale(), pts=[];
-  GAL.forEach((g,i)=>{ if(i===S.ex.obs) return; const [x,y]=exScreen(g,exA); if(x<8||x>EW-8||y<8||y>EH-8) return;
-    const d=Math.hypot(g.x-o.x,g.y-o.y)*exA; pts.push({i,g,x,y,d,v:Math.hypot(g.x-o.x,g.y-o.y)*EX.RATE}); }); return pts; }
+function pill(c,x,y,txt,fg,bg,font){ c.font=font; const tw=c.measureText(txt).width; c.fillStyle=bg;c.globalAlpha=.9;c.fillRect(x-tw/2-4,y-10,tw+8,20);c.globalAlpha=1;c.fillStyle=fg;c.textAlign='center';c.textBaseline='middle';c.fillText(txt,x,y+1); }
+function exVisible(){ const o=S.ex.obs, pts=[];
+  GAL.forEach((g,i)=>{ if(i===o) return; const [x,y]=exScreen(g,exA); if(x<8||x>EW-8||y<8||y>EH-8) return; pts.push({i,x,y,p:d0(i,o)}); }); return pts; }
 function drawEx(){
   if(!EW) return; const c=ecx; c.clearRect(0,0,EW,EH);
   c.fillStyle=css('--plot');c.fillRect(0,0,EW,EH);
   if(S.ex.view==='balloon'){ drawBalloon(c); drawExGraph(); return; }
-  const ink=css('--ink'), mu=css('--muted'), ac=css('--accent'), fit=css('--fit'), font=css('--font');
-  const o=exObs(), k=exScale();
-  if(S.ex.ghost&&exA>1.005){ c.strokeStyle=mu;c.lineWidth=1.2;c.globalAlpha=.6;
-    GAL.forEach(g=>{const [x,y]=exScreen(g,1);c.beginPath();c.arc(x,y,4,0,7);c.stroke();}); c.globalAlpha=1; }
-  const pts=exVisible();
-  if(S.ex.arrow){ const rate=(exPlaying?1:1); pts.forEach(p=>{ const dx=p.x-EW/2, dy=p.y-EH/2, L=Math.hypot(dx,dy); if(L<1) return;
-    const len=Math.min(70,0.24*L*rate/exA*1.0); arrow(c,p.x+dx/L*11,p.y+dy/L*11,p.x+dx/L*(11+len),p.y+dy/L*(11+len),fit,3); }); }
+  const st=exStage(), ink=css('--ink'), mu=css('--muted'), ac=css('--accent'), fit=css('--fit'), font=css('--font'), mono=css('--mono'), k=exScale();
+  const o=exObs(), [ox,oy]=exScreen(o,exA);
+  const showGhost=(st==='free'?S.ex.ghost:true)&&exA>1.005;
+  if(showGhost){ c.strokeStyle=mu;c.lineWidth=1.2;c.globalAlpha=.6; GAL.forEach(g=>{const [x,y]=exScreen(g,1);c.beginPath();c.arc(x,y,4,0,7);c.stroke();}); c.globalAlpha=1; }
+  // 잴 수 있는 범위 (고르는 단계에서만)
+  if(st==='m1pick'||st==='m2pick'){ c.strokeStyle=ac;c.setLineDash([6,5]);c.lineWidth=1.5;c.globalAlpha=.7;
+    c.beginPath();c.arc(ox,oy,EX.DMAX*EX.CELL*k*exA,0,7);c.stroke();c.setLineDash([]);c.globalAlpha=1; }
+  if(st==='free'&&S.ex.arrow){ exVisible().forEach(p=>{ const dx=p.x-ox, dy=p.y-oy, L=Math.hypot(dx,dy); if(L<1) return;
+    const len=Math.min(70,0.24*L/exA); arrow(c,p.x+dx/L*11,p.y+dy/L*11,p.x+dx/L*(11+len),p.y+dy/L*(11+len),fit,3); }); }
   GAL.forEach((g,i)=>{ if(i===S.ex.obs) return; const [x,y]=exScreen(g,exA); if(x<-20||x>EW+20||y<-20||y>EH+20) return; galaxyIcon(c,x,y,g,ink); });
-  const [ox,oy]=exScreen(o,exA); galaxyIcon(c,ox,oy,o,ac);
+  // 잰 은하: 자 대기
+  if(st!=='free'&&st!=='pred'){ const m=curM(), L=m===S.ex.m2?LET2:LET1;
+    if(m.obs===S.ex.obs) m.t.forEach((i,j)=>{ const [x,y]=exScreen(GAL[i],exA);
+      c.strokeStyle=fit;c.lineWidth=2;c.beginPath();c.moveTo(ox,oy);c.lineTo(x,y);c.stroke();
+      c.strokeStyle=fit;c.lineWidth=2.5;c.beginPath();c.arc(x,y,11,0,7);c.stroke();
+      const dist=rd1(d0(i,m.obs)*exA);
+      pill(c,x,y-23,`${L[j]} ${dist.toFixed(1)}칸`,css('--card'),fit,`800 13px ${font}`); }); }
+  galaxyIcon(c,ox,oy,o,ac);
   c.strokeStyle=ac;c.lineWidth=2.5;c.beginPath();c.arc(ox,oy,15,0,7);c.stroke();
-  c.font=`800 14px ${font}`;c.textAlign='center';c.textBaseline='bottom';c.fillStyle=css('--card');c.globalAlpha=.85;
-  const lab=S.ex.obs===0?'우리은하':'우리'; const tw=c.measureText(lab).width; c.fillRect(ox-tw/2-4,oy-37,tw+8,19);c.globalAlpha=1;c.fillStyle=ac;c.fillText(lab,ox,oy-19);
+  pill(c,ox,oy-26,S.ex.obs===0?'우리은하':'우리',ac,css('--card'),`800 14px ${font}`);
+  // 막대자 (팽창하지 않음)
+  const bl=4*EX.CELL*k, bx=EW-12-bl, by=EH-14;
+  c.strokeStyle=ink;c.lineWidth=2.5;c.beginPath();c.moveTo(bx,by);c.lineTo(bx+bl,by);c.moveTo(bx,by-5);c.lineTo(bx,by+5);c.moveTo(bx+bl,by-5);c.lineTo(bx+bl,by+5);c.stroke();
+  c.fillStyle=ink;c.font=`700 13px ${font}`;c.textAlign='center';c.textBaseline='bottom';c.fillText('4칸',bx+bl/2,by-6);
   drawExGraph();
 }
 function drawBalloon(c){
@@ -812,82 +1127,418 @@ function drawBalloon(c){
   c.fillStyle=mu;c.font=`600 13px ${font}`;c.fillText('점(은하)의 크기는 그대로',10,30);
 }
 function drawExGraph(){
-  if(!FW) return; const c=egx, ink=css('--ink'), mu=css('--muted'), gr=css('--grid'), font=css('--font');
-  c.clearRect(0,0,FW,FH); const P={l:40,r:12,t:12,b:40}, xa=P.l, xb=FW-P.r, ya=P.t, yb=FH-P.b;
-  c.fillStyle=css('--plot');c.fillRect(xa,ya,xb-xa,yb-ya);
-  const XM=Math.hypot(EW/2,EH/2)/exScale()*1.02, YM=XM*EX.RATE; // 축 범위는 화면 크기로만 정함(관측자를 바꿔도 같은 축)
+  if(!FW) return; const c=egx, ink=css('--ink'), mu=css('--muted'), gr=css('--grid'), font=css('--font'), mono=css('--mono');
+  c.clearRect(0,0,FW,FH); const P={l:40,r:14,t:14,b:44}, xa=P.l, xb=FW-P.r, ya=P.t, yb=FH-P.b;
+  const st=exStage(), free=st==='free';
+  const XM=free?24:12, YM=free?16:8, XS=free?4:2, YS=free?4:2;
   const X=d=>xa+d/XM*(xb-xa), Y=v=>yb-v/YM*(yb-ya);
-  c.strokeStyle=gr;c.lineWidth=1; for(let i=1;i<=4;i++){c.beginPath();c.moveTo(X(XM*i/4),ya);c.lineTo(X(XM*i/4),yb);c.moveTo(xa,Y(YM*i/4));c.lineTo(xb,Y(YM*i/4));c.stroke();}
+  c.fillStyle=css('--plot');c.fillRect(xa,ya,xb-xa,yb-ya);
+  c.lineWidth=1;c.font=`600 12px ${mono}`;
+  for(let x=0;x<=XM;x+=XS){c.strokeStyle=gr;c.beginPath();c.moveTo(X(x),ya);c.lineTo(X(x),yb);c.stroke();c.fillStyle=mu;c.textAlign='center';c.textBaseline='top';c.fillText(String(x),X(x),yb+5);}
+  for(let y=0;y<=YM;y+=YS){c.strokeStyle=gr;c.beginPath();c.moveTo(xa,Y(y));c.lineTo(xb,Y(y));c.stroke();c.fillStyle=mu;c.textAlign='right';c.textBaseline='middle';c.fillText(String(y),xa-6,Y(y));}
   c.strokeStyle=css('--line');c.strokeRect(xa+.5,ya+.5,xb-xa-1,yb-ya-1);
-  c.fillStyle=ink;c.font=`700 13px ${font}`;c.textAlign='center';c.textBaseline='bottom';c.fillText('관측자로부터의 거리',(xa+xb)/2,FH-6);
-  c.save();c.translate(13,(ya+yb)/2);c.rotate(-Math.PI/2);c.textBaseline='middle';c.fillText('멀어지는 속도',0,0);c.restore();
-  c.fillStyle=mu;c.font=`600 12px ${font}`;c.textAlign='left';c.textBaseline='top';c.fillText('0',xa-12,yb+4);
+  c.fillStyle=ink;c.font=`700 13px ${font}`;c.textAlign='center';c.textBaseline='bottom';c.fillText('처음 거리 (칸)',(xa+xb)/2,FH-4);
+  c.save();c.translate(12,(ya+yb)/2);c.rotate(-Math.PI/2);c.textBaseline='middle';c.fillText(free?'지금까지 늘어난 거리 (칸)':'늘어난 거리 (칸/단계)',0,0);c.restore();
   if(S.ex.view==='balloon'){c.fillStyle=mu;c.font=`600 14px ${font}`;c.textAlign='center';c.textBaseline='middle';c.fillText('평면 모형에서 볼 수 있어요',(xa+xb)/2,(ya+yb)/2);return;}
-  const pts=exVisible(); c.save();c.beginPath();c.rect(xa,ya,xb-xa,yb-ya);c.clip();
-  c.strokeStyle=css('--muted');c.setLineDash([5,4]);c.lineWidth=1.5;c.beginPath();c.moveTo(X(0),Y(0));c.lineTo(X(XM),Y(XM*EX.RATE/exA));c.stroke();c.setLineDash([]);
-  pts.forEach(p=>{c.strokeStyle=css('--real');c.lineWidth=2.2;c.fillStyle=css('--plot');c.beginPath();c.arc(X(p.d),Y(p.v),4.5,0,7);c.fill();c.stroke();});
+  c.save();c.beginPath();c.rect(xa,ya,xb-xa,yb-ya);c.clip();
+  const ring=(x,y,col)=>{c.strokeStyle=col;c.lineWidth=2.2;c.fillStyle=css('--plot');c.beginPath();c.arc(x,y,5,0,7);c.fill();c.stroke();};
+  const tri=(x,y,col)=>{c.fillStyle=col;c.beginPath();c.moveTo(x,y-6.5);c.lineTo(x+6,y+4.5);c.lineTo(x-6,y+4.5);c.closePath();c.fill();};
+  if(free){
+    const sl=exA-1;
+    if(sl>0.005){ c.strokeStyle=mu;c.setLineDash([5,4]);c.lineWidth=1.5;c.beginPath();c.moveTo(X(0),Y(0));c.lineTo(X(XM),Y(XM*sl));c.stroke();c.setLineDash([]); }
+    exVisible().forEach(p=>ring(X(p.p),Y(p.p*sl),css('--real')));
+    if(sl>0.005){c.fillStyle=mu;c.font=`700 13px ${font}`;c.textAlign='left';c.textBaseline='top';c.fillText(`기울기 ≈ ${sl.toFixed(2)}`,xa+8,ya+6);}
+  } else {
+    const E=S.ex;
+    if(E.rOK){ c.strokeStyle=mu;c.setLineDash([5,4]);c.lineWidth=1.5;c.beginPath();c.moveTo(X(0),Y(0));c.lineTo(X(XM),Y(XM*(EX.STEP-1)));c.stroke();c.setLineDash([]);
+      c.fillStyle=mu;c.font=`700 13px ${font}`;c.textAlign='left';c.textBaseline='top';c.fillText('기울기 ≈ 0.5',xa+8,ya+6); }
+    const lab=(x,y,t,col,dn)=>{c.fillStyle=col;c.font=`800 13px ${font}`;c.textAlign=dn?'left':'right';c.textBaseline=dn?'top':'bottom';c.fillText(t,dn?x+8:x-7,dn?y+5:y-4);};
+    if(E.m1.done) mRows(E.m1,EX.STEP).forEach((r,j)=>{ring(X(r.p),Y(r.dd),css('--real'));lab(X(r.p),Y(r.dd),LET1[j],css('--real'));});
+    if(E.m2.done) mRows(E.m2,EX.STEP).forEach((r,j)=>{tri(X(r.p),Y(r.dd),css('--accent'));lab(X(r.p),Y(r.dd),LET2[j],css('--accent'),true);});
+    if(!E.m1.done){c.fillStyle=mu;c.font=`600 14px ${font}`;c.textAlign='center';c.textBaseline='middle';c.fillText('은하 3개를 재면 여기에 점이 찍혀요',(xa+xb)/2,(ya+yb)/2);}
+  }
   c.restore();
 }
-function exTick(t){ if(!exPlaying) return; const dt=Math.min(.05,(t-exLast)/1000); exLast=t;
-  exA=Math.min(EX.AMAX,exA+EX.RATE*dt*1.0); if(exA>=EX.AMAX){exPlaying=false;}
-  if(!SIM&&exA>=1.25&&!S.ex.played){S.ex.played=true;save();renderEx();}
-  syncExA(); drawEx(); if(exPlaying) requestAnimationFrame(exTick); else renderExBtns(); }
 function syncExA(){ $('exA').value=exA; $('exAVal').textContent=exA.toFixed(2)+'배'; }
 function renderExBtns(){ $('exPlay').textContent=exPlaying?'일시정지 ❚❚':(exA>=EX.AMAX?'다시 팽창 ▶':'팽창 ▶'); }
+function exTick(t){ if(!exPlaying) return; const dt=Math.min(.05,(t-exLast)/1000); exLast=t;
+  exA=Math.min(EX.AMAX,exA+EX.RATE*dt); if(exA>=EX.AMAX) exPlaying=false;
+  syncExA(); drawEx(); if(exPlaying) requestAnimationFrame(exTick); else renderExBtns(); }
 $('exPlay').onclick=()=>{ if(exPlaying){exPlaying=false;renderExBtns();return;} if(exA>=EX.AMAX) exA=1; exPlaying=true; exLast=performance.now(); renderExBtns(); requestAnimationFrame(exTick); };
 $('exReset').onclick=()=>{ exPlaying=false; exA=1; syncExA(); renderExBtns(); drawEx(); };
-$('exA').addEventListener('input',e=>{ exA=+e.target.value; exPlaying=false; renderExBtns(); $('exAVal').textContent=exA.toFixed(2)+'배';
-  if(!SIM&&exA>=1.25&&!S.ex.played){S.ex.played=true;save();renderEx();} drawEx(); });
+$('exA').addEventListener('input',e=>{ exA=+e.target.value; exPlaying=false; renderExBtns(); $('exAVal').textContent=exA.toFixed(2)+'배'; drawEx(); });
+// 1단계 팽창 (재기 단계)
+$('exStep').onclick=()=>{ const st=exStage(); if(exAnim||(st!=='m1exp'&&st!=='m2exp')) return; exAnim=true; $('exStep').disabled=true; $('exUndo').disabled=true;
+  const t0=performance.now(); const step=t=>{ const u=Math.min(1,(t-t0)/1600), s=u*u*(3-2*u); exA=1+(EX.STEP-1)*s; drawEx();
+    if(u<1) requestAnimationFrame(step); else { exAnim=false; $('exStep').disabled=false; $('exUndo').disabled=false; (st==='m1exp'?S.ex.m1:S.ex.m2).done=true; save(); renderEx(); drawEx(); } };
+  requestAnimationFrame(step); };
+$('exUndo').onclick=()=>{ const m=curM(); if(m.done) return; m.t=[]; save(); renderEx(); drawEx(); };
 document.querySelectorAll('#exView button').forEach(b=>b.onclick=()=>{S.ex.view=b.dataset.v;save();renderEx();drawEx();});
 document.querySelectorAll('#exOpt button').forEach(b=>b.onclick=()=>{const k=b.dataset.v;S.ex[k]=!S.ex[k];save();renderEx();drawEx();});
 let camAnim=null;
-exC.addEventListener('pointerdown',e=>{ if(S.ex.view!=='plane') return; const r=exC.getBoundingClientRect(), px=e.clientX-r.left, py=e.clientY-r.top;
-  let best=-1,bd=26; GAL.forEach((g,i)=>{const [x,y]=exScreen(g,exA);const d=Math.hypot(x-px,y-py);if(d<bd){bd=d;best=i;}});
-  if(best<0||best===S.ex.obs) return; S.ex.obs=best;
-  if(!SIM){ if(!S.ex.seen.includes(best)) S.ex.seen.push(best); save(); }
-  const from={...exCam}, to={x:GAL[best].x,y:GAL[best].y}, t0=performance.now(); cancelAnimationFrame(camAnim);
+function moveCam(i){ const from={...exCam}, to={x:GAL[i].x,y:GAL[i].y}, t0=performance.now(); cancelAnimationFrame(camAnim);
   const step=t=>{const u=Math.min(1,(t-t0)/450), s=u*u*(3-2*u); exCam={x:from.x+(to.x-from.x)*s,y:from.y+(to.y-from.y)*s}; drawEx(); if(u<1) camAnim=requestAnimationFrame(step);};
-  camAnim=requestAnimationFrame(step); renderEx(); });
+  camAnim=requestAnimationFrame(step); }
+let exMsg='';
+exC.addEventListener('pointerdown',e=>{ if(S.ex.view!=='plane'||exAnim) return; const st=exStage(); if(st==='pred') return;
+  const r=exC.getBoundingClientRect(), px=e.clientX-r.left, py=e.clientY-r.top;
+  let best=-1,bd=26; GAL.forEach((g,i)=>{const [x,y]=exScreen(g,exA);const d=Math.hypot(x-px,y-py);if(d<bd){bd=d;best=i;}});
+  if(best<0||best===S.ex.obs) return;
+  if(st==='free'){ S.ex.obs=best; save(); moveCam(best); renderEx(); return; }
+  if(st==='m2obs'){ S.ex.obs=best; S.ex.m2.obs=best; exA=1; save(); moveCam(best); renderEx(); return; }
+  if(st==='m1pick'||st==='m2pick'){ const m=curM(), p=d0(best,m.obs);
+    exMsg='';
+    if(m.t.includes(best)) return;
+    if(p<EX.DMIN) exMsg='너무 가까운 은하예요. 조금 더 떨어진 은하를 골라 보세요.';
+    else if(p>EX.DMAX) exMsg='점선 원 안에 있는 은하를 골라 주세요. 너무 먼 은하는 팽창하면 화면 밖으로 나가요.';
+    else if(m.t.some(i=>Math.abs(d0(i,m.obs)-p)<EX.DGAP)) exMsg='이미 고른 은하와 거리가 비슷해요. 거리가 다른 은하를 고르거나, 마땅한 은하가 없으면 [고른 은하 지우기]로 다시 골라 보세요.';
+    else m.t.push(best);
+    save(); renderEx(); drawEx(); } });
 const EXP_T={a:'우리은하가 중심이다',b:'다른 은하에서 보아도 똑같이 보일 것이다',c:'잘 모르겠다'};
 document.querySelectorAll('#exPredOpts button').forEach(b=>b.onclick=()=>{ if(S.ex.pred) return; S.ex.pred=b.dataset.v; save(); renderEx(); relayout(); });
-document.querySelectorAll('#exCenterOpts button').forEach(b=>b.onclick=()=>{ if(S.ex.cOK) return; S.ex.cAns=b.dataset.v; if(b.dataset.v==='a') S.ex.cOK=true; save(); renderEx(); });
+document.querySelectorAll('#exRatioOpts button').forEach(b=>b.onclick=()=>{ if(S.ex.rOK) return; S.ex.rAns=b.dataset.v; if(b.dataset.v==='a') S.ex.rOK=true; save(); renderEx(); drawEx(); });
+document.querySelectorAll('#exCenterOpts button').forEach(b=>b.onclick=()=>{ if(S.ex.cOK) return; S.ex.cAns=b.dataset.v; if(b.dataset.v==='a'){S.ex.cOK=true;exA=1;} save(); renderEx(); drawEx(); });
 document.querySelectorAll('#exBoundOpts button').forEach(b=>b.onclick=()=>{ if(S.ex.bOK) return; S.ex.bAns=b.dataset.v; if(b.dataset.v==='b') S.ex.bOK=true; save(); renderEx(); });
-function renderEx(){
-  const E=S.ex, started=SIM||!!E.pred;
-  ['exCard','exGCard'].forEach(id=>$(id).classList.toggle('hidden',!started));
+function renderExTable(){
+  const E=S.ex; let h='';
+  const block=(m,L,title)=>{ if(m.obs==null) return; h+=`<tr class="sep"><td colspan="5">${title}</td></tr>`;
+    const rows=mRows(m,EX.STEP);
+    for(let j=0;j<3;j++){ const r=rows[j];
+      if(!r){h+=`<tr><td>${L[j]}</td><td class="empty">?</td><td class="empty">?</td><td class="empty">?</td><td class="empty">?</td></tr>`;continue;}
+      const done=m.done;
+      h+=`<tr><td>${L[j]}</td><td>${r.p.toFixed(1)}</td><td${done?'':' class="empty"'}>${done?r.q.toFixed(1):'?'}</td><td${done?'':' class="empty"'}>${done?r.dd.toFixed(1):'?'}</td><td${(done&&E.rOK)?'':' class="empty"'}>${(done&&E.rOK)?(r.dd/r.p).toFixed(2):'?'}</td></tr>`; } };
+  block(E.m1,LET1,'우리은하에서 잰 결과');
+  block(E.m2,LET2,'다른 은하에서 잰 결과');
+  $('exTbody').innerHTML=h;
+}
+const exMQ=matchMedia('(min-width:760px)');
+function placeExCtl(){ const tg=exMQ.matches?$('exCtlWide'):$('exCtlNarrow'); ['exMRow','exFree'].forEach(id=>{const el=$(id); if(el.parentElement!==tg) tg.appendChild(el);}); }
+exMQ.addEventListener('change',placeExCtl);
+function renderEx(){ placeExCtl();
+  const E=S.ex, st=exStage(), started=SIM||!!E.pred;
+  ['exCard','exGCard','exCtlCard'].forEach(id=>$(id).classList.toggle('hidden',!started));
   document.querySelectorAll('#exPredOpts button').forEach(b=>{b.setAttribute('aria-pressed',E.pred===b.dataset.v);b.disabled=!!E.pred;});
-  const pf=$('exPredFb'); pf.classList.toggle('hidden',!E.pred); if(E.pred) pf.innerHTML=`내 예측: <b>${EXP_T[E.pred]}</b>. 모형으로 확인해 봐요.`;
+  const pf=$('exPredFb'); pf.classList.toggle('hidden',!E.pred); if(E.pred) pf.innerHTML=`내 예측: <b>${EXP_T[E.pred]}</b>. 모형에서 직접 재서 확인해 봐요.`;
   document.querySelectorAll('#exView button').forEach(b=>b.setAttribute('aria-pressed',E.view===b.dataset.v));
   document.querySelectorAll('#exOpt button').forEach(b=>b.setAttribute('aria-pressed',!!E[b.dataset.v]));
-  $('exOpt').classList.toggle('hidden',E.view!=='plane'); $('balloonNote').classList.toggle('hidden',E.view!=='balloon');
+  const free=st==='free', plane=E.view==='plane';
+  $('exFree').classList.toggle('hidden',!free); $('exOpt').classList.toggle('hidden',!plane);
+  $('exMRow').classList.toggle('hidden',!(st==='m1exp'||st==='m2exp'||st==='m1pick'||st==='m2pick')||!plane);
+  $('exStep').disabled=exAnim||!(st==='m1exp'||st==='m2exp');
+  $('exView').classList.toggle('hidden',!free);
+  $('balloonNote').classList.toggle('hidden',E.view!=='balloon');
   $('exObsTag').textContent=E.obs===0?'관측자: 우리은하':'관측자: 다른 은하';
   const L=[`<span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="${css('--accent')}"/></svg>관측자('우리')</span>`,
     `<span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="${css('--ink')}"/></svg>은하</span>`];
-  if(E.ghost) L.push(`<span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="none" stroke="${css('--muted')}" stroke-width="1.5"/></svg>처음 위치</span>`);
-  if(E.arrow) L.push(`<span><svg viewBox="0 0 14 14"><path d="M1 7h9M8 3l5 4-5 4" fill="none" stroke="${css('--fit')}" stroke-width="2.4"/></svg>멀어지는 속도(화살표 길이)</span>`);
-  $('exLegend').innerHTML=E.view==='plane'?L.join(''):'';
-  const others=E.seen.filter(i=>i!==0).length;
-  let g=''; if(!E.played) g='[팽창 ▶]을 누르거나 막대를 밀어, 은하 사이가 어떻게 변하는지 보세요.';
-  else if(others<2) g=`이번에는 다른 은하를 눌러 관측자를 바꿔 보세요. 화살표와 아래 그래프가 어떻게 되나요? (${others}/2곳)`;
-  else if(!E.cOK) g='두 곳 이상에서 관측했어요. 아래 질문에 답해 보세요.';
-  else g='잘했어요. 풍선 그림도 보고, 생각 거리에 답해 보세요.';
-  $('exGuide').textContent=g;
-  $('exCenterCard').classList.toggle('hidden',!(E.played&&others>=2));
+  if(exA>1.005||free) L.push(`<span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="4" fill="none" stroke="${css('--muted')}" stroke-width="1.5"/></svg>처음 위치</span>`);
+  if(free&&E.arrow) L.push(`<span><svg viewBox="0 0 14 14"><path d="M1 7h9M8 3l5 4-5 4" fill="none" stroke="${css('--fit')}" stroke-width="2.4"/></svg>멀어지는 속도(화살표 길이)</span>`);
+  $('exLegend').innerHTML=plane?L.join(''):'';
+  // 안내
+  const G={pred:'',m1pick:`우리은하에서 거리가 서로 다른 은하 3개를 눌러 거리를 재세요. 점선 원 안에서 고르세요. (${E.m1.t.length}/3)`,
+    m1exp:'3개를 골랐어요. [1단계 팽창시키기]를 눌러 우주를 한 단계 팽창시키고, 거리가 얼마나 늘어나는지 보세요.',
+    ratio:'표와 그래프를 보고 아래 질문에 답해 보세요.',
+    m2obs:'이번에는 관측자를 바꿔요. 관측자가 될 은하를 아무거나 하나 누르세요.',
+    m2pick:`새 관측자에게서 거리가 서로 다른 은하 3개를 눌러 거리를 재세요. (${E.m2.t.length}/3)`,
+    m2exp:'[1단계 팽창시키기]를 눌러 보세요.', center:'두 관측자의 결과를 그래프에서 비교하고 아래 질문에 답해 보세요.',
+    free:'이제 자유롭게 팽창시키고, 아무 은하나 눌러 관측자를 바꿔 보세요. 풍선 그림도 보고 생각 거리에 답해 보세요.'};
+  $('exGuide').textContent=G[st]||'';
+  const mm=$('exMsg'), showM=!!exMsg&&(st==='m1pick'||st==='m2pick'); mm.classList.toggle('hidden',!showM); if(showM) mm.textContent=exMsg;
+  $('exTblCard').classList.toggle('hidden',!(E.pred&&!SIM));
+  $('exRatioTh').innerHTML='늘어난 거리<br>÷ 처음 거리';
+  renderExTable();
+  $('exGTitle').textContent=free?'관측자가 본 거리와 늘어난 거리':'처음 거리와 늘어난 거리';
+  $('exGNote').textContent=free?'화면에 보이는 은하를 모두 찍었어요. 처음(1.00배)부터 지금까지 늘어난 거리예요.':'1단계(은하 사이 거리 1.5배) 동안 늘어난 거리 = 멀어지는 속도예요.';
+  $('exGLegend').innerHTML=free?'':`<span><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" fill="none" stroke="${css('--real')}" stroke-width="2.2"/></svg>우리은하에서 잰 A·B·C</span>`+(E.m2.done?`<span><svg viewBox="0 0 14 14"><path d="M7 1.5L13 12H1z" fill="${css('--accent')}"/></svg>다른 은하에서 잰 D·E·F</span>`:'');
+  // 비례 질문
+  $('exRatioCard').classList.toggle('hidden',!E.m1.done);
+  document.querySelectorAll('#exRatioOpts button').forEach(b=>{b.setAttribute('aria-pressed',E.rAns===b.dataset.v);b.disabled=E.rOK;});
+  const rf=$('exRatioFb'); rf.classList.toggle('hidden',!E.rAns); rf.classList.remove('good','hint');
+  if(E.rOK){rf.classList.add('good');rf.innerHTML='맞아요. 처음 거리가 2배인 은하는 늘어난 거리도 2배예요. 표의 마지막 칸을 보면 <b>늘어난 거리 ÷ 처음 거리 ≈ 0.5</b>로 모두 같아요. 1단계 동안 늘어난 거리가 멀어지는 속도이니 <b>v = 0.5 × r</b>, 곧 이 모형의 허블-르메트르 법칙 <b>v = H · r</b>이에요(H ≈ 0.5/단계). 그럼 다른 은하에서 재도 그럴까요?';}
+  else if(E.rAns){rf.classList.add('hint');rf.textContent='그래프에서 오른쪽(처음 거리가 먼 은하)으로 갈수록 점이 어떻게 되나요? 원점(0, 0)과 점들을 이어 보세요.';}
+  // 중심 질문
+  $('exCenterCard').classList.toggle('hidden',!E.m2.done);
   document.querySelectorAll('#exCenterOpts button').forEach(b=>{b.setAttribute('aria-pressed',E.cAns===b.dataset.v);b.disabled=E.cOK;});
   const cf=$('exCenterFb'); cf.classList.toggle('hidden',!E.cAns); cf.classList.remove('good','hint');
-  if(E.cOK){cf.classList.add('good');cf.innerHTML=`맞아요. 우주가 고르게 팽창하면 <b>어느 은하에서 관측해도</b> 먼 은하일수록 빨리 멀어져요. 허블-르메트르 법칙이 어디서나 성립하니, 우리은하가 우주의 중심이라고 할 수 없어요. <b>우주에는 중심이 없어요.</b> 처음 예측은 '<b>${EXP_T[E.pred]||'-'}</b>'였어요.`;}
-  else if(E.cAns){cf.classList.add('hint');cf.textContent='관측자를 바꾼 뒤 화살표 길이와 아래 그래프의 점들을 다시 보세요. 관측자에게서 먼 은하의 화살표는 어떤가요?';}
+  if(E.cOK){cf.classList.add('good');cf.innerHTML=`맞아요. D·E·F도 A·B·C와 <b>같은 직선</b> 위에 놓여요. 우주가 고르게 팽창하면 <b>어느 은하에서 재도</b> 허블-르메트르 법칙이 성립해요. 그래서 모든 은하가 우리에게서 멀어진다고 우리은하가 우주의 중심인 것은 아니에요. <b>우주에는 중심이 없어요.</b> 처음 예측은 '<b>${EXP_T[E.pred]||'-'}</b>'였어요.`;}
+  else if(E.cAns){cf.classList.add('hint');cf.textContent='그래프에서 ○(A·B·C)와 ▲(D·E·F)가 어떻게 놓여 있는지 비교해 보세요. 표의 마지막 칸 값도 보세요.';}
+  // 생각 거리
   $('exBoundCard').classList.toggle('hidden',!(SIM||E.cOK));
   document.querySelectorAll('#exBoundOpts button').forEach(b=>{b.setAttribute('aria-pressed',E.bAns===b.dataset.v);b.disabled=E.bOK;});
   const bf=$('exBoundFb'); bf.classList.toggle('hidden',SIM||!E.bAns); bf.classList.remove('good','hint');
-  if(E.bOK){bf.classList.add('good');bf.innerHTML='맞아요. 태양계, 은하, 은하단처럼 <b>중력으로 묶인 천체는 팽창하지 않아요.</b> 원자나 우리 몸도 그대로예요. 그래서 모형에서도 은하 그림의 크기는 그대로 두었어요. 늘어나는 것은 서로 묶이지 않은 은하단 사이의 공간이에요.';}
+  if(E.bOK){bf.classList.add('good');bf.innerHTML='맞아요. 태양계, 은하, 은하단처럼 <b>중력으로 묶인 천체는 팽창하지 않아요.</b> 원자나 우리 몸도 그대로예요. 그래서 모형에서도 은하 그림의 크기와 막대자 길이는 그대로 두었어요. 늘어나는 것은 서로 묶이지 않은 은하단 사이의 공간이에요.';}
   else if(E.bAns){bf.classList.add('hint');bf.textContent='모형에서 팽창할 때 은하 그림의 크기가 커졌나요? 태양 둘레를 도는 행성은 무엇으로 묶여 있을까요?';}
-  renderExBtns();
+  renderExBtns(); syncExA();
+}
+function exSyncCam(){ const o=exObs(); exCam={x:o.x,y:o.y}; exAForStage(); }
+
+/* ================= ① 적색 편이 =================
+   관측 파장 = λ₀ × (1 + z). 은하 1~3: 모형 값, 안드로메다은하: 시선 속도 약 −300 km/s(z ≈ −0.0010). */
+const LINES=[{k:'ca',n:'칼슘',s:'Ca',l0:395},{k:'hb',n:'수소 Hβ',s:'Hβ',l0:486.1},{k:'ha',n:'수소 Hα',s:'Hα',l0:656.3}];
+const RSG=[{k:'g1',n:'은하 1',z:0.010,d:1},{k:'g2',n:'은하 2',z:0.040,d:1},{k:'g3',n:'은하 3',z:0.080,d:1},{k:'and',n:'안드로메다은하',z:-300/U.C,d:2}];
+const RS={L0:380,L1:720};
+const rsObs=(g,ln)=>{const v=ln.l0*(1+g.z); return g.d===2?Math.round(v*100)/100:r1(v);};
+const rsGal=()=>RSG.find(g=>g.k===S.rs.sel)||RSG[1];
+const rsLn=()=>LINES.find(l=>l.k===S.rs.line)||LINES[0];
+const rsMeas=(gk,lk)=>SIM||!!(S.rs.meas[gk]&&S.rs.meas[gk][lk]);
+const rsAllMeas=gk=>LINES.every(l=>rsMeas(gk,l.k));
+const rsUnlockAll=()=>SIM||S.rs.ratioOK;
+function rsStage(){ if(SIM) return 'free'; const R=S.rs; if(!R.pred) return 'pred'; if(!LINES.some(l=>rsMeas('g2',l.k))) return 'first'; if(!R.dirOK) return 'dir';
+  if(!rsAllMeas('g2')) return 'rest'; if(!R.ratioOK) return 'ratio'; if(!LINES.some(l=>rsMeas('and',l.k))) return 'and'; if(!R.andOK) return 'andq'; return 'free'; }
+const rsC=$('rsC'), rcx=rsC.getContext('2d'); let RW=0,RH=0;
+function rsView(){ if(!S.rs.zoom) return {a:RS.L0,b:RS.L1};
+  const g=rsGal(), ln=rsLn(), o=rsObs(g,ln), lo=Math.min(ln.l0,o), hi=Math.max(ln.l0,o), m=Math.max(1.2,(hi-lo)*0.35); return {a:lo-m,b:hi+m}; }
+function resizeRs(){ const w=rsC.parentElement.clientWidth; if(w<100) return; const h=206, dpr=Math.max(1,window.devicePixelRatio||1);
+  RW=w;RH=h;rsC.style.height=h+'px';rsC.width=Math.round(w*dpr);rsC.height=Math.round(h*dpr);rcx.setTransform(dpr,0,0,dpr,0,0); syncRsMk(); drawRs(); }
+const RP={l:12,r:12};
+const RX=(V,l)=>RP.l+(l-V.a)/(V.b-V.a)*(RW-RP.l-RP.r);
+const RL=(V,x)=>V.a+(x-RP.l)/(RW-RP.l-RP.r)*(V.b-V.a);
+function rsTol(V){ return Math.max(0.03,6*(V.b-V.a)/(RW-RP.l-RP.r)); } // 화면에서 약 6픽셀
+function drawRs(){
+  if(!RW) return; const c=rcx, V=rsView(), ink=css('--ink'), mu=css('--muted'), font=css('--font'), mono=css('--mono');
+  c.clearRect(0,0,RW,RH);
+  const g=rsGal(), top=[24,56], bot=[106,138];
+  const step=(V.b-V.a)/(RW-RP.l-RP.r);
+  const strip=([y0,y1])=>{for(let x=RP.l;x<RW-RP.r;x+=1){c.fillStyle=bandColor(RL(V,x+.5));c.fillRect(x,y0,1.2,y1-y0);}};
+  strip(top); strip(bot);
+  // 눈금 간격
+  const span=V.b-V.a, tk=span>200?50:span>80?20:span>30?10:span>12?5:span>5?2:span>2?1:0.5;
+  c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=1;
+  for(let l=Math.ceil(V.a/tk)*tk;l<=V.b;l+=tk){const x=Math.round(RX(V,l))+.5;c.beginPath();c.moveTo(x,top[0]);c.lineTo(x,top[1]);c.moveTo(x,bot[0]);c.lineTo(x,bot[1]);c.stroke();}
+  c.fillStyle=ink;c.font=`600 13px ${font}`;c.textAlign='left';c.textBaseline='bottom';
+  c.fillText('정지 상태 (실험실)',RP.l,top[0]-5);
+  c.fillText(`${g.n}`,RP.l,bot[0]-5);
+  const showL=S.rs.zoom?[rsLn()]:LINES;
+  showL.forEach(ln=>{ const x0=RX(V,ln.l0), xo=RX(V,rsObs(g,ln)), sel=ln.k===S.rs.line, done=rsMeas(g.k,ln.k);
+    c.strokeStyle=mu;c.setLineDash([4,3]);c.lineWidth=1.3;c.beginPath();c.moveTo(x0,top[1]);c.lineTo(x0,bot[1]+3);c.stroke();c.setLineDash([]);
+    c.fillStyle='#000';c.fillRect(x0-1.5,top[0],3,top[1]-top[0]);c.fillRect(xo-1.5,bot[0],3,bot[1]-bot[0]);
+    c.fillStyle=sel?ink:mu;c.font=`${sel?800:600} 13px ${mono}`;c.textBaseline='top';
+    const lt=`${ln.s} ${ln.l0}`; const tw=c.measureText(lt).width; let lx=x0+4; if(lx+tw>RW-RP.r) lx=x0-4-tw; c.textAlign='left'; c.fillText(lt,lx,top[1]+5);
+    if(done){ const y=bot[1]-8, dir=Math.sign(xo-x0), col=g.z<0?'#4aa3ff':'#ffd400';
+      if(Math.abs(xo-x0)>4){ c.strokeStyle=col;c.fillStyle=col;c.lineWidth=3;c.beginPath();c.moveTo(x0,y);c.lineTo(xo-dir*7,y);c.stroke();
+        c.beginPath();c.moveTo(xo-dir*1,y);c.lineTo(xo-dir*9,y-5);c.lineTo(xo-dir*9,y+5);c.closePath();c.fill(); }
+      c.font=`800 13px ${mono}`;const lab=`${rsObs(g,ln)}`; const w2=c.measureText(lab).width; let bx=dir>=0?xo+6:xo-10-w2; if(bx+w2+6>RW-RP.r) bx=xo-10-w2; if(bx<RP.l) bx=xo+6;
+      c.fillStyle='rgba(0,0,0,.72)';c.fillRect(bx-3,bot[0]+3,w2+6,17);c.fillStyle='#fff';c.textAlign='left';c.textBaseline='top';c.fillText(lab,bx,bot[0]+5); } });
+  // 표시
+  if(!rsMeas(g.k,S.rs.line)&&!SIM){ const xm=RX(V,S.rs.mk); if(xm>=RP.l-1&&xm<=RW-RP.r+1){ c.strokeStyle=css('--fit');c.lineWidth=2;c.beginPath();c.moveTo(xm,bot[0]-2);c.lineTo(xm,bot[1]+2);c.stroke();
+    c.fillStyle=css('--fit');c.beginPath();c.moveTo(xm,bot[1]+2);c.lineTo(xm-6,bot[1]+10);c.lineTo(xm+6,bot[1]+10);c.closePath();c.fill(); } }
+  // 눈금 숫자
+  c.fillStyle=mu;c.font=`600 13px ${mono}`;c.textBaseline='top';
+  const fmtT=l=>tk<1?l.toFixed(1):String(Math.round(l));
+  let lastX=-99; for(let l=Math.ceil(V.a/tk)*tk;l<=V.b+1e-9;l+=tk){const x=RX(V,l); if(x-lastX<34) continue; c.textAlign=x<20?'left':x>RW-20?'right':'center';c.fillText(fmtT(l),x,bot[1]+13);lastX=x;}
+  c.textAlign='right';c.font=`600 12px ${font}`;c.fillText('파장 (nm)',RW-RP.r,RH-16);
+  c.textAlign='left';
+  if(rsMeas(g.k,S.rs.line)){ c.fillStyle=g.z<0?'#4aa3ff':css('--fit'); c.font=`800 13px ${font}`; c.fillText(g.z<0?'← 다가옴 (청색 편이)':'멀어짐 → (적색 편이)',RP.l,RH-16); }
+  else { c.fillStyle=mu; c.fillText('← 짧은 파장',RP.l,RH-16); }
+}
+let rsDrag=false;
+function rsPtr(e){ if(SIM||rsMeas(rsGal().k,S.rs.line)) return; const r=rsC.getBoundingClientRect(); setRsMk(RL(rsView(),e.clientX-r.left)); }
+rsC.addEventListener('pointerdown',e=>{rsDrag=true;try{rsC.setPointerCapture(e.pointerId)}catch(_){ } rsPtr(e);});
+rsC.addEventListener('pointermove',e=>{if(rsDrag) rsPtr(e);});
+rsC.addEventListener('pointerup',()=>{rsDrag=false;save();});
+function syncRsMk(){ const V=rsView(), m=$('rsMk'), st=S.rs.zoom?0.01:0.1; m.min=V.a.toFixed(2); m.max=V.b.toFixed(2); m.step=st;
+  if(S.rs.mk<V.a||S.rs.mk>V.b) S.rs.mk=Math.round((V.a+V.b)/2*10)/10; m.value=S.rs.mk; $('rsMkVal').textContent=S.rs.mk.toFixed(S.rs.zoom?2:1)+' nm'; }
+function setRsMk(l){ const V=rsView(); const st=S.rs.zoom?0.01:0.1; S.rs.mk=Math.max(V.a,Math.min(V.b,Math.round(l/st)*st)); syncRsMk(); $('rsMkFb').classList.add('hidden'); drawRs(); }
+$('rsMk').addEventListener('input',e=>setRsMk(+e.target.value));
+$('rsMkBtn').onclick=()=>{ const g=rsGal(), ln=rsLn(), V=rsView(), o=rsObs(g,ln), fb=$('rsMkFb');
+  if(g.k==='and'&&!S.rs.zoom){fb.classList.remove('hidden');fb.textContent='흡수선이 거의 움직이지 않은 것처럼 보여요. [흡수선 확대]를 켜고 정확히 재 보세요.';return;}
+  if(Math.abs(S.rs.mk-o)<=rsTol(V)){ (S.rs.meas[g.k]=S.rs.meas[g.k]||{})[ln.k]=true; fb.classList.add('hidden');
+    const nx=LINES.find(l=>!rsMeas(g.k,l.k)); if(nx&&!S.rs.zoom) S.rs.line=nx.k; save(); renderRs(); syncRsMk(); drawRs(); }
+  else { fb.classList.remove('hidden'); fb.textContent=`아래 띠(${g.n})에서 ${ln.n} 흡수선을 찾아 빨간 표시를 그 가운데에 맞춰 보세요. 정지 상태의 ${ln.s} 선(${ln.l0} nm)에서 점선을 따라 내려가 그 근처를 보세요.`; } };
+$('rsZoom').onclick=()=>{ S.rs.zoom=!S.rs.zoom; save(); syncRsMk(); renderRs(); drawRs(); };
+const RSP_T={long:'파장이 긴 쪽으로 이동한다',short:'파장이 짧은 쪽으로 이동한다',none:'움직이지 않는다',red:'은하가 붉은색으로 보인다'};
+document.querySelectorAll('#rsPredOpts button').forEach(b=>b.onclick=()=>{ if(S.rs.pred) return; S.rs.pred=b.dataset.v; save(); renderRs(); relayout(); });
+document.querySelectorAll('#rsDirOpts button').forEach(b=>b.onclick=()=>{ if(S.rs.dirOK) return; S.rs.dirAns=b.dataset.v; if(b.dataset.v==='long') S.rs.dirOK=true; save(); renderRs(); });
+document.querySelectorAll('#rsRatioOpts button').forEach(b=>b.onclick=()=>{ if(S.rs.ratioOK) return; S.rs.ratioAns=b.dataset.v; if(b.dataset.v==='same') S.rs.ratioOK=true; save(); renderRs(); });
+document.querySelectorAll('#rsAndOpts button').forEach(b=>b.onclick=()=>{ if(S.rs.andOK) return; S.rs.andAns=b.dataset.v; if(b.dataset.v==='toward') S.rs.andOK=true; save(); renderRs(); });
+function rsQ(sel,ans,ok,fbId,goodHTML,hint){ document.querySelectorAll(sel+' button').forEach(b=>{b.setAttribute('aria-pressed',ans===b.dataset.v);b.disabled=ok;});
+  const f=$(fbId); f.classList.toggle('hidden',!ans); f.classList.remove('good','hint'); if(ok){f.classList.add('good');f.innerHTML=goodHTML;} else if(ans){f.classList.add('hint');f.textContent=hint;} }
+const rsDl=(g,L)=>{const k=g.d===2?100:10; return Math.round((rsObs(g,L)-L.l0)*k)/k;};
+const rsOkOf=gk=>(S.rs.ok[gk]=S.rs.ok[gk]||{});
+const rsInpOf=gk=>(S.rs.inp[gk]=S.rs.inp[gk]||{});
+const rsInpNum=s=>parseFloat(String(s??'').replace(/,/g,'').replace(/[−–]/g,'-').trim());
+document.querySelectorAll('#rsCm button').forEach(b=>b.onclick=()=>{S.rs.cm=b.dataset.v;save();renderRs();});
+// 입력칸: 값만 저장(다시 그리지 않아 커서가 유지됨)
+document.addEventListener('input',e=>{const el=e.target; if(!el.dataset||!el.dataset.f||!el.closest('#t-redshift')) return;
+  const I=rsInpOf(el.dataset.g); if(el.dataset.l){(I[el.dataset.l]=I[el.dataset.l]||{})[el.dataset.f]=el.value;} else I[el.dataset.f]=el.value; el.classList.remove('bad'); save();});
+$('rsCheck').onclick=()=>{ const g=rsGal(), ok=rsOkOf(g.k), inp=rsInpOf(g.k), fb=$('rsChkFb'); let good=0,bad=0,hint='';
+  const tolDl=g.d===2?0.02:0.15, tolR=g.d===2?0.0002:0.0015;
+  LINES.forEach(L=>{ if(!rsMeas(g.k,L.k)) return; const O=(ok[L.k]=ok[L.k]||{}), I=inp[L.k]||{}, dl=rsDl(g,L);
+    if(!O.dl&&I.dl!=null&&I.dl!==''){ if(Math.abs(rsInpNum(I.dl)-dl)<=tolDl){O.dl=true;good++;} else {bad++; hint=hint||`파장 변화량은 '관측 파장 − 고유 파장'이에요. ${L.n}: ${rsObs(g,L)} − ${L.l0}`+(g.z<0?' (값이 음수가 될 수 있어요)':'');} }
+    else if(O.dl&&!O.r&&I.r!=null&&I.r!==''){ if(Math.abs(rsInpNum(I.r)-dl/L.l0)<=tolR){O.r=true;good++;} else {bad++; hint=hint||`Δλ ÷ λ₀를 계산기로 구해 보세요. ${L.n}: ${dl} ÷ ${L.l0}`;} } });
+  const mL=LINES.find(L=>(ok[L.k]||{}).r);
+  if(mL&&S.rs.ratioOK){ const zd=g.d===2?4:3, zT=Math.round(rsDl(g,mL)/mL.l0*10**zd)/10**zd;
+    if(!ok.z&&inp.z!=null&&inp.z!==''){ if(Math.abs(rsInpNum(inp.z)-zT)<=tolR){ok.z=true;good++;} else {bad++; hint=hint||`z는 표의 Δλ ÷ λ₀ 값과 같아요.`;} }
+    else if(ok.z&&!ok.v&&inp.v!=null&&inp.v!==''){ const v=rsInpNum(inp.v), zi=rsInpNum(inp.z);
+      if(Math.abs(v-U.C*zi)<=Math.max(30,0.01*Math.abs(v))||Math.abs(v-U.C*zT)<=Math.max(60,0.03*Math.abs(U.C*zT))){ok.v=true;good++;} else {bad++; hint=hint||'v = c × z예요. c = 3×10⁵ = 300,000 km/s를 z에 곱해 보세요.';} } }
+  save(); renderRs();
+  fb.classList.remove('hidden','good','hint');
+  if(bad){fb.classList.add('hint');fb.textContent=hint; document.querySelectorAll('#t-redshift input[data-f]').forEach(el=>{ if(el.value!=='') el.classList.add('bad'); });}
+  else if(good){fb.classList.add('good');fb.textContent='맞았어요. 다음 칸도 계산해 보세요.';}
+  else {fb.classList.add('hint');fb.textContent='빈칸에 계산한 값을 적고 [답 확인]을 누르세요.';} };
+// 계산기
+(()=>{ const keys=['C','←','(',')','7','8','9','÷','4','5','6','×','1','2','3','−','0','.','=','+'];
+  const pad=$('cPad'), d=$('cDisp'); let ex='';
+  const show=()=>{d.value=ex||'0';};
+  keys.forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k;if('÷×−+'.includes(k))b.className='op';if(k==='=')b.className='eq';
+    b.onclick=()=>{ if(k==='C') ex=''; else if(k==='←') ex=ex.slice(0,-1);
+      else if(k==='='){ const s=ex.replace(/×/g,'*').replace(/÷/g,'/').replace(/−/g,'-');
+        if(/^[0-9.+\-*/() ]+$/.test(s)){ try{ const r=Function('"use strict";return ('+s+')')(); ex=Number.isFinite(r)?String(Number(r.toPrecision(8))):'오류'; }catch(_){ ex='오류'; } } else ex='오류'; }
+      else { if(ex==='오류') ex=''; ex+=k; }
+      show(); }; pad.appendChild(b);});
+  const b3=document.createElement('button');b3.type='button';b3.textContent='3×10⁵';b3.className='op';b3.style.gridColumn='span 4';b3.onclick=()=>{if(ex==='오류')ex='';ex+='300000';show();};pad.appendChild(b3);
+})();
+function renderRs(){
+  const R=S.rs, st=rsStage(), started=SIM||!!R.pred, g=rsGal();
+  ['rsCard','rsTblCard'].forEach(id=>$(id).classList.toggle('hidden',!started));
+  document.querySelectorAll('#rsPredOpts button').forEach(b=>{b.setAttribute('aria-pressed',R.pred===b.dataset.v);b.disabled=!!R.pred;});
+  const pf=$('rsPredFb'); pf.classList.toggle('hidden',!R.pred); if(R.pred) pf.innerHTML=`내 예측: <b>${RSP_T[R.pred]}</b>. 은하 2의 스펙트럼을 재서 확인해 봐요.`;
+  // 은하 고르기
+  const gc=$('rsGal'); gc.innerHTML='';
+  RSG.forEach(G=>{ if(!rsUnlockAll()&&G.k!=='g2') return; const b=document.createElement('button'); b.type='button';
+    b.innerHTML=G.n+(!SIM&&rsAllMeas(G.k)?' <span class="ok">✓</span>':''); b.setAttribute('aria-pressed',G.k===R.sel);
+    b.onclick=()=>{S.rs.sel=G.k; const nx=LINES.find(l=>!rsMeas(G.k,l.k)); if(nx) S.rs.line=nx.k; if(G.k==='and'&&!SIM) S.rs.line='ha'; save(); syncRsMk(); renderRs(); drawRs();}; gc.appendChild(b); });
+  const lc=$('rsLine'); lc.innerHTML='';
+  LINES.forEach(L=>{ const b=document.createElement('button'); b.type='button'; b.innerHTML=`${L.n} ${L.l0}`+(!SIM&&rsMeas(g.k,L.k)?' <span class="ok">✓</span>':''); b.setAttribute('aria-pressed',L.k===R.line);
+    b.onclick=()=>{S.rs.line=L.k; save(); syncRsMk(); renderRs(); drawRs();}; lc.appendChild(b); });
+  $('rsZoom').setAttribute('aria-pressed',R.zoom); $('rsZoom').textContent=R.zoom?'전체 스펙트럼 보기':'흡수선 확대';
+  $('rsSrc').textContent=g.k==='and'?'안드로메다은하 속도: 실제 자료':'은하 값: 모형'; $('rsSrc').className='tag '+(g.k==='and'?'real':'model');
+  $('rsMeasure').classList.toggle('hidden',SIM||rsMeas(g.k,R.line));
+  // 안내
+  const G={pred:'',first:'은하 2의 스펙트럼(아래 띠)에서 칼슘 흡수선을 찾아 빨간 표시를 맞추고 [이 위치로 재기]를 누르세요. 위 띠의 칼슘선(395 nm)에서 점선을 따라 내려가 보세요.',
+    dir:'흡수선 하나를 쟀어요. 아래 질문에 답해 보세요.', rest:'나머지 흡수선(Hβ, Hα)도 같은 방법으로 재 보세요.',
+    ratio:'세 흡수선을 모두 쟀어요. 표를 보고 아래 질문에 답해 보세요.',
+    and:"이번에는 '안드로메다은하'를 골라, [흡수선 확대]를 켜고 Hα 흡수선을 재 보세요.", andq:'안드로메다은하의 흡수선이 어느 쪽으로 움직였는지 보고 질문에 답해 보세요.',
+    free:'다른 은하도 골라 재 보세요. 은하마다 흡수선이 밀린 비율(z)이 달라요. 이 z로 구한 후퇴 속도와 거리의 관계는 ② 탭에서 찾아요.'};
+  $('rsGuide').textContent=G[st]||'';
+  // 표
+  $('rsTblTitle').textContent=`잰 결과 — ${g.n}`;
+  const man=!SIM&&R.cm==='manual', dd=g.d===2?2:1, rdg=g.d===2?4:3; let h='';
+  const ok=rsOkOf(g.k), inp=rsInpOf(g.k), showRatio=SIM||R.ratioOK;
+  LINES.forEach(L=>{ if(rsMeas(g.k,L.k)){ const o=rsObs(g,L), dl=rsDl(g,L), rr=dl/L.l0, O=ok[L.k]||{}, I=inp[L.k]||{};
+      let c4, c5;
+      if(man){ c4=O.dl?`${dl>0?'+':''}${dl.toFixed(dd)} <span class="ok">✓</span>`:`<input data-g="${g.k}" data-l="${L.k}" data-f="dl" inputmode="decimal" value="${I.dl||''}" aria-label="${L.n} 파장 변화량">`;
+        c5=O.r?`${rr.toFixed(rdg)} <span class="ok">✓</span>`:(O.dl?`<input data-g="${g.k}" data-l="${L.k}" data-f="r" inputmode="decimal" value="${I.r||''}" aria-label="${L.n} 파장 변화량 나누기 고유 파장">`:'<span class="empty">?</span>'); }
+      else { c4=`${dl>0?'+':''}${dl.toFixed(dd)}`; c5=showRatio?rr.toFixed(rdg):'?'; }
+      h+=`<tr><td>${L.n}</td><td>${L.l0}</td><td>${o.toFixed(dd)}</td><td>${c4}</td><td${(!man&&!showRatio)?' class="empty"':''}>${c5}</td></tr>`; }
+    else h+=`<tr><td>${L.n}</td><td>${L.l0}</td><td class="empty">?</td><td class="empty">?</td><td class="empty">?</td></tr>`; });
+  $('rsTbody').innerHTML=h;
+  // z, v 계산
+  const cb=$('rsCalc'), mL=LINES.find(L=>rsMeas(g.k,L.k)), zd=rdg;
+  const zvOn=showRatio&&mL&&(!man||LINES.some(L=>(ok[L.k]||{}).r));
+  if(zvOn){ const dl=rsDl(g,mL), z=Math.round(dl/mL.l0*10**zd)/10**zd, v=Math.round(z*U.C);
+    cb.classList.remove('hidden');
+    if(man){ const zt=ok.z?`${z.toFixed(zd)} <span class="ok">✓</span>`:`<input data-g="${g.k}" data-f="z" inputmode="decimal" value="${inp.z||''}" aria-label="적색 편이 z">`;
+      const vt=ok.v?`${fmt(rsInpNum(inp.v))} km/s <span class="ok">✓</span>`:(ok.z?`<input data-g="${g.k}" data-f="v" inputmode="decimal" value="${inp.v||''}" aria-label="속도"> km/s`:'?');
+      cb.innerHTML=`<div class="ln"><span class="k">적색 편이</span>z = Δλ ÷ λ₀ (${mL.n}) = ${zt}</div><div class="ar">↓</div>
+      <div class="ln"><span class="k">${g.z<0?'시선 속도':'후퇴 속도'}</span>v = c · z = (3×10⁵) × z = ${vt}</div>`; }
+    else cb.innerHTML=`<div class="ln"><span class="k">적색 편이</span>z = Δλ ÷ λ₀ = ${dl.toFixed(dd)} ÷ ${mL.l0} ≈ ${z.toFixed(zd)}</div><div class="ar">↓</div>
+    <div class="ln"><span class="k">${v<0?'시선 속도':'후퇴 속도'}</span>v = c · z = (3×10⁵) × ${z.toFixed(zd)} ≈ ${v<0?'−':''}${fmt(Math.abs(v))} km/s</div>`;
+    cb.innerHTML+=`<div class="txt" style="color:var(--muted);font-size:14px">${g.z<0?'속도가 음수(−)이면 다가오는 것이에요. ':''}v = c·z는 z가 작을 때(대략 0.1 이하)만 쓰는 근사식이에요.</div>`; }
+  else cb.classList.add('hidden');
+  $('rsManual').classList.toggle('hidden',!(man&&LINES.some(L=>rsMeas(g.k,L.k))));
+  document.querySelectorAll('#rsCm button').forEach(b=>b.setAttribute('aria-pressed',R.cm===b.dataset.v));
+  $('rsCmNote').textContent=R.cm==='manual'?'흡수선을 재면 관측 파장만 나와요. 파장 변화량, Δλ ÷ λ₀, z, 속도는 계산기로 직접 구해 칸에 적어요.':'흡수선을 재면 파장 변화량이 자동으로 계산돼요.';
+  // 질문
+  $('rsDirCard').classList.toggle('hidden',!(st!=='pred'&&st!=='first'));
+  rsQ('#rsDirOpts',R.dirAns,R.dirOK,'rsDirFb',`맞아요. 흡수선이 <b>파장이 긴 쪽</b>으로 밀렸어요. 이것이 <b>적색 편이</b>예요. 은하가 빨갛게 보이는 것이 아니라 흡수선의 위치가 바뀌는 거예요. 처음 예측은 '<b>${RSP_T[R.pred]||'-'}</b>'였어요.`,'위 띠(정지 상태)와 아래 띠(은하 2)에서 같은 흡수선의 위치를 비교해 보세요. 띠의 색은 둘 다 같아요.');
+  $('rsRatioCard').classList.toggle('hidden',!(R.cm==='manual'?LINES.every(L=>(rsOkOf('g2')[L.k]||{}).r):rsAllMeas('g2')));
+  rsQ('#rsRatioOpts',R.ratioAns,R.ratioOK,'rsRatioFb','맞아요. Δλ는 선마다 달라도 <b>Δλ ÷ λ₀는 모두 약 0.040</b>으로 같아요. 은하의 모든 흡수선이 같은 비율로 밀려요. 이 비율이 <b>적색 편이 z = Δλ ÷ λ₀</b>이고, 후퇴 속도는 <b>v = c · z</b>로 구해요. 이제 다른 은하도 골라 볼 수 있어요.','계산기로 표의 Δλ를 λ₀로 나눠 보세요. 예: 칼슘선은 Δλ ÷ 395.');
+  $('rsAndCard').classList.toggle('hidden',!(st==='andq'||(R.andAns!=null)||(!SIM&&R.andOK)));
+  rsQ('#rsAndOpts',R.andAns,R.andOK,'rsAndFb','맞아요. 흡수선이 <b>파장이 짧은 쪽</b>으로 밀렸어요(<b>청색 편이</b>). 안드로메다은하는 우리은하와 서로 중력으로 끌어당겨 초속 약 300 km로 다가오고 있어요. 가까운 은하 중에는 이렇게 다가오는 은하도 있어요. 멀리 있는 은하들은 어떨까요? ② 탭에서 확인해 봐요.','확대한 그림에서 아래 띠의 흡수선이 위 띠(정지 상태)보다 왼쪽(짧은 파장)인지 오른쪽(긴 파장)인지 보세요.');
 }
 
-function exSyncCam(){ const o=exObs(); exCam={x:o.x,y:o.y}; }
+/* ================= ④ 우주의 나이 =================
+   일정한 속도로 팽창했다고 가정: 은하 사이 거리 비율 a(t) = 1 − t/T, T = 1/H (허블 시간).
+   T(년) = (1 Mpc in km ÷ H) ÷ (1년 in s). 단위 변환은 U에서만. */
+const hubbleTimeYr=H=>U.MPC_KM/H/U.YR_S;
+const SUP={'-':'⁻','0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+function sci(x,d){ let e=Math.floor(Math.log10(Math.abs(x))), m=x/10**e; if(+m.toFixed(d)>=10){m/=10;e++;} return `${m.toFixed(d)}×10${String(e).split('').map(ch=>SUP[ch]).join('')}`; }
+const eok=yr=>`${fmt(yr/1e8)}억`;
+let agt=0, agPlaying=false, agLast=0;
+const agC=$('agC'), acx=agC.getContext('2d'), agG=$('agG'), agx=agG.getContext('2d'); let AW=0,AH=0,BW=0,BH=0;
+const agTH=()=>hubbleTimeYr(S.ag.H)/1e8; // 억 년
+const agA=()=>Math.max(0,1-agt/agTH());
+function agStage(){ if(SIM) return 'free'; const A=S.ag; if(!A.pred) return 'pred'; if(!A.reached) return 'rewind'; if(!A.invOK) return 'inv'; if(!A.h29OK) return 'h29'; return 'free'; }
+function resizeAg(){ const dpr=Math.max(1,window.devicePixelRatio||1);
+  let w=agC.parentElement.clientWidth; if(w>=100){const h=Math.round(Math.min(w*0.78,420)); AW=w;AH=h;agC.style.height=h+'px';agC.width=Math.round(w*dpr);agC.height=Math.round(h*dpr);acx.setTransform(dpr,0,0,dpr,0,0);}
+  w=agG.parentElement.clientWidth; if(w>=100){const h=Math.round(Math.max(190,Math.min(w*0.52,240))); BW=w;BH=h;agG.style.height=h+'px';agG.width=Math.round(w*dpr);agG.height=Math.round(h*dpr);agx.setTransform(dpr,0,0,dpr,0,0);}
+  drawAg(); }
+function drawAg(){
+  if(AW){ const c=acx, ink=css('--ink'), mu=css('--muted'), ac=css('--accent'), font=css('--font'), a=agA(), o=GAL[0], k=Math.min(AW,AH)/2/EX.HALF;
+    c.clearRect(0,0,AW,AH); c.fillStyle=css('--plot'); c.fillRect(0,0,AW,AH);
+    const P=(g,s)=>[AW/2+(g.x-o.x)*s*k, AH/2-(g.y-o.y)*s*k];
+    if(a<0.999){ c.strokeStyle=mu;c.lineWidth=1;c.globalAlpha=.35; GAL.forEach(g=>{const [x,y]=P(g,1); if(x>-10&&x<AW+10&&y>-10&&y<AH+10){c.beginPath();c.arc(x,y,3.5,0,7);c.stroke();}}); c.globalAlpha=1; }
+    const fade=Math.min(1,a/0.25);
+    if(a>0.003){ GAL.forEach((g,i)=>{ if(i===0) return; const [x,y]=P(g,a); if(x<-20||x>AW+20||y<-20||y>AH+20) return; c.globalAlpha=0.25+0.75*fade; galaxyIcon(c,x,y,g,ink); }); c.globalAlpha=1;
+      const [ox,oy]=P(o,a); galaxyIcon(c,ox,oy,o,ac); c.strokeStyle=ac;c.lineWidth=2.5;c.beginPath();c.arc(ox,oy,15,0,7);c.stroke();
+      pill(c,ox,oy-26,'우리은하',ac,css('--card'),`800 14px ${font}`); }
+    else { const gg=c.createRadialGradient(AW/2,AH/2,2,AW/2,AH/2,46); gg.addColorStop(0,'rgba(255,230,160,1)'); gg.addColorStop(1,'rgba(255,170,60,0)');
+      c.fillStyle=gg;c.beginPath();c.arc(AW/2,AH/2,46,0,7);c.fill();
+      pill(c,AW/2,AH/2+64,'모든 은하 사이의 거리 ≈ 0',ink,css('--card'),`800 14px ${font}`); }
+    c.fillStyle=ink;c.font=`800 15px ${font}`;c.textAlign='left';c.textBaseline='top';
+    c.fillText(agt<0.5?'지금':`${fmt(Math.min(agt,agTH()))}억 년 전`,10,10);
+    c.fillStyle=mu;c.font=`600 13px ${font}`;c.fillText('일정한 속도로 팽창했다고 가정',10,32);
+    if(a<=0.003){ c.fillStyle=css('--fit');c.font=`800 14px ${font}`;c.fillText(`한 점에 모임: 약 ${fmt(agTH())}억 년 전`,10,52); } }
+  if(BW){ const c=agx, ink=css('--ink'), mu=css('--muted'), gr=css('--grid'), font=css('--font'), mono=css('--mono');
+    c.clearRect(0,0,BW,BH); const P={l:44,r:14,t:14,b:44}, xa=P.l, xb=BW-P.r, ya=P.t, yb=BH-P.b, TM=300;
+    const X=t=>xb-(t/TM)*(xb-xa), Y=v=>yb-v/1.2*(yb-ya);
+    c.fillStyle=css('--plot');c.fillRect(xa,ya,xb-xa,yb-ya);
+    c.lineWidth=1;c.font=`600 12px ${mono}`;
+    for(let t=0;t<=TM;t+=50){c.strokeStyle=gr;c.beginPath();c.moveTo(X(t),ya);c.lineTo(X(t),yb);c.stroke();if(t%100===0){c.fillStyle=mu;c.textAlign='center';c.textBaseline='top';c.fillText(String(t),X(t),yb+5);}}
+    for(let v=0;v<=1.2001;v+=0.25){c.strokeStyle=gr;c.beginPath();c.moveTo(xa,Y(v));c.lineTo(xb,Y(v));c.stroke();if(Math.abs(v*2-Math.round(v*2))<1e-6){c.fillStyle=mu;c.textAlign='right';c.textBaseline='middle';c.fillText(v.toFixed(1),xa-6,Y(v));}}
+    c.strokeStyle=css('--line');c.strokeRect(xa+.5,ya+.5,xb-xa-1,yb-ya-1);
+    c.fillStyle=ink;c.font=`700 13px ${font}`;c.textAlign='center';c.textBaseline='bottom';c.fillText('지금으로부터 (억 년 전)',(xa+xb)/2,BH-4);
+    c.save();c.translate(12,(ya+yb)/2);c.rotate(-Math.PI/2);c.textBaseline='middle';c.fillText('은하 사이 거리 (지금 = 1)',0,0);c.restore();
+    const T=agTH(); c.save();c.beginPath();c.rect(xa,ya,xb-xa,yb-ya);c.clip();
+    if(Math.abs(S.ag.H-70)>0.5&&(SIM||S.ag.invOK)){ const T70=hubbleTimeYr(70)/1e8; c.strokeStyle=mu;c.setLineDash([5,4]);c.lineWidth=1.5;c.beginPath();c.moveTo(X(0),Y(1));c.lineTo(X(T70),Y(0));c.stroke();c.setLineDash([]); }
+    c.strokeStyle=css('--fit');c.lineWidth=3;c.beginPath();c.moveTo(X(0),Y(1));c.lineTo(X(Math.min(T,TM)),Y(Math.max(0,1-Math.min(T,TM)/T)));c.stroke();
+    const tt=Math.min(agt,T); c.fillStyle=css('--fit');c.beginPath();c.arc(X(tt),Y(1-tt/T),6,0,7);c.fill();c.strokeStyle=css('--card');c.lineWidth=2;c.stroke();
+    c.restore();
+    if(SIM||S.ag.reached){ c.fillStyle=css('--fit');c.font=`800 13px ${font}`;c.textAlign=X(T)<xa+150?'left':'right';c.textBaseline='bottom';c.fillText(`허블 시간 ≈ ${fmt(T)}억 년`,X(T)<xa+150?X(T)+10:X(T)-10,Y(0)-6); }
+  }
+}
+function agSetT(t){ agt=Math.max(0,Math.min(300,t)); $('agT').value=agt; $('agTVal').textContent=`${fmt(agt)}억 년`; $('agAVal').textContent=`${Math.round(agA()*100)}%`;
+  if(!SIM&&!S.ag.reached&&S.ag.pred&&agA()<=0.003){ S.ag.reached=true; save(); renderAg(); }
+  drawAg(); }
+$('agT').addEventListener('input',e=>{agPlaying=false;renderAgBtn();agSetT(+e.target.value);});
+function renderAgBtn(){ $('agPlay').textContent=agPlaying?'멈추기 ❚❚':'거꾸로 돌리기 ◀◀'; }
+function agTick(t){ if(!agPlaying) return; const dt=Math.min(.05,(t-agLast)/1000); agLast=t; const T=agTH();
+  let nt=agt+45*dt; if(nt>=T){nt=T;agPlaying=false;} agSetT(nt); if(agPlaying) requestAnimationFrame(agTick); else renderAgBtn(); }
+$('agPlay').onclick=()=>{ if(agPlaying){agPlaying=false;renderAgBtn();return;} if(agt>=agTH()-0.5) agt=0; agPlaying=true; agLast=performance.now(); renderAgBtn(); requestAnimationFrame(agTick); };
+$('agNow').onclick=()=>{ agPlaying=false; renderAgBtn(); agSetT(0); };
+$('agH').addEventListener('input',e=>{ S.ag.H=+e.target.value; renderAgCalc(); agSetT(agt); });
+$('agH').addEventListener('change',save);
+function renderAgCalc(){ const H=S.ag.H, s=U.MPC_KM/H, yr=s/U.YR_S;
+  $('agHVal').textContent=H; $('agH').value=H; $('agAge').textContent=eok(yr);
+  $('agCalc').innerHTML=`<div class="ln"><span class="k">단위 맞추기</span>1 Mpc ≈ 3.1×10¹⁹ km</div><div class="ar">↓</div>
+  <div class="ln"><span class="k">허블 시간</span>1/H = 3.1×10¹⁹ km ÷ ${H} km/s ≈ ${sci(s,1)} 초</div><div class="ar">↓</div>
+  <div class="ln"><span class="k">년으로</span>${sci(s,1)} 초 ÷ (3.156×10⁷ 초/년) ≈ ${sci(yr,1)} 년 ≈ ${eok(yr)} 년</div>`; }
+const AGP_T={zero:'모두 한 점에 모인다',same:'변하지 않는다',far:'더 멀어진다'};
+document.querySelectorAll('#agPredOpts button').forEach(b=>b.onclick=()=>{ if(S.ag.pred) return; S.ag.pred=b.dataset.v; save(); renderAg(); relayout(); });
+document.querySelectorAll('#agInvOpts button').forEach(b=>b.onclick=()=>{ if(S.ag.invOK) return; S.ag.invAns=b.dataset.v; if(b.dataset.v==='short') S.ag.invOK=true; save(); renderAg(); drawAg(); });
+document.querySelectorAll('#agH29Opts button').forEach(b=>b.onclick=()=>{ if(S.ag.h29OK) return; S.ag.h29Ans=b.dataset.v; if(b.dataset.v==='b') S.ag.h29OK=true; save(); renderAg(); });
+function renderAg(){
+  const A=S.ag, st=agStage(), started=SIM||!!A.pred;
+  $('agCard').classList.toggle('hidden',!started);
+  $('agHCard').classList.toggle('hidden',!(SIM||A.reached));
+  $('agHBox').classList.toggle('hidden',!(SIM||A.reached));
+  document.querySelectorAll('#agPredOpts button').forEach(b=>{b.setAttribute('aria-pressed',A.pred===b.dataset.v);b.disabled=!!A.pred;});
+  const pf=$('agPredFb'); pf.classList.toggle('hidden',!A.pred); if(A.pred) pf.innerHTML=`내 예측: <b>${AGP_T[A.pred]}</b>. 팽창을 거꾸로 돌려 확인해 봐요.`;
+  const G={pred:'',rewind:'시간 막대를 오른쪽으로 밀거나 [거꾸로 돌리기]를 눌러 과거로 가 보세요. 은하 사이 거리가 어떻게 되나요?',
+    inv:`은하들이 한 점에 모였어요. 처음 예측은 '${AGP_T[A.pred]||'-'}'였어요. 이 시간이 허블 시간이에요. 아래 계산을 읽고 질문에 답해 보세요.`,
+    h29:'허블 상수 막대를 움직여 확인해 보고, 다음 질문에 답해 보세요.', free:'잘했어요. 허블 상수를 바꾸며 허블 시간이 어떻게 변하는지 더 살펴보세요.'};
+  $('agGuide').textContent=G[st]||'';
+  const hOn=SIM||A.invOK; $('agH').disabled=!hOn; $('agHLock').classList.toggle('hidden',hOn);
+  if(!hOn) S.ag.H=70;
+  renderAgCalc();
+  $('agInvCard').classList.toggle('hidden',!A.reached);
+  rsQ('#agInvOpts',A.invAns,A.invOK,'agInvFb','맞아요. 허블 시간은 <b>1/H</b>라서 허블 상수에 <b>반비례</b>해요. 팽창이 빠를수록 거꾸로 돌렸을 때 더 빨리 한 점에 모여요. 이제 허블 상수 막대를 움직여 확인해 보세요.','팽창이 더 빠르다면, 거꾸로 돌렸을 때 은하들이 한 점에 모이는 데 시간이 더 걸릴까요, 덜 걸릴까요? 1/H 식도 보세요.');
+  $('agH29Card').classList.toggle('hidden',!A.invOK);
+  rsQ('#agH29Opts',A.h29Ans,A.h29OK,'agH29Fb','맞아요. 500은 70의 약 7배이므로 허블 시간은 140억 년의 약 7분의 1, <b>약 20억 년</b>이에요. 우주가 지구(약 46억 년)보다 젊을 수는 없으니 모순이었지요. 나중에 은하까지의 거리를 다시 재면서 허블 상수가 작아져 이 문제가 풀렸어요. 실제 우주의 나이는 약 <b>138억 년</b>이에요(더 알아보기).','허블 시간은 허블 상수에 반비례해요. 500은 70의 몇 배인가요? 그러면 140억 년은 몇 분의 1이 될까요?');
+  renderAgBtn();
+}
 
-function renderAll(){ renderQ(); renderPick(); renderCalc(); renderTable(); renderGraphCtl(); drawSpec(); drawGraph(); renderEx(); drawEx(); }
+function renderAll(){ renderQ(); renderPick(); renderCalc(); renderTable(); renderGraphCtl(); drawSpec(); drawGraph(); renderEx(); drawEx(); renderRs(); syncRsMk(); drawRs(); renderAg(); drawAg(); }
 
 /* ---------- 탭과 주소 ---------- */
 const TABS=['redshift','law','expand','age'];
@@ -900,9 +1551,9 @@ function showTab(k,push){
   relayout();
 }
 document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
-function relayout(){ if(TAB==='law'){resizeSpec();resizeGraph();} if(TAB==='expand') resizeEx(); }
+function relayout(){ if(TAB==='law'){resizeSpec();resizeGraph();} if(TAB==='expand') resizeEx(); if(TAB==='redshift') resizeRs(); if(TAB==='age') resizeAg(); }
 new ResizeObserver(()=>relayout()).observe(document.querySelector('.wrap'));
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{renderGraphCtl();drawSpec();drawGraph();renderEx();drawEx();});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{renderGraphCtl();drawSpec();drawGraph();renderEx();drawEx();renderRs();drawRs();renderAg();drawAg();});
 
 /* ---------- 모드: 탐구 모드 / 시뮬레이션 모드 (dating-sim.html과 같은 구조) ----------
    모드는 주소로만 정함: ?mode=sim 이면 시뮬레이션 모드, 없으면 항상 탐구 모드(기기에 기억하지 않음).
@@ -912,7 +1563,9 @@ function setMode(m){
   const toSim=m==='sim';
   if(toSim&&!SIM){ inqSnap=JSON.parse(JSON.stringify(S));
     S=Object.assign(fresh(),{pred:'fast',tb:[true,true,true],rel:'a',relOK:true,rm:[true,true],added:REAL.length-N_MANUAL,fitOK:true,H:60,sel:{k:'tb',i:0},
-      ex:Object.assign(fresh().ex,{pred:'b',played:true,seen:[0,1,2],cAns:'a',cOK:true,bAns:'b',bOK:true})});
+      ex:Object.assign(fresh().ex,{pred:'b',rAns:'a',rOK:true,cAns:'a',cOK:true,bAns:'b',bOK:true}),
+      rs:Object.assign(fresh().rs,{pred:'long',dirAns:'long',dirOK:true,ratioAns:'same',ratioOK:true,andAns:'toward',andOK:true}),
+      ag:Object.assign(fresh().ag,{pred:'zero',reached:true,invAns:'short',invOK:true,h29Ans:'b',h29OK:true})});
     document.querySelectorAll('details.mguide').forEach(d=>d.open=true); // 모형 안내는 펼쳐서 시작
   } else if(!toSim&&SIM){ if(inqSnap){S=inqSnap;inqSnap=null;} if(!loaded){load();loaded=true;} document.querySelectorAll('details.mguide').forEach(d=>d.open=false); }
   SIM=toSim; exSyncCam();
