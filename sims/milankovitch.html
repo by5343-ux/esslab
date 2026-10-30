@@ -1,0 +1,1346 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기후 변화의 외적 요인</title>
+<meta name="description" content="ESS Lab 지구과학 [12지구01-06] 기후 변화의 외적 요인 — 세차 운동, 자전축 기울기, 공전 궤도 모양이 계절과 연교차를 바꾸는 과정을 판단표로 탐구">
+<style>
+:root{
+  --bg:#f5f3ee; --card:#ffffff; --ink:#1c2330; --muted:#5a6372; --line:#e0dbd1;
+  --accent:#1d7656; --warn:#b2461a; --chip:#eeeae2; --chipOn:#1c2330; --chipOnInk:#ffffff;
+  --summer:#c93a2e; --winter:#2463c4; --now:#8a8f98;
+  --space:#eef1f6; --orbit:#7d8aa6; --sun:#ffd24a; --sunEdge:#e0a400; --earth:#3a6fc0; --earthNight:#1e2f52; --axis:#1c2330;
+  --simBg:#fff5d6; --realBg:#e3f3e9;
+  --font:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#13161b; --card:#1c2027; --ink:#eef1f5; --muted:#a7b0bd; --line:#333944;
+    --accent:#4cc394; --warn:#ff8b5e; --chip:#262b34; --chipOn:#eef1f5; --chipOnInk:#13161b;
+    --summer:#ff7466; --winter:#6ea8ff; --now:#9aa1ab;
+    --space:#10141c; --orbit:#7f8db0; --earth:#4f86e0; --earthNight:#16223c; --axis:#eef1f5;
+    --simBg:#3a3220; --realBg:#1e3428;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#13161b; --card:#1c2027; --ink:#eef1f5; --muted:#a7b0bd; --line:#333944;
+  --accent:#4cc394; --warn:#ff8b5e; --chip:#262b34; --chipOn:#eef1f5; --chipOnInk:#13161b;
+  --summer:#ff7466; --winter:#6ea8ff; --now:#9aa1ab;
+  --space:#10141c; --orbit:#7f8db0; --earth:#4f86e0; --earthNight:#16223c; --axis:#eef1f5;
+  --simBg:#3a3220; --realBg:#1e3428;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-text-size-adjust:100%}
+body{padding-bottom:64px}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+header{padding:18px 0 8px}
+header .sub{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+header h1{font-size:22px;margin:4px 0 0;line-height:1.3}
+nav.tabs{display:flex;gap:6px;margin:12px 0 14px}
+nav.tabs button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--ink);font:600 14px var(--font);padding:10px 2px;border-radius:12px;cursor:pointer;word-break:keep-all;line-height:1.25}
+nav.tabs button[aria-selected="true"]{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.card h2{font-size:17px;margin:0 0 10px}
+.lab{font-size:13px;color:var(--muted);font-weight:600}
+.sub2{font-size:13px;color:var(--muted);line-height:1.5}
+.q{font-size:17px;font-weight:700;line-height:1.45;margin:4px 0 10px;word-break:keep-all}
+.tag{display:inline-block;font-size:12px;white-space:nowrap;font-weight:700;padding:2px 8px;border-radius:6px;vertical-align:middle}
+.tag.real{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.tag.calc{background:color-mix(in srgb,var(--winter) 16%,transparent);color:var(--winter)}
+.tag.model{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
+.tag.book{background:color-mix(in srgb,var(--warn) 16%,transparent);color:var(--warn)}
+.hidden{display:none!important}
+details{font-size:15px;line-height:1.6}
+details summary{font-weight:700;cursor:pointer;padding:2px 0}
+
+/* ---------- 모드 (탐구 / 시뮬레이션) — dating-sim과 같은 모양 ---------- */
+.modeSw{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-bottom:4px}
+.modeSw .now{font:800 12px var(--font);color:var(--ink);background:var(--chip);border:1px solid var(--line);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.modeSw button{font:600 12px var(--font);color:var(--muted);background:none;border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer;white-space:nowrap}
+.modeSw button:hover{color:var(--ink);border-color:var(--muted)}
+body.sim .inq-only{display:none!important}
+body:not(.sim) .sim-only{display:none!important}
+.simNote{font-size:15px;line-height:1.55;word-break:keep-all}
+
+/* ---------- 배치: 위쪽 궤도 그림(고정) + 탭 ---------- */
+.figPanel{position:sticky;top:0;z-index:6;background:var(--bg);padding:6px 0 8px}
+.figBox{position:relative;background:var(--space);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.figBox canvas{display:block;width:100%;height:210px}
+.figBox .tag{position:absolute;right:8px;bottom:8px}
+.figTime{position:absolute;left:8px;top:8px;max-width:calc(100% - 120px);line-height:1.3;word-break:keep-all;font:800 15px var(--font);background:var(--chipOn);color:var(--chipOnInk);padding:4px 12px;border-radius:999px;font-variant-numeric:tabular-nums}
+.figPanel.folded .figTime{display:none}
+@media (min-width:900px){.figTime{font-size:20px;padding:6px 14px}}
+.jPics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.jPics figure{margin:0;background:var(--space);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.jPics figcaption{font:800 14px var(--font);padding:6px 8px 0;text-align:center}
+.jPics figcaption.cmp{color:var(--warn)}
+.jPics canvas{display:block;width:100%;height:150px}
+@media (min-width:900px){.jPics canvas{height:150px}}
+.figTools{position:absolute;right:6px;top:6px;display:flex;gap:6px}
+.figTools button{font:700 12px var(--font);color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;cursor:pointer}
+.figPanel.folded canvas{height:0}
+.figPanel.folded .figBox{min-height:36px}
+.figPanel.folded .figBox .tag{display:none}
+.figFoldNote{display:none;font-size:13px;color:var(--muted);padding:9px 12px;font-weight:600}
+.figPanel.folded .figFoldNote{display:block}
+.figNote{font-size:13px;line-height:1.45;color:var(--muted);padding:6px 4px 0;word-break:keep-all}
+.figNote b{color:var(--ink)}
+@media (min-width:900px){
+  .wrap{max-width:1180px}
+  .layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px;align-items:start}
+  .figPanel{top:12px;padding:0}
+  .figBox canvas{height:430px}
+  .figTools .foldBtn{display:none}
+}
+
+/* ---------- 시간 막대 ---------- */
+.bigVal{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;word-break:keep-all}
+input[type=range]{width:100%;height:36px;accent-color:var(--chipOn);margin:6px 0 0}
+.tHead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.topFig{margin:0;text-align:center;flex:none}
+.topFig canvas{display:block;width:104px;height:92px}
+.topFig figcaption{font-size:12px;color:var(--muted);font-weight:600}
+.ticks{position:relative;height:34px;font-size:12px;color:var(--muted);font-weight:600;margin:0 9px}
+.ticks span{position:absolute;transform:translateX(-50%);text-align:center;line-height:1.25;white-space:nowrap}
+.ticks span:first-child{transform:none}
+.ticks span:last-child{transform:translateX(-100%);text-align:right}
+.btnRow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btnRow button{flex:1;min-width:0;padding:0 4px;height:44px;border-radius:12px;font:700 14px var(--font);word-break:keep-all;cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink)}
+.btnRow button.wide{flex-basis:100%}
+.btnRow button.on{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+
+/* ---------- 계절 위치 읽기 ---------- */
+.seasonGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.sbox{border-radius:12px;padding:10px 11px;border:2px solid var(--line);font-size:14px;line-height:1.45;word-break:keep-all}
+.sbox.sum{border-color:var(--summer)} .sbox.win{border-color:var(--winter)}
+.sbox .h{font-weight:800;font-size:15px}
+.sbox.sum .h{color:var(--summer)} .sbox.win .h{color:var(--winter)}
+.sbox .d{font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
+.sbox .s{font-size:13px;color:var(--muted)}
+@media (max-width:360px){.seasonGrid{grid-template-columns:1fr}}
+
+/* ---------- 모형 안내 그림 카드 ---------- */
+.mcards{display:grid;gap:10px;margin-top:10px}
+.mcard{border:1px solid var(--line);border-radius:14px;padding:10px}
+.mcard .t{font-weight:800;font-size:15px;margin-bottom:8px;word-break:keep-all}
+.mcard .t .tb{display:inline-block;font-size:12px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:0 8px;margin-right:6px;vertical-align:1px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pair>div{border-radius:10px;padding:8px;font-size:14px;line-height:1.45;word-break:keep-all}
+.pair .ps{background:var(--simBg)} .pair .pr{background:var(--realBg)}
+.pair .k{font-size:12px;font-weight:800;color:var(--muted);display:block;margin-top:4px}
+.pair svg{display:block;width:100%;max-width:150px;height:auto;margin:0 auto}
+@media (max-width:420px){.pair{grid-template-columns:1fr}}
+.soon{font-size:15px;line-height:1.6;color:var(--muted)}
+/* 질문 */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opts.three{grid-template-columns:1fr 1fr 1fr}
+.opts button{border:2px solid var(--line);background:var(--card);color:var(--ink);font:700 15px var(--font);padding:12px 4px;border-radius:12px;cursor:pointer;word-break:keep-all}
+.opts button.sel{border-color:var(--chipOn);background:var(--chip)}
+.opts button:disabled{cursor:default}
+.fb{margin-top:10px;font-size:15px;line-height:1.55;border-radius:12px;padding:10px 12px;word-break:keep-all}
+.fb.ok{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.fb.hint{background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.fb.info{background:var(--chip)}
+.qnum{font-size:13px;color:var(--muted);font-weight:700}
+/* 시간 막대 잠금 */
+.lockNote{display:none;margin-top:8px;font-size:14px;font-weight:700;color:var(--warn)}
+.locked .lockNote{display:block}
+.locked input[type=range],.locked .btnRow{opacity:.4;pointer-events:none}
+/* 그래프 */
+.graphBox{position:relative}
+.graphBox canvas{display:block;width:100%;height:230px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-bottom:8px}
+.seg button{border:0;background:var(--card);color:var(--ink);font:700 14px var(--font);padding:7px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--chipOn);color:var(--chipOnInk)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:6px;align-items:center}
+.lgLine{display:inline-block;width:26px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+/* 판단표 */
+.jHead{font-size:18px;font-weight:800;margin:2px 0 4px;word-break:keep-all}
+.jSub{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px;word-break:keep-all}
+.jRow{border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px}
+.jRow .rh{font-weight:800;font-size:15px;margin-bottom:8px}
+.jCells{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.jCell{border:2px solid transparent;border-radius:12px;padding:6px 4px;text-align:center;background:var(--chip)}
+.jCell .cl{font-size:14px;font-weight:800;margin-bottom:6px}
+.jCell .cl.s{color:var(--summer)} .jCell .cl.w{color:var(--winter)}
+.jBtns{display:flex;gap:3px;justify-content:center}
+.jBtns button{flex:1;max-width:36px;height:42px;border:2px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font:800 19px var(--font);cursor:pointer;padding:0}
+.jBtns button[aria-pressed="true"]{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+.jBtns button:disabled{cursor:default}
+.jCell.ok{border-color:var(--accent)} .jCell.bad{border-color:var(--warn)}
+.jCell .mk{font-size:12px;font-weight:800;margin-top:4px;min-height:16px}
+.jCell.ok .mk{color:var(--accent)} .jCell.bad .mk{color:var(--warn)}
+.jCell .pc{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.jAct{display:flex;gap:8px;margin-top:4px}
+.jAct button{flex:1;height:46px;border-radius:12px;font:800 16px var(--font);cursor:pointer;border:1px solid var(--line);background:var(--chip);color:var(--ink)}
+.jAct button.pri{background:var(--chipOn);color:var(--chipOnInk);border-color:var(--chipOn)}
+.jHints{margin:10px 0 0;padding-left:20px;font-size:15px;line-height:1.55}
+.jHints li{margin:4px 0}
+.ibars{display:grid;gap:6px;margin-top:6px}
+.ibar{display:grid;grid-template-columns:52px 1fr 64px;align-items:center;gap:8px;font-size:14px;font-weight:700}
+.ibar .tr{height:18px;background:var(--chip);border-radius:6px;position:relative;overflow:hidden}
+.ibar .fl{position:absolute;left:0;top:0;bottom:0;background:var(--sun);border-right:2px solid var(--sunEdge)}
+.ibar .mid{position:absolute;top:-2px;bottom:-2px;border-left:2px dashed var(--muted)}
+.ibar .v{text-align:right;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="modeSw"><span class="now" id="modeNow">탐구 모드</span><button id="modeBtn" type="button">시뮬레이션 모드로</button></div>
+    <div class="sub">Earth Science School Lab · 지구과학 [12지구01-06]</div>
+    <h1>기후 변화의 외적 요인</h1>
+  </header>
+
+  <div class="layout">
+    <!-- 위쪽(넓은 화면에서는 왼쪽) 고정: 공전 궤도 그림 -->
+    <div class="figPanel" id="figPanel">
+      <div class="figBox">
+        <canvas id="orbitC" aria-label="태양과 지구 공전 궤도를 비스듬히 위에서 본 그림"></canvas>
+        <div class="figTime" id="figTime">현재</div>
+        <div class="figFoldNote" id="figFoldNote">공전 궤도 그림을 접었어요</div>
+        <div class="figTools"><button class="foldBtn" id="foldBtn" type="button">그림 접기</button></div>
+        <span class="tag model">모형 · 궤도 모양과 크기 과장</span>
+      </div>
+      <div class="figNote" id="figNote"></div>
+    </div>
+
+    <div class="main">
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="precession" aria-selected="true">① 세차<br>운동</button>
+        <button role="tab" data-tab="tilt" aria-selected="false">② 자전축<br>기울기</button>
+        <button role="tab" data-tab="orbit" aria-selected="false">③ 공전<br>궤도 모양</button>
+        <button role="tab" data-tab="combine" aria-selected="false">④ 함께<br>보기</button>
+      </nav>
+
+      <!-- ① 세차 운동 -->
+      <section id="precession" data-tabsec>
+        <div class="card sim-only"><div class="simNote">지구 자전축은 약 <b>26,000년</b> 주기로 팽이처럼 돌아요(세차 운동). 시간 막대를 과거나 미래로 움직이면 자전축 방향이 돌면서 북반구 여름과 겨울이 공전 궤도의 어디에 오는지 바뀌어요.</div></div>
+
+        <!-- 시작 질문: 근일점 오개념 -->
+        <div class="card inq-only" id="q0Card">
+          <div class="qnum">시작 질문</div>
+          <div class="q">지구는 1월 초에 태양에 가장 가까워요(근일점). 그때 북반구는 여름일까요, 겨울일까요?</div>
+          <div class="opts" id="q0Opts"><button type="button" data-v="sum">여름</button><button type="button" data-v="win">겨울</button></div>
+          <div id="q0Fb"></div>
+        </div>
+
+        <!-- 예측: 13,000년 후 -->
+        <div class="card inq-only" id="q1Card">
+          <div class="qnum">예측</div>
+          <div class="q">자전축이 반 바퀴 돈 <b>13,000년 후</b>, 북반구 여름은 어디 부근에 올까요?</div>
+          <div class="opts three" id="q1Opts"><button type="button" data-v="peri">근일점</button><button type="button" data-v="aph">원일점</button><button type="button" data-v="mid">그 사이</button></div>
+          <div id="q1Fb"></div>
+        </div>
+
+        <div class="card" id="tCard">
+          <h2>시간 막대 <span class="tag book">교과서 수록값 · 26,000년 주기</span></h2>
+          <div class="tHead">
+            <div><div class="lab">지금 보는 때</div><div class="bigVal" id="tVal">현재</div></div>
+            <figure class="topFig"><canvas id="topC" aria-label="자전축이 팽이처럼 도는 모습"></canvas><figcaption>자전축 방향</figcaption></figure>
+          </div>
+          <input type="range" id="tSlider" min="-13000" max="13000" step="100" value="0" aria-label="현재부터 몇 년 전 또는 몇 년 후인지">
+          <div class="ticks" id="ticks"></div>
+          <div class="btnRow">
+            <button type="button" id="b13kAgo">13,000년 전</button>
+            <button type="button" id="bNow">현재</button>
+            <button type="button" id="b13k">13,000년 후</button>
+            <button type="button" id="bPlay" class="wide">▶ 돌리기</button>
+          </div>
+          <div class="lockNote">위의 예측을 먼저 고르면 시간 막대가 풀려요.</div>
+        </div>
+
+        <div class="card">
+          <h2>북반구의 여름과 겨울은 어디에?</h2>
+          <div class="seasonGrid">
+            <div class="sbox sum"><div class="h">북반구 여름 (하지, 6월 21일)</div><div class="s" id="sumWhere"></div><div class="d" id="sumDist"></div><div class="s">태양까지 거리 <span class="tag calc">계산값</span></div></div>
+            <div class="sbox win"><div class="h">북반구 겨울 (동지, 12월 21일)</div><div class="s" id="winWhere"></div><div class="d" id="winDist"></div><div class="s">태양까지 거리 <span class="tag calc">계산값</span></div></div>
+          </div>
+          <div class="sub2" style="margin-top:8px">남반구는 계절이 반대예요. 북반구가 여름(6월)일 때 남반구는 겨울이에요. 거리는 실제 궤도(현재 모양)로 계산했고, 그림은 궤도를 과장해 그렸어요.</div>
+        </div>
+
+        <!-- 월별 일사량 그래프 -->
+        <div class="card">
+          <h2>위도 37.5°의 월별 일사량 <span class="tag calc">계산값</span></h2>
+          <div class="seg" id="precHemi"><button type="button" data-h="N" aria-pressed="true">북반구 37.5°N</button><button type="button" data-h="S" aria-pressed="false">남반구 37.5°S</button></div>
+          <div class="graphBox"><canvas id="precG" aria-label="월별 일사량 그래프"></canvas></div>
+          <div class="legend"><span><span class="lgLine" style="border-color:var(--now);border-top-style:dashed"></span>현재</span><span><span class="lgLine" style="border-color:var(--ink)"></span><b id="precLg">현재</b></span></div>
+          <div class="sub2" style="margin-top:6px">대기 꼭대기에 하루 동안 들어오는 햇빛의 평균 세기(W/m²)예요. 태양 상수 1361 W/m², 궤도 요소로 계산했어요(Berger 방식).</div>
+        </div>
+
+        <!-- 판단표 -->
+        <div class="card" id="judgePrec"></div>
+      </section>
+
+      <!-- ② 자전축 기울기 -->
+      <section id="tilt" data-tabsec class="hidden">
+        <div class="card sim-only"><div class="simNote">지구 자전축의 기울기는 약 <b>41,000년</b> 주기로 <b>21.5°~24.5°</b> 사이에서 변해요(현재 23.5°). 기울기가 커지면 하지 때 태양은 더 높이, 동지 때는 더 낮게 떠요.</div></div>
+
+        <div class="card">
+          <h2>자전축 기울기 <span class="tag book">교과서 수록값 · 21.5°~24.5°, 41,000년 주기</span></h2>
+          <div class="tHead">
+            <div><div class="lab">지금 기울기</div><div class="bigVal" id="tiltVal">23.5°</div></div>
+            <div class="sub2" id="tiltExagNote" style="text-align:right"></div>
+          </div>
+          <input type="range" id="tiltSlider" min="21.5" max="24.5" step="0.1" value="23.5" aria-label="자전축 기울기(도)">
+          <div class="ticks" id="tiltTicks"><span style="left:0%">21.5°</span><span style="left:66.667%">23.5°<br>현재</span><span style="left:100%">24.5°</span></div>
+          <div class="btnRow">
+            <button type="button" data-tilt="21.5">21.5°</button>
+            <button type="button" data-tilt="23.5">23.5° (현재)</button>
+            <button type="button" data-tilt="24.5">24.5°</button>
+            <button type="button" id="bExag" class="wide" aria-pressed="false">그림 과장 켜기</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>위도 37.5°의 태양 남중 고도 <span class="tag calc">계산값</span></h2>
+          <div class="seg" id="altHemi"><button type="button" data-h="N" aria-pressed="true">북반구 37.5°N</button><button type="button" data-h="S" aria-pressed="false">남반구 37.5°S</button></div>
+          <div class="graphBox"><canvas id="altC" style="height:220px" aria-label="하지와 동지의 태양 남중 고도와 막대 그림자 옆모습 그림"></canvas></div>
+          <div style="margin-top:6px;font-size:15px" id="altShadow"></div>
+          <div class="sub2" style="margin-top:4px">남중 고도 = 90° − 위도 ± 기울기. 회색 점선은 현재(23.5°)예요. 태양이 낮을수록 그림자가 길어요. 같은 햇빛이 더 넓은 땅에 퍼지니 일사량이 줄어요. 북반구에서는 태양이 남쪽 하늘에, 남반구에서는 북쪽 하늘에 떠요.</div>
+        </div>
+
+        <div class="card inq-only" id="qLatCard">
+          <div class="qnum">예측</div>
+          <div class="q">기울기가 24.5°로 커지면 하지 일사량이 가장 크게 바뀌는 곳은 어디일까요?</div>
+          <div class="opts three" id="qLatOpts"><button type="button" data-v="eq">적도 부근</button><button type="button" data-v="mid">중위도</button><button type="button" data-v="high">고위도</button></div>
+          <div id="qLatFb"></div>
+        </div>
+
+        <div class="card">
+          <h2>위도별 하지·동지 일사량 <span class="tag calc">계산값</span></h2>
+          <div class="graphBox"><canvas id="latG" style="height:240px" aria-label="위도별 하지와 동지 일사량 그래프"></canvas></div>
+          <div class="legend">
+            <span><span class="lgLine" style="border-color:var(--summer)"></span>6월 21일</span>
+            <span><span class="lgLine" style="border-color:var(--winter)"></span>12월 21일</span>
+            <span><span class="lgLine" style="border-color:var(--now);border-top-style:dashed"></span>현재(23.5°)</span>
+          </div>
+          <div class="sub2" style="margin-top:6px" id="latNote"></div>
+          <details style="margin-top:10px">
+            <summary>더 알아보기 — 기울기가 0°라면?</summary>
+            <div style="margin-top:6px">자전축이 기울지 않았다고 생각해 보는 <b>사고 실험</b>이에요. 실제 지구의 기울기는 0°가 된 적이 없어요.</div>
+            <div class="btnRow"><button type="button" id="bTilt0">기울기 0°로 해 보기</button><button type="button" id="bTiltBack">23.5°로 되돌리기</button></div>
+            <div id="tilt0Note" class="sub2" style="margin-top:6px"></div>
+          </details>
+        </div>
+
+        <div class="card" id="judgeTilt1"></div>
+        <div class="card" id="judgeTilt2"></div>
+      </section>
+      <!-- ③ 공전 궤도 모양 -->
+      <section id="orbit" data-tabsec class="hidden">
+        <div class="card sim-only"><div class="simNote">지구의 공전 궤도는 약 <b>10만 년</b> 주기로 원에 가까운 모양과 조금 납작한 타원 모양 사이에서 변해요. 궤도가 납작할수록 근일점과 원일점에서 받는 햇빛의 세기 차이가 커져요.</div></div>
+
+        <div class="card inq-only" id="qOrbCard">
+          <div class="qnum">생각 열기</div>
+          <div class="q">지금 북반구 겨울(12월)에 지구는 근일점과 원일점 중 어디 부근에 있을까요?</div>
+          <div class="opts" id="qOrbOpts"><button type="button" data-v="peri">근일점 부근</button><button type="button" data-v="aph">원일점 부근</button></div>
+          <div id="qOrbFb"></div>
+        </div>
+
+        <div class="card">
+          <h2>공전 궤도 모양 <span class="tag book">교과서 수록값 · 약 10만 년 주기</span></h2>
+          <div class="lab">지금 궤도</div>
+          <div class="bigVal" id="eccVal">현재 모양</div>
+          <input type="range" id="eccSlider" min="0" max="0.06" step="0.001" value="0.017" aria-label="공전 궤도 모양: 원에 가까움에서 납작함까지">
+          <div class="ticks"><span style="left:0%">원에<br>가까움</span><span style="left:27.8%">현재</span><span style="left:100%">납작함</span></div>
+          <div class="btnRow">
+            <button type="button" data-ecc="0">원에 가까운 궤도</button>
+            <button type="button" data-ecc="0.017">현재</button>
+            <button type="button" data-ecc="0.05">납작한 궤도</button>
+          </div>
+          <div class="sub2" style="margin-top:8px">위쪽 그림은 궤도 모양을 크게 과장해 그려요 <span class="tag model">모형 · 과장</span>. 아래 거리와 햇빛 세기는 실제 값으로 계산했어요.</div>
+        </div>
+
+        <div class="card">
+          <h2>근일점과 원일점 <span class="tag calc">계산값</span></h2>
+          <div class="seasonGrid">
+            <div class="sbox"><div class="h">근일점</div><div class="s">태양까지 거리</div><div class="d" id="periDist"></div></div>
+            <div class="sbox"><div class="h">원일점</div><div class="s">태양까지 거리</div><div class="d" id="aphDist"></div></div>
+          </div>
+          <div class="lab" style="margin-top:12px">받는 햇빛의 세기 (평균 거리 = 100)</div>
+          <div class="ibars" id="ibars"></div>
+          <div class="fb info" id="iNote" style="margin-top:8px"></div>
+          <details style="margin-top:10px">
+            <summary>더 알아보기 — 이심률</summary>
+            <div style="margin-top:6px">궤도가 얼마나 납작한지를 나타내는 숫자를 <b>이심률</b>이라고 해요. 0이면 완전한 원이에요.</div>
+            <ul style="padding-left:20px;margin:6px 0 0">
+              <li>지금 보는 궤도의 이심률: <b id="eccNum"></b></li>
+              <li>현재 지구: 약 0.017 · 지난 80만 년 동안: 약 0.004~0.050 <span class="tag calc">계산값 · Laskar 2004</span></li>
+              <li>궤도 모양이 바뀌어도 지구 전체가 1년 동안 받는 햇빛의 양은 거의 같아요(현재와 원 궤도의 차이 약 0.01%). 바뀌는 것은 <b>계절마다 받는 양</b>이에요.</li>
+              <li>궤도 모양은 약 10만 년 주기 말고 약 40만 년 주기로도 변해요.</li>
+            </ul>
+          </details>
+        </div>
+
+        <div class="card" id="judgeOrbit"></div>
+      </section>
+      <!-- ④ 함께 보기 -->
+      <section id="combine" data-tabsec class="hidden">
+        <div class="card sim-only"><div class="simNote">실제 지구에서는 세 요인이 <b>서로 다른 주기로 동시에</b> 변해요. 위에서는 요인을 섞어 판단표로 비교하고, 아래에서는 지난 80만 년 동안의 세 요인, 북위 65° 여름 일사량, 남극 기온을 함께 봐요.</div></div>
+
+        <div class="card" id="judgeComb1"></div>
+        <div class="card" id="judgeComb2"></div>
+
+        <div class="card">
+          <h2>자유 실험 — 세 요인 섞기</h2>
+          <div class="lab">세차 운동</div>
+          <div class="seg" id="cbYears"><button type="button" data-v="0">현재</button><button type="button" data-v="13000">13,000년 후</button></div>
+          <div class="lab">자전축 기울기</div>
+          <div class="seg" id="cbTilt"><button type="button" data-v="21.5">21.5°</button><button type="button" data-v="23.5">23.5°</button><button type="button" data-v="24.5">24.5°</button></div>
+          <div class="lab">공전 궤도 모양</div>
+          <div class="seg" id="cbEcc"><button type="button" data-v="0">원에 가까움</button><button type="button" data-v="0.0167">현재</button><button type="button" data-v="0.05">납작함</button></div>
+          <div class="lab">무엇과 비교할까요?</div>
+          <div class="seg" id="cbBase"><button type="button" data-v="0">현재 지구</button><button type="button" data-v="13000">13,000년 후 지구</button></div>
+          <div id="cbLive"></div>
+        </div>
+
+        <div class="card">
+          <h2>지난 80만 년 동안의 변화</h2>
+          <div class="seg" id="pastRange"><button type="button" data-v="800" aria-pressed="true">80만 년</button><button type="button" data-v="200" aria-pressed="false">최근 20만 년</button></div>
+          <div class="graphBox"><canvas id="pastG" style="height:560px;touch-action:pan-y" aria-label="지난 80만 년 동안 궤도 모양, 자전축 기울기, 세차 운동의 효과, 북위 65도 하지 일사량, 남극 기온 그래프"></canvas></div>
+          <div class="fb info" id="pastRead" style="margin-top:8px">그래프를 누르거나 끌면 그때의 값을 볼 수 있어요.</div>
+          <div class="sub2" style="margin-top:6px">위의 네 줄 <span class="tag calc">계산값</span> 궤도 요소: Laskar 외(2004) 궤도 해. 북위 65° 하지 일사량은 같은 궤도 요소로 이 앱의 계산식(Berger 방식, 태양 상수 1361 W/m²)으로 구했어요.<br>맨 아래 줄 <span class="tag real">실제 자료</span> 남극 EPICA Dome C 빙하 코어의 기온 복원값(Jouzel 외 2007, NOAA 자료). 최근 1천 년 평균과의 차이예요. 1천 년 간격으로 평균했어요.</div>
+        </div>
+
+        <div class="card inq-only" id="qCycCard">
+          <div class="qnum">질문 1</div>
+          <div class="q">남극 기온 그래프에서 따뜻한 시기(간빙기)는 대략 몇 년마다 돌아올까요?</div>
+          <div class="opts three" id="qCycOpts"><button type="button" data-v="20">약 2만 년</button><button type="button" data-v="41">약 4만 년</button><button type="button" data-v="100">약 10만 년</button></div>
+          <div id="qCycFb"></div>
+        </div>
+        <div class="card inq-only" id="qNowCard">
+          <div class="qnum">질문 2</div>
+          <div class="q">최근 100여 년 동안의 빠른 기온 상승도 밀란코비치 주기 때문일까요?</div>
+          <div class="opts" id="qNowOpts"><button type="button" data-v="yes">그렇다</button><button type="button" data-v="no">아니다</button></div>
+          <div id="qNowFb"></div>
+        </div>
+        <div class="card sim-only"><div class="simNote" id="combSimNote"></div></div>
+      </section>
+
+      <!-- 모형 안내 — 시뮬레이션이 실제와 다른 점 (그림 카드) -->
+      <div class="card">
+        <details id="modelGuide">
+          <summary>모형 안내 — 시뮬레이션이 실제와 다른 점</summary>
+          <div class="mcards" id="mcards">
+            <div class="mcard" data-tabs="all">
+              <div class="t"><span class="tb">공통</span>1. 궤도 모양을 과장했어요</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><ellipse cx="60" cy="32" rx="50" ry="20" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="78" cy="32" r="7" fill="#ffd24a" stroke="#e0a400"/><circle cx="10" cy="32" r="4" fill="#3a6fc0"/></svg>
+                  <span class="k">시뮬레이션</span>궤도를 눈에 띄게 납작하게 그리고 태양을 한쪽으로 옮겨 그렸어요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><circle cx="60" cy="32" r="26" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="60.5" cy="32" r="5" fill="#ffd24a" stroke="#e0a400"/><circle cx="34" cy="32" r="3" fill="#3a6fc0"/></svg>
+                  <span class="k">실제</span>지구 궤도는 눈으로 원과 구별하기 어려워요. 태양까지 거리 차이는 약 3%예요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="all">
+              <div class="t"><span class="tb">공통</span>2. 크기와 거리를 바꿨어요</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><circle cx="40" cy="32" r="16" fill="#ffd24a" stroke="#e0a400"/><circle cx="88" cy="32" r="10" fill="#3a6fc0"/></svg>
+                  <span class="k">시뮬레이션</span>태양과 지구를 크게, 서로 가깝게 그렸어요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><circle cx="8" cy="32" r="3" fill="#ffd24a" stroke="#e0a400"/><circle cx="114" cy="32" r="1.2" fill="#3a6fc0"/><line x1="14" y1="32" x2="108" y2="32" stroke="currentColor" stroke-dasharray="3 4"/></svg>
+                  <span class="k">실제</span>태양과 지구는 지구 지름의 약 1만 2천 배만큼 떨어져 있어요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="precession">
+              <div class="t"><span class="tb">①</span>3. 세차 운동 주기</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><text x="60" y="30" text-anchor="middle" font-size="18" font-weight="800" fill="currentColor">26,000년</text><text x="60" y="50" text-anchor="middle" font-size="11" fill="currentColor">근일점은 그대로</text></svg>
+                  <span class="k">시뮬레이션</span>교과서대로 자전축만 26,000년에 한 바퀴 돌고, 근일점은 움직이지 않게 했어요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><ellipse cx="60" cy="34" rx="34" ry="20" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="60" cy="34" r="5" fill="#ffd24a" stroke="#e0a400"/><path d="M96 26 A 38 24 0 0 0 86 14" fill="none" stroke="#c93a2e" stroke-width="2"/><path d="M86 14 l1 6 l4 -4z" fill="#c93a2e"/><text x="60" y="10" text-anchor="middle" font-size="10" fill="currentColor">근일점도 천천히 돎</text></svg>
+                  <span class="k">실제</span>근일점도 천천히 움직여요. 그래서 계절과 근일점의 관계는 약 2만 1천~2만 3천 년마다 한 바퀴 돌아요. 북반구 여름이 근일점에 왔던 때도 13,000년 전이 아니라 약 1만 1천 년 전이에요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="precession">
+              <div class="t"><span class="tb">①</span>4. 하나씩만 바뀌어요</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="24" cy="32" r="13"/><circle cx="60" cy="32" r="13"/><circle cx="96" cy="32" r="13"/></g><line x1="24" y1="32" x2="24" y2="21" stroke="#c93a2e" stroke-width="3"/><line x1="60" y1="32" x2="60" y2="19" stroke="currentColor" stroke-width="2" opacity=".35"/><line x1="96" y1="32" x2="96" y2="19" stroke="currentColor" stroke-width="2" opacity=".35"/><text x="24" y="60" text-anchor="middle" font-size="9" fill="currentColor">세차</text><text x="60" y="60" text-anchor="middle" font-size="9" fill="currentColor">기울기</text><text x="96" y="60" text-anchor="middle" font-size="9" fill="currentColor">궤도</text></svg>
+                  <span class="k">시뮬레이션</span>① 탭에서는 세차 운동만 바꾸고 기울기와 궤도 모양은 지금 그대로 두었어요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="24" cy="32" r="13"/><circle cx="60" cy="32" r="13"/><circle cx="96" cy="32" r="13"/></g><g stroke="#1d7656" stroke-width="3"><line x1="24" y1="32" x2="33" y2="24"/><line x1="60" y1="32" x2="51" y2="23"/><line x1="96" y1="32" x2="96" y2="45"/></g><text x="24" y="60" text-anchor="middle" font-size="9" fill="currentColor">2만 년대</text><text x="60" y="60" text-anchor="middle" font-size="9" fill="currentColor">4만 1천 년</text><text x="96" y="60" text-anchor="middle" font-size="9" fill="currentColor">10만 년</text></svg>
+                  <span class="k">실제</span>세 요인이 서로 다른 주기로 동시에 변해요. ④ 함께 보기 탭에서 합쳐 볼 수 있어요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="tilt">
+              <div class="t"><span class="tb">②</span>5. 기울기 범위</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><text x="60" y="36" text-anchor="middle" font-size="18" font-weight="800" fill="currentColor">21.5°~24.5°</text><text x="60" y="54" text-anchor="middle" font-size="10" fill="currentColor">교과서 범위</text></svg>
+                  <span class="k">시뮬레이션</span>슬라이더는 교과서 범위인 21.5°~24.5°를 썼어요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><text x="60" y="36" text-anchor="middle" font-size="18" font-weight="800" fill="currentColor">22.1°~24.5°</text><text x="60" y="54" text-anchor="middle" font-size="10" fill="currentColor">지난 80만 년 계산값</text></svg>
+                  <span class="k">실제</span>궤도 계산(Laskar 2004)으로는 지난 80만 년 동안 약 22.1°~24.5° 사이였어요. 지금은 약 23.4°이고 조금씩 작아지고 있어요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="tilt">
+              <div class="t"><span class="tb">②</span>6. 그림 과장</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><circle cx="60" cy="34" r="18" fill="#3a6fc0"/><line x1="44" y1="6" x2="76" y2="62" stroke="currentColor" stroke-width="3"/><line x1="60" y1="4" x2="60" y2="64" stroke="currentColor" stroke-dasharray="3 3" opacity=".5"/></svg>
+                  <span class="k">시뮬레이션</span>[그림 과장]을 켜면 기울기 차이를 5배로 크게 그려요. 숫자(고도, 일사량)는 실제 계산값 그대로예요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><circle cx="60" cy="34" r="18" fill="#3a6fc0"/><line x1="51" y1="5" x2="69" y2="63" stroke="currentColor" stroke-width="3"/><line x1="53" y1="5" x2="67" y2="63" stroke="#c93a2e" stroke-width="2"/><line x1="60" y1="4" x2="60" y2="64" stroke="currentColor" stroke-dasharray="3 3" opacity=".5"/></svg>
+                  <span class="k">실제</span>변화 폭은 3° 남짓이라 눈으로는 거의 구별되지 않아요. 그래도 고위도 여름 일사량은 크게 바뀌어요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="orbit">
+              <div class="t"><span class="tb">③</span>11. 궤도 모양의 변화 폭과 주기</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><ellipse cx="60" cy="32" rx="50" ry="22" fill="none" stroke="currentColor" stroke-width="2"/><ellipse cx="60" cy="32" rx="40" ry="26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 3"/><text x="60" y="36" text-anchor="middle" font-size="10" fill="currentColor">10만 년</text></svg>
+                  <span class="k">시뮬레이션</span>궤도 모양을 크게 과장하고, 교과서대로 '약 10만 년 주기'만 다뤄요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><circle cx="60" cy="32" r="25" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="60.8" cy="32" r="24.3" fill="none" stroke="#c93a2e" stroke-width="1.2"/><text x="60" y="36" text-anchor="middle" font-size="9" fill="currentColor">10만 · 40만 년</text></svg>
+                  <span class="k">실제</span>가장 납작할 때도 이심률 약 0.05로 거의 원이에요. 약 10만 년 주기와 약 40만 년 주기가 겹쳐 있어요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="combine">
+              <div class="t"><span class="tb">④</span>9. 되먹임은 계산하지 않았어요</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><path d="M4 40 C20 20 30 20 44 36 S70 54 84 30 S108 18 116 34" fill="none" stroke="#e08a00" stroke-width="3"/><text x="60" y="60" text-anchor="middle" font-size="9" fill="currentColor">일사량만 계산</text></svg>
+                  <span class="k">시뮬레이션</span>궤도 요소로 일사량만 계산했어요. 빙하나 이산화 탄소의 변화는 넣지 않았어요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><circle cx="60" cy="32" r="20" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="70 8"/><path d="M78 22 l4 -8 l3 9z" fill="currentColor"/><text x="60" y="20" text-anchor="middle" font-size="9" fill="currentColor">빙하↑</text><text x="60" y="36" text-anchor="middle" font-size="9" fill="currentColor">반사↑</text><text x="60" y="50" text-anchor="middle" font-size="9" fill="currentColor">기온↓</text></svg>
+                  <span class="k">실제</span>빙하가 늘면 햇빛을 더 반사하고, 이산화 탄소도 함께 변해요. 이런 되먹임이 작은 일사량 변화를 큰 빙하기로 키워요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="combine">
+              <div class="t"><span class="tb">④</span>10. 10만 년 수수께끼</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><path d="M4 44 L20 20 L36 44 L52 20 L68 44 L84 20 L100 44 L116 20" fill="none" stroke="#2463c4" stroke-width="2.5"/><text x="60" y="60" text-anchor="middle" font-size="9" fill="currentColor">약 10만 년마다</text></svg>
+                  <span class="k">시뮬레이션</span>빙하기 주기가 궤도 모양 주기(약 10만 년)와 비슷해 보여요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><text x="60" y="44" text-anchor="middle" font-size="34" font-weight="800" fill="currentColor">?</text></svg>
+                  <span class="k">실제</span>세 요인 중 궤도 모양의 일사량 효과가 가장 작은데, 빙하기는 약 10만 년마다 와요. 왜 그런지는 아직 연구 중이에요. 약 100만 년 전보다 옛날에는 빙하기가 약 4만 년마다 왔어요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="all">
+              <div class="t"><span class="tb">공통</span>7. 일사량은 기온이 아니에요</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><rect x="14" y="20" width="22" height="34" fill="#ffd24a" stroke="#e0a400"/><text x="52" y="42" font-size="18" font-weight="800" fill="currentColor">=</text><rect x="80" y="10" width="10" height="38" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="85" cy="52" r="7" fill="#c93a2e"/><line x1="70" y1="12" x2="104" y2="56" stroke="#b2461a" stroke-width="3"/><line x1="104" y1="12" x2="70" y2="56" stroke="#b2461a" stroke-width="3"/></svg>
+                  <span class="k">시뮬레이션</span>앱이 계산한 것은 들어오는 햇빛의 양(일사량)이에요. 판단표의 '기온'은 "일사량으로 보면 높아지는 쪽"이라는 뜻이에요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><path d="M4 50 Q20 42 36 50 T68 50" fill="none" stroke="#2463c4" stroke-width="3"/><path d="M76 54 L92 26 L108 54 Z" fill="#e8f0f8" stroke="currentColor"/><path d="M10 16 q8 -8 16 0 q8 -6 14 2 h-30z" fill="#cfd6e0" stroke="currentColor" stroke-width="1"/><text x="38" y="62" font-size="9" fill="currentColor">바다</text><text x="84" y="62" font-size="9" fill="currentColor">빙하</text><text x="44" y="16" font-size="9" fill="currentColor">대기</text></svg>
+                  <span class="k">실제</span>기온은 바다, 빙하, 대기가 함께 정해요. 같은 일사량이라도 지역마다 기온이 달라요.</div>
+              </div>
+            </div>
+            <div class="mcard" data-tabs="all">
+              <div class="t"><span class="tb">공통</span>8. 대기 꼭대기에 들어오는 양이에요</div>
+              <div class="pair">
+                <div class="ps">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><path d="M4 30 Q60 18 116 30" fill="none" stroke="currentColor" stroke-dasharray="4 3"/><g stroke="#e0a400" stroke-width="3"><line x1="30" y1="2" x2="30" y2="22"/><line x1="60" y1="2" x2="60" y2="18"/><line x1="90" y1="2" x2="90" y2="22"/></g><path d="M4 56 Q60 48 116 56" fill="none" stroke="currentColor" stroke-width="2"/><text x="60" y="42" text-anchor="middle" font-size="9" fill="currentColor">여기서 계산</text></svg>
+                  <span class="k">시뮬레이션</span>대기 꼭대기에 들어오는 햇빛을 계산했어요.</div>
+                <div class="pr">
+                  <svg viewBox="0 0 120 64" aria-hidden="true"><path d="M4 30 Q60 18 116 30" fill="none" stroke="currentColor" stroke-dasharray="4 3"/><path d="M38 30 q8 -10 18 -2 q10 -6 16 4 z" fill="#cfd6e0" stroke="currentColor" stroke-width="1"/><g stroke="#e0a400" stroke-width="3"><line x1="22" y1="2" x2="22" y2="52"/><line x1="56" y1="2" x2="56" y2="26"/></g><path d="M56 26 L70 4" stroke="#e0a400" stroke-width="2" stroke-dasharray="3 2"/><path d="M4 56 Q60 48 116 56" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                  <span class="k">실제</span>지표까지 오는 양은 구름과 반사로 줄어들어요.</div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+
+/* =========================================================
+   궤도·계절 계산 — 그림, 그래프, 판단표가 모두 이 함수들을 씀
+   ========================================================= */
+const AU_KM=149597871;           // 1 AU (km)
+const S0=1361;                   // 태양 상수 (W/m²)
+const NOW={tilt:23.5, ecc:0.0167, lonPeri0:282.9}; // 현재: 기울기(교과서), 이심률, 근일점 때 태양 황경(°)
+const PREC_YEARS=26000;          // 교과서 세차 주기
+// 공유 상태: 모든 탭이 이 하나를 씀
+const state={years:0, tilt:NOW.tilt, ecc:NOW.ecc};
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI, mod=(x,m)=>((x%m)+m)%m;
+
+// 근일점 때 태양 황경(°). 교과서 모형: 근일점은 고정, 자전축만 돌아서 춘분점이 움직임 → 값이 시간에 따라 커짐
+function lonPeri(years){ return mod(NOW.lonPeri0 + 360*years/PREC_YEARS, 360); }
+function orbitOf(s){ return {tilt:s.tilt, ecc:s.ecc, lp:lonPeri(s.years)}; }
+// 태양 황경 λ(°)일 때 지구의 진근점 이각(근일점에서 잰 각)
+function trueAnom(lambda,orb){ return mod(lambda-orb.lp,360); }
+// 태양 황경 λ일 때 태양까지 거리 (AU)
+function sunDistance(lambda,orb){ const v=rad(trueAnom(lambda,orb)); return (1-orb.ecc*orb.ecc)/(1+orb.ecc*Math.cos(v)); }
+// 대기 꼭대기 일평균 일사량 (W/m²), Berger 방식 — 위도(°), 태양 황경 λ(°)
+function insolation(lat,lambda,orb){
+  const phi=rad(lat), dec=Math.asin(Math.sin(rad(orb.tilt))*Math.sin(rad(lambda)));
+  let c=-Math.tan(phi)*Math.tan(dec), h0;
+  if(c>=1) h0=0; else if(c<=-1) h0=Math.PI; else h0=Math.acos(c);
+  const r=sunDistance(lambda,orb);
+  return S0/Math.PI/(r*r)*(h0*Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.sin(h0));
+}
+const LAMBDA={summer:90, winter:270}; // 북반구 하지·동지의 태양 황경
+// 태양 황경 → 날짜(대략): 춘분 3월 20일 = 79일째
+function lambdaToDate(lambda){
+  const doy=mod(79+lambda/360*365.25,365.25);
+  const md=[31,28,31,30,31,30,31,31,30,31,30,31]; let d=Math.floor(doy),m=0;
+  while(m<11&&d>=md[m]){d-=md[m];m++;}
+  return {m:m+1, part:d<10?'초':d<20?'중순':'말'};
+}
+window.__calc={insolation,sunDistance,orbitOf,lonPeri,state}; // 검산용
+
+/* =========================================================
+   공전 궤도 그림 (2D, 비스듬히 위에서 본 모습)
+   ========================================================= */
+const C=$('orbitC'); let ctx=C.getContext('2d');
+let col={}, W=0, H=0;
+function readColors(){ const cs=getComputedStyle(document.documentElement);
+  ['summer','winter','orbit','sun','sunEdge','earth','earthNight','axis','ink','muted','space','line','card','now'].forEach(k=>col[k]=cs.getPropertyValue('--'+k).trim()); }
+function resize(){ const dpr=window.devicePixelRatio||1, r=C.getBoundingClientRect();
+  W=r.width; H=r.height; C.width=Math.round(W*dpr); C.height=Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); draw(); }
+const ELEV=rad(24), SE=Math.sin(ELEV), CE=Math.cos(ELEV);   // 바라보는 높이각
+const ECC_VIS=12;                                            // 궤도 모양 과장 배율
+function proj(X,Y,Z,cx,cy,s){ return [cx+X*s, cy-(Y*SE+Z*CE)*s]; }
+
+function draw(){
+  if(!W||!H) return;
+  const o=orbitOf(state); o.tilt=visTilt(state.tilt);
+  const parts=[]; if(state.years!==0||curTab==='precession') parts.push(yearsLabel(state.years));
+  if(Math.abs(state.ecc-NOW.ecc)>1e-6||curTab==='orbit') parts.push(orbitBadge(state.ecc));
+  if(state.tilt!==NOW.tilt||curTab==='tilt') parts.push(`기울기 ${state.tilt.toFixed(1)}°`+(exag&&state.tilt>=21?' (과장)':''));
+  $('figTime').textContent=parts.join(' · ')||'현재';
+  drawOrbit(o,{main:true});
+  if(state.ecc<0.002) $('figNote').innerHTML='지금 그림: <b>원 궤도</b> — 태양까지 거리가 늘 같아서 근일점·원일점이 없어요.';
+  else { const pd=lambdaToDate(o.lp), ad=lambdaToDate(o.lp+180);
+    $('figNote').innerHTML=`지금 그림: <b>근일점 ${pd.m}월 ${pd.part}</b> · <b>원일점 ${ad.m}월 ${ad.part}</b> — 세차 운동으로 근일점·원일점이 오는 날짜(계절)가 바뀌어요.`; }
+}
+// 작은 그림(판단표 안): 같은 그리기 함수를 다른 캔버스에 씀
+function withCanvas(cv,fn){ const r=cv.getBoundingClientRect(); if(!r.width) return; const dpr=window.devicePixelRatio||1;
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+  const sv=[ctx,W,H]; ctx=cv.getContext('2d'); W=r.width; H=r.height; ctx.setTransform(dpr,0,0,dpr,0,0);
+  try{ fn(); } finally { [ctx,W,H]=sv; } }
+let exag=false; // 그림 과장(② 탭): 기울기 차이를 5배로 그림. 숫자는 그대로
+function visTilt(t){ return exag&&t>=21 ? NOW.tilt+(t-NOW.tilt)*5 : t; }
+function drawMini(cv,orb){ withCanvas(cv,()=>drawOrbit(orb,{main:false})); }
+function drawOrbit(orb,o){
+  const eV=Math.min(0.8,orb.ecc*ECC_VIS);
+  const big=o.main&&H>=300;
+  ctx.clearRect(0,0,W,H);
+  const s=Math.min(W*0.40,(H*0.50)/(2*SE)), cx=W*0.5+s*eV*0.5, cy=o.main?H*0.57:H*0.56;
+  const R=big?26:o.main?Math.max(15,Math.min(20,s*0.12)):Math.max(8,Math.min(11,s*0.15)); // 지구 반지름(그림)
+  const fs=big?16:o.main?13:10.5;
+  // 궤도 (원점 = 태양 = 초점, 근일점 = 오른쪽 +X)
+  const a=1, b=Math.sqrt(1-eV*eV);
+  const pt=v=>{ const r=a*(1-eV*eV)/(1+eV*Math.cos(v)); return [r*Math.cos(v), r*Math.sin(v)]; };
+  ctx.lineWidth=2; ctx.strokeStyle=col.orbit; ctx.beginPath();
+  for(let i=0;i<=180;i++){ const [X,Y]=pt(i/180*2*Math.PI); const [x,y]=proj(X,Y,0,cx,cy,s); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+  ctx.stroke();
+  // 공전 방향 화살표 (먼 쪽, 시계 반대 방향)
+  { const v=rad(100), [X1,Y1]=pt(v), [X2,Y2]=pt(v+0.12); const [x1,y1]=proj(X1,Y1,0,cx,cy,s),[x2,y2]=proj(X2,Y2,0,cx,cy,s);
+    const ang=Math.atan2(y2-y1,x2-x1); ctx.fillStyle=col.orbit; ctx.beginPath();
+    ctx.moveTo(x2+Math.cos(ang)*7,y2+Math.sin(ang)*7); ctx.lineTo(x2+Math.cos(ang+2.5)*7,y2+Math.sin(ang+2.5)*7); ctx.lineTo(x2+Math.cos(ang-2.5)*7,y2+Math.sin(ang-2.5)*7); ctx.fill(); }
+  // 근일점·원일점 표시 (날짜는 적지 않음 — 시간에 따라 바뀌어 산만함)
+  const [px,py]=proj(a*(1-eV),0,0,cx,cy,s), [ax,ay]=proj(-a*(1+eV),0,0,cx,cy,s);
+  const hasPeri=orb.ecc>=0.002;
+  if(hasPeri){ ctx.fillStyle=col.orbit; [[px,py],[ax,ay]].forEach(([x,y])=>{ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();}); }
+  const FF=getComputedStyle(document.body).fontFamily;
+  // 태양
+  const [sx0,sy0]=proj(0,0,0,cx,cy,s), sr=big?24:o.main?16:10;
+  { const g=ctx.createRadialGradient(sx0,sy0,sr*0.4,sx0,sy0,sr*2.1);
+    g.addColorStop(0,'rgba(255,210,74,.55)'); g.addColorStop(1,'rgba(255,210,74,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(sx0,sy0,sr*2.1,0,7); ctx.fill();
+    ctx.fillStyle=col.sun; ctx.strokeStyle=col.sunEdge; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(sx0,sy0,sr,0,7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#5a3b00'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font=`800 ${fs-1}px ${FF}`; ctx.fillText('태양',sx0,sy0); }
+  // 자전축 방향: 하지 때 북극이 태양 쪽으로 기움 → 축의 수평 성분 = 하지 위치에서 태양을 향하는 방향
+  const vS=rad(trueAnom(LAMBDA.summer,orb)), vW=rad(trueAnom(LAMBDA.winter,orb));
+  const th=vS+Math.PI, ti=rad(orb.tilt);
+  const A=[Math.sin(ti)*Math.cos(th), Math.sin(ti)*Math.sin(th), Math.cos(ti)];
+  // 지구 두 개 (먼 쪽부터 그려 겹침 처리)
+  const earths=[{v:vS,kind:'sum'},{v:vW,kind:'win'}].map(e=>{const [X,Y]=pt(e.v); const [x,y]=proj(X,Y,0,cx,cy,s); return {...e,X,Y,x,y};}).sort((p,q)=>q.Y-p.Y);
+  earths.forEach(e=>drawEarth(e,A,cx,cy,s,R,fs));
+  // 글자 놓기: 그림 접기 단추·모형 표지·태양·지구를 피함. 계절 글자 먼저, 근일점·원일점 글자는 그다음
+  const obst=[{x:sx0-sr-6,y:sy0-sr-6,w:2*sr+12,h:2*sr+12,k:3}];
+  if(o.main) obst.push({x:W-100,y:0,w:100,h:38,k:3},{x:W-250,y:H-34,w:250,h:34,k:3},{x:0,y:0,w:$('figTime').offsetWidth+16,h:$('figTime').offsetHeight+14,k:3}); // 그림 접기·모형 표지·때 표시
+  earths.forEach(e=>obst.push({x:e.x-R-2,y:e.y-R-2,w:2*R+4,h:2*R+4,k:3},{x:e.x-R*0.5,y:e.y-R*1.6,w:R,h:R*3.2,k:1}));
+  earths.forEach(e=>placeSeasonLabel(e,R,fs,obst));
+  ctx.textBaseline='top';
+  const lw=fs*3.6, lh=fs+6;
+  (hasPeri?[[px,py,'근일점','right'],[ax,ay,'원일점','left']]:[]).forEach(([x,y,name,al])=>{
+    const bx=al==='right'?Math.min(W-6,x+R*0.6)-lw:Math.max(6,x-R*0.6);
+    const ix=al==='right'?x-R*1.3-lw:x+R*1.3; // 궤도 안쪽
+    const r=pickSpot([...[y+10,y+R*1.75+2,y-lh-10,y-R*1.75-2-lh].map(yy=>({x:bx,y:yy,w:lw,h:lh})),{x:ix,y:y+6,w:lw,h:lh},{x:ix,y:y-lh-6,w:lw,h:lh}],obst);
+    obst.push(r);
+    const tx=al==='right'?r.x+lw:r.x; ctx.textAlign=al;
+    ctx.font=`800 ${fs}px ${FF}`; ctx.fillStyle=col.ink; haloText(name,tx,r.y);
+  });
+  if(o.main) drawTop();
+}
+// 후보 자리 중 겹침(가중)이 가장 적은 곳. 같으면 앞 후보
+function pickSpot(cands,obst){
+  let best=null,bs=1e9;
+  cands=cands.map(r=>({...r,x:Math.max(4,Math.min(W-4-r.w,r.x))})); // 가로는 화면 안으로 당겨 넣음
+  cands.forEach((r,i)=>{ if(r.y<4||r.y+r.h>H-4) return;
+    let sc=i*0.5; obst.forEach(o=>{ const ox=Math.max(0,Math.min(r.x+r.w,o.x+o.w)-Math.max(r.x,o.x)), oy=Math.max(0,Math.min(r.y+r.h,o.y+o.h)-Math.max(r.y,o.y)); sc+=ox*oy*(o.k||2); });
+    if(sc<bs){bs=sc;best=r;} });
+  if(!best){ const r=cands[0]; best={...r,x:Math.max(4,Math.min(W-4-r.w,r.x)),y:Math.max(4,Math.min(H-4-r.h,r.y))}; }
+  return {...best,k:2};
+}
+function hit(a,b){ return a.x<b.x+b.w && a.x+a.w>b.x && a.y<b.y+b.h && a.y+a.h>b.y; }
+function haloText(t,x,y){ ctx.lineWidth=4; ctx.strokeStyle=col.space; ctx.lineJoin='round'; ctx.strokeText(t,x,y); ctx.fillText(t,x,y); }
+function placeSeasonLabel(e,R,fs,obst){
+  const F=getComputedStyle(document.body).fontFamily, sum=e.kind==='sum';
+  const t1=sum?'북반구 여름':'북반구 겨울', t2=sum?'(남반구 겨울)':'(남반구 여름)';
+  ctx.font=`800 ${fs+1}px ${F}`; const w1=ctx.measureText(t1).width; ctx.font=`700 ${fs-1}px ${F}`; const w2=ctx.measureText(t2).width;
+  const w=Math.max(w1,w2)+4, h=fs*2+6, g=R*1.7+5;
+  const cand=[[e.x-w/2,e.y-g-h],[e.x-w/2,e.y+g],[e.x+R+8,e.y-h/2],[e.x-R-8-w,e.y-h/2],[e.x+R+4,e.y-g-h+6],[e.x-R-4-w,e.y-g-h+6],[e.x+R+4,e.y+g-6],[e.x-R-4-w,e.y+g-6]];
+  const best=pickSpot(cand.map(([x,y])=>({x,y,w,h})),obst);
+  obst.push(best);
+  ctx.textAlign='center'; ctx.textBaseline='top'; const mx=best.x+w/2;
+  ctx.font=`800 ${fs+1}px ${F}`; ctx.fillStyle=sum?col.summer:col.winter; haloText(t1,mx,best.y);
+  ctx.font=`700 ${fs-1}px ${F}`; ctx.fillStyle=sum?col.winter:col.summer; haloText(t2,mx,best.y+fs+4);
+}
+function drawEarth(e,A,cx,cy,s,R,fs){
+  const [x,y]=proj(e.X,e.Y,0,cx,cy,s), F=getComputedStyle(document.body).fontFamily;
+  // 낮·밤: 태양 쪽 반구가 밝음
+  const sx=-e.X, sy=e.Y*SE, sl=Math.hypot(sx,sy)||1, sa=Math.atan2(sy,sx); // 화면에서 태양 방향(위가 -y)
+  ctx.save(); ctx.beginPath(); ctx.arc(x,y,R,0,7); ctx.clip();
+  ctx.fillStyle=col.earthNight; ctx.fillRect(x-R,y-R,2*R,2*R);
+  ctx.fillStyle=col.earth; ctx.beginPath(); ctx.arc(x,y,R,sa-Math.PI/2,sa+Math.PI/2); ctx.closePath(); ctx.fill();
+  // 적도 (앞쪽 실선, 뒤쪽 점선)
+  let u=[A[1],-A[0],0]; const ul=Math.hypot(u[0],u[1]); u= ul<1e-6?[1,0,0]:[u[0]/ul,u[1]/ul,0];
+  const w=[A[1]*u[2]-A[2]*u[1], A[2]*u[0]-A[0]*u[2], A[0]*u[1]-A[1]*u[0]];
+  const V=[0,-CE,SE];
+  for(const front of [false,true]){
+    ctx.beginPath(); let pen=false;
+    for(let i=0;i<=72;i++){ const al=i/72*2*Math.PI, P=[0,1,2].map(k=>Math.cos(al)*u[k]+Math.sin(al)*w[k]);
+      const vis=(P[0]*V[0]+P[1]*V[1]+P[2]*V[2])>0; const X=x+P[0]*R, Y=y-(P[1]*SE+P[2]*CE)*R;
+      if(vis===front){ pen?ctx.lineTo(X,Y):ctx.moveTo(X,Y); pen=true; } else pen=false; }
+    ctx.setLineDash(front?[]:[2,3]); ctx.lineWidth=front?1.8:1; ctx.strokeStyle=front?'rgba(255,255,255,.95)':'rgba(255,255,255,.45)'; ctx.stroke();
+  }
+  ctx.setLineDash([]); ctx.restore();
+  ctx.lineWidth=1; ctx.strokeStyle=col.line; ctx.beginPath(); ctx.arc(x,y,R,0,7); ctx.stroke();
+  // 자전축
+  const ax=A[0], ay=-(A[1]*SE+A[2]*CE), L=R*1.65;
+  ctx.strokeStyle=col.axis; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x-ax*L,y-ay*L); ctx.lineTo(x+ax*L,y+ay*L); ctx.stroke();
+  ctx.fillStyle=col.axis; ctx.font=`800 ${fs-2}px ${F}`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('N',x+ax*(L+8),y+ay*(L+8));
+}
+/* 시간 막대 옆 작은 그림: 자전축이 팽이처럼 도는 모습 (2.5D, 같은 자전축 방향 사용) */
+const TC=$('topC'), tctx=TC.getContext('2d');
+function drawTop(){
+  const dpr=window.devicePixelRatio||1, r0=TC.getBoundingClientRect(); if(!r0.width) return;
+  TC.width=Math.round(r0.width*dpr); TC.height=Math.round(r0.height*dpr); tctx.setTransform(dpr,0,0,dpr,0,0);
+  const w=r0.width, h=r0.height, c=tctx, orb=orbitOf(state);
+  const th=rad(trueAnom(LAMBDA.summer,orb))+Math.PI, ti=rad(26);   // 작은 그림은 기울기를 조금 과장
+  const el=rad(32), se=Math.sin(el), ce=Math.cos(el);               // 작은 그림은 조금 더 위에서 봄
+  const x0=w/2, y0=h*0.62, Rr=Math.min(w,h)*0.17, L=h*0.50;          // 지구 중심, 반지름, 축 길이
+  const P=(X,Y,Z)=>[x0+X, y0-(Y*se+Z*ce)];                           // 투영
+  const V=[0,-ce,se];                                                  // 보는 사람 쪽
+  const zc=L*Math.cos(ti), rc=L*Math.sin(ti);
+  c.clearRect(0,0,w,h);
+  const ring=(front)=>{ c.beginPath(); let pen=false;
+    for(let i=0;i<=72;i++){ const a=i/72*2*Math.PI, X=Math.cos(a)*rc, Y=Math.sin(a)*rc, vis=Y<=0; const [x,y]=P(X,Y,zc);
+      if(vis===front){ pen?c.lineTo(x,y):c.moveTo(x,y); pen=true; } else pen=false; } c.stroke(); };
+  const A=[Math.sin(ti)*Math.cos(th), Math.sin(ti)*Math.sin(th), Math.cos(ti)];
+  const tip=P(A[0]*L,A[1]*L,A[2]*L), tail=P(-A[0]*L*0.55,-A[1]*L*0.55,-A[2]*L*0.55);
+  const tipFront=A[1]<=0;
+  // 원뿔 면 (반투명)
+  const [ex,ey]=P(0,0,zc);
+  c.fillStyle=col.muted+'26'; c.beginPath(); c.moveTo(x0,y0); c.lineTo(ex-rc,ey); c.ellipse(ex,ey,rc,rc*se,0,Math.PI,0,true); c.closePath(); c.fill();
+  c.strokeStyle=col.muted; c.lineWidth=1; c.beginPath(); c.moveTo(x0,y0); c.lineTo(ex-rc,ey); c.moveTo(x0,y0); c.lineTo(ex+rc,ey); c.globalAlpha=.6; c.stroke(); c.globalAlpha=1;
+  // 뒤쪽 원(점선)
+  c.setLineDash([2.5,3]); c.lineWidth=1.2; c.strokeStyle=col.muted; ring(false); c.setLineDash([]);
+  // 공전 궤도면에 수직인 기준선
+  c.strokeStyle=col.muted; c.lineWidth=1; c.setLineDash([2,2]); c.beginPath(); c.moveTo(x0,y0); c.lineTo(ex,ey-6); c.stroke(); c.setLineDash([]);
+  // 축이 뒤쪽이면 지구보다 먼저 그림
+  const drawAxis=()=>{ c.strokeStyle=col.axis; c.lineWidth=2.2; c.beginPath(); c.moveTo(tail[0],tail[1]); c.lineTo(tip[0],tip[1]); c.stroke();
+    c.fillStyle=col.axis; c.globalAlpha=tipFront?1:.55; c.beginPath(); c.arc(tip[0],tip[1],tipFront?3.6:2.4,0,7); c.fill(); c.globalAlpha=1; };
+  if(!tipFront) drawAxis();
+  // 지구 (명암 있는 공)
+  const g=c.createRadialGradient(x0-Rr*0.4,y0-Rr*0.45,Rr*0.15,x0,y0,Rr);
+  g.addColorStop(0,'#9cc4ff'); g.addColorStop(0.55,col.earth); g.addColorStop(1,col.earthNight);
+  c.fillStyle=g; c.beginPath(); c.arc(x0,y0,Rr,0,7); c.fill(); c.strokeStyle=col.line; c.lineWidth=1; c.stroke();
+  // 적도 (축에 수직, 앞쪽만 실선)
+  let u=[A[1],-A[0],0]; const ul=Math.hypot(u[0],u[1])||1; u=[u[0]/ul,u[1]/ul,0];
+  const wv=[A[1]*u[2]-A[2]*u[1], A[2]*u[0]-A[0]*u[2], A[0]*u[1]-A[1]*u[0]];
+  c.beginPath(); let pen=false;
+  for(let i=0;i<=48;i++){ const a=i/48*2*Math.PI, Q=[0,1,2].map(k=>Math.cos(a)*u[k]+Math.sin(a)*wv[k]);
+    const vis=Q[0]*V[0]+Q[1]*V[1]+Q[2]*V[2]>0, [x,y]=P(Q[0]*Rr,Q[1]*Rr,Q[2]*Rr);
+    if(vis){ pen?c.lineTo(x,y):c.moveTo(x,y); pen=true; } else pen=false; }
+  c.strokeStyle='rgba(255,255,255,.9)'; c.lineWidth=1.3; c.stroke();
+  if(tipFront) drawAxis();
+  // 앞쪽 원(실선) + 회전 방향 화살표
+  c.strokeStyle=col.muted; c.lineWidth=1.4; ring(true);
+  const a1=rad(290), a2=rad(255), // 세차 운동은 북쪽 위에서 볼 때 시계 방향(자전과 반대)
+   [p1x,p1y]=P(Math.cos(a1)*rc,Math.sin(a1)*rc,zc), [p2x,p2y]=P(Math.cos(a2)*rc,Math.sin(a2)*rc,zc);
+  const an=Math.atan2(p2y-p1y,p2x-p1x); c.fillStyle=col.muted; c.beginPath();
+  c.moveTo(p2x+Math.cos(an)*5,p2y+Math.sin(an)*5); c.lineTo(p2x+Math.cos(an+2.4)*5,p2y+Math.sin(an+2.4)*5); c.lineTo(p2x+Math.cos(an-2.4)*5,p2y+Math.sin(an-2.4)*5); c.fill();
+  // N 글자
+  c.fillStyle=col.axis; c.font=`800 11px ${getComputedStyle(document.body).fontFamily}`; c.textAlign='center'; c.textBaseline='middle';
+  const nx=tip[0]+(tip[0]-x0)*0.18, ny=tip[1]+(tip[1]-y0)*0.18-2; c.fillText('N',Math.max(6,Math.min(w-6,nx)),Math.max(6,ny));
+}
+
+/* =========================================================
+   ① 세차 운동: 시간 막대
+   ========================================================= */
+const fmt=n=>Math.round(n).toLocaleString('ko-KR');
+function yearsLabel(y){ return y===0?'현재':y<0?`${fmt(-y)}년 전`:`${fmt(y)}년 후`; }
+function distLabel(au){ const km=au*AU_KM; return `${Math.floor(km/1e8)}억 ${fmt((km%1e8)/1e4)}만 km`; }
+function whereLabel(lambda,orb){ const v=trueAnom(lambda,orb), d=Math.min(v,360-v);
+  if(d<=45) return '근일점 부근 — 태양에 가까움'; if(d>=135) return '원일점 부근 — 태양에서 멂'; return '근일점과 원일점 사이'; }
+function renderPrec(){
+  const orb=orbitOf(state);
+  $('tVal').textContent=yearsLabel(state.years);
+  $('tSlider').value=state.years;
+  $('sumWhere').textContent=whereLabel(LAMBDA.summer,orb);
+  $('winWhere').textContent=whereLabel(LAMBDA.winter,orb);
+  $('sumDist').textContent=distLabel(sunDistance(LAMBDA.summer,orb));
+  $('winDist').textContent=distLabel(sunDistance(LAMBDA.winter,orb));
+  if(state.years===13000&&rec.pred&&!rec.saw13k&&!SIM){ rec.saw13k=true; saveRec(); renderQ1(); }
+  drawPrecGraph();
+  $('bNow').classList.toggle('on',state.years===0);
+  $('b13k').classList.toggle('on',state.years===13000);
+  $('b13kAgo').classList.toggle('on',state.years===-13000);
+  draw();
+}
+$('ticks').innerHTML=[-13000,-6500,0,6500,13000].map(y=>`<span style="left:${(y+13000)/260}%">${y===0?'현재':fmt(Math.abs(y))+'<br>'+(y<0?'년 전':'년 후')}</span>`).join('');
+$('tSlider').addEventListener('input',e=>{stopPlay(); state.years=+e.target.value; renderPrec();});
+$('bNow').onclick=()=>{stopPlay(); state.years=0; renderPrec();};
+$('b13k').onclick=()=>{stopPlay(); state.years=13000; renderPrec();};
+$('b13kAgo').onclick=()=>{stopPlay(); state.years=-13000; renderPrec();};
+let playing=null;
+function stopPlay(){ if(playing){cancelAnimationFrame(playing); playing=null; $("bPlay").textContent="▶ 돌리기";} }
+$('bPlay').onclick=()=>{
+  if(playing){stopPlay();return;}
+  if(state.years>=13000) state.years=-13000;
+  $('bPlay').textContent='■ 멈추기'; let last=null;
+  const step=t=>{ if(last!==null){ state.years=Math.min(13000,state.years+(t-last)*3); } last=t;
+    state.years=Math.round(state.years/100)*100; renderPrec();
+    if(state.years>=13000){stopPlay();return;} playing=requestAnimationFrame(step); };
+  playing=requestAnimationFrame(step);
+};
+
+/* =========================================================
+   탐구 기록 저장 (탐구 모드에서만, 시뮬레이션 모드에서는 읽지도 쓰지도 않음)
+   ========================================================= */
+const STORE_KEY='ess-milankovitch-v1';
+let SIM=false;
+let rec={};
+function loadRec(){ try{ rec=JSON.parse(localStorage.getItem(STORE_KEY)||'{}')||{}; }catch(e){ rec={}; } }
+function saveRec(){ if(SIM) return; try{ localStorage.setItem(STORE_KEY,JSON.stringify(rec)); }catch(e){} }
+const modeHooks=[];
+
+/* =========================================================
+   판단표 (공통 부품) — 정답은 계산으로 정함
+   하지(6/21)·동지(12/21) 하루 평균 일사량, 위도 37.5°, 변화가 1% 미만이면 '–'
+   ========================================================= */
+const JLAT=37.5, JTH=0.01;
+const SIGN={up:'↑',down:'↓',same:'–'}, SIGN_NAME={up:'높아짐',down:'낮아짐',same:'변화 거의 없음'};
+function judgeAnswers(sc,base){
+  const res={};
+  for(const [h,lat] of [['N',JLAT],['S',-JLAT]]){
+    const sL=h==='N'?LAMBDA.summer:LAMBDA.winter, wL=h==='N'?LAMBDA.winter:LAMBDA.summer;
+    const s0=insolation(lat,sL,base), w0=insolation(lat,wL,base), s1=insolation(lat,sL,sc), w1=insolation(lat,wL,sc);
+    const f=(a,b)=>{ const r=b/a-1; return {sign:r>JTH?'up':r<-JTH?'down':'same', pct:r*100}; };
+    res[h]={sum:f(s0,s1), win:f(w0,w1), rng:f(s0-w0,s1-w1)};
+  }
+  return res;
+}
+const HEMI=[{h:'N',name:'북반구 중위도 (37.5°N)',sumM:'6월',winM:'12월'},{h:'S',name:'남반구 중위도 (37.5°S)',sumM:'12월',winM:'6월'}];
+const COLS=[{c:'sum',name:'여름',cls:'s'},{c:'win',name:'겨울',cls:'w'},{c:'rng',name:'연교차',cls:''}];
+function makeJudge(el,cfg){
+  const key='j_'+cfg.key; let checked=false;
+  const sel=()=>{ rec[key]=rec[key]||{}; return rec[key]; };
+  function render(){
+    const ans=judgeAnswers(cfg.scenario(),cfg.base()), mine=SIM?{}:sel(), show=SIM||(checked&&allOk());
+    function allOk(){ return HEMI.every(r=>COLS.every(c=>sel()[r.h+c.c]===ans[r.h][c.c].sign)); }
+    const fmtP=v=>(v>=0?'+':'')+v.toFixed(1)+'%';
+    let h=`<div class="jHead">판단표 — ${cfg.title}</div>
+      <div class="jSub">${SIM?'정답을 채워 둔 판단표예요. <b>↑ 높아짐 · ↓ 낮아짐 · – 거의 변화 없음</b>.':'칸마다 <b>↑ 높아짐 · ↓ 낮아짐 · – 거의 변화 없음</b>을 고르세요.'} 여기서 '기온'은 <b>일사량 변화로 보면 높아지는 쪽</b>이라는 뜻이에요. 1% 미만 변화는 '–'예요.</div>`;
+    if(cfg.pics) h+=`<div class="jPics">${cfg.pics.map((pc,i)=>`<figure><figcaption class="${i?'cmp':''}">${pc.label}</figcaption><canvas data-pic="${i}" aria-label="${pc.label} 그림"></canvas></figure>`).join('')}</div>${cfg.picNote?`<div class="sub2" style="margin:-4px 0 10px">${cfg.picNote}</div>`:''}`;
+    HEMI.forEach(r=>{
+      h+=`<div class="jRow"><div class="rh">${r.name}</div><div class="jCells">`;
+      COLS.forEach(c=>{
+        const id=r.h+c.c, a=ans[r.h][c.c], v=SIM?a.sign:mine[id];
+        const st=SIM?'ok':checked&&v?(v===a.sign?'ok':'bad'):'';
+        const sub=c.c==='sum'?` (${r.sumM})`:c.c==='win'?` (${r.winM})`:'';
+        h+=`<div class="jCell ${st}"><div class="cl ${c.cls}">${c.name}<span style="font-weight:600;font-size:12px">${sub}</span></div><div class="jBtns">`+
+          ['up','down','same'].map(k=>`<button type="button" data-id="${id}" data-v="${k}" aria-pressed="${v===k}" aria-label="${r.name} ${c.name} ${SIGN_NAME[k]}" ${SIM?'disabled':''}>${SIGN[k]}</button>`).join('')+
+          `</div><div class="mk">${st==='ok'?'✓ 맞음':st==='bad'?'다시 생각':''}</div>${show?`<div class="pc">${fmtP(a.pct)}</div>`:''}</div>`;
+      });
+      h+='</div></div>';
+    });
+    if(!SIM){
+      h+=`<div class="jAct"><button type="button" class="pri" data-act="check">확인</button><button type="button" data-act="reset">다시 하기</button></div>`;
+      if(checked){
+        const filled=HEMI.every(r=>COLS.every(c=>sel()[r.h+c.c]));
+        if(!filled) h+=`<div class="fb hint">아직 고르지 않은 칸이 있어요. 여섯 칸을 모두 골라 주세요.</div>`;
+        else if(allOk()) h+=`<div class="fb ok"><b>모두 맞았어요.</b> ${cfg.summary}</div>`;
+        else{
+          const bad=[]; HEMI.forEach(r=>COLS.forEach(c=>{ if(sel()[r.h+c.c]!==ans[r.h][c.c].sign) bad.push(`<li><b>${r.h==='N'?'북반구':'남반구'} ${c.name}:</b> ${cfg.hints[r.h+c.c]}</li>`); }));
+          h+=`<div class="fb hint"><b>힌트</b><ul class="jHints">${bad.join('')}</ul></div>`;
+        }
+      }
+    } else h+=`<div class="fb ok">${cfg.summary}</div>`;
+    h+=`<div class="sub2" style="margin-top:8px">칸 안의 % 값은 하지·동지 하루 평균 일사량의 변화예요 <span class="tag calc">계산값</span></div>`;
+    el.innerHTML=h;
+    if(cfg.pics) el.querySelectorAll('canvas[data-pic]').forEach(cv=>{ const pc=cfg.pics[+cv.dataset.pic]; pc.draw?pc.draw(cv):drawMini(cv,pc.orb()); });
+  }
+  el.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b||SIM) return;
+    if(b.dataset.id){ sel()[b.dataset.id]=b.dataset.v; checked=false; saveRec(); render(); }
+    else if(b.dataset.act==='check'){ checked=true; render(); }
+    else if(b.dataset.act==='reset'){ rec[key]={}; checked=false; saveRec(); render(); }
+  });
+  modeHooks.push(render);
+  return {render};
+}
+
+/* =========================================================
+   월별 일사량 그래프 (위도 37.5°, 현재 = 회색 점선, 선택 시점 = 실선)
+   ========================================================= */
+const doyToLambda=d=>mod((d-79)/365.25*360,360);
+function drawMonthly(cv,lat,cur,selOrb){
+  const dpr=window.devicePixelRatio||1, r=cv.getBoundingClientRect(); if(!r.width) return;
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr); const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0);
+  const w=r.width, h=r.height, F=getComputedStyle(document.body).fontFamily;
+  const L=40, Rm=8, T=26, B=26, gw=w-L-Rm, gh=h-T-B, yMax=600;
+  const X=d=>L+d/365*gw, Y=v=>T+gh-(v/yMax)*gh;
+  c.clearRect(0,0,w,h);
+  c.font=`600 12px ${F}`; c.fillStyle=col.muted; c.strokeStyle=col.line; c.lineWidth=1; c.textAlign='right'; c.textBaseline='middle';
+  for(let v=0;v<=yMax;v+=200){ c.beginPath(); c.moveTo(L,Y(v)); c.lineTo(w-Rm,Y(v)); c.stroke(); c.fillText(v,L-5,Y(v)); }
+  c.save(); c.translate(11,T+gh/2); c.rotate(-Math.PI/2); c.textAlign='center'; c.fillText('W/m²',0,0); c.restore();
+  const MD=[0,31,59,90,120,151,181,212,243,273,304,334,365];
+  c.textAlign='center'; c.textBaseline='top';
+  for(let m=0;m<12;m++) c.fillText((m+1)+'월',X((MD[m]+MD[m+1])/2),T+gh+6);
+  // 하지·동지 세로 점선
+  const N=lat>0;
+  [[171,N?'여름':'겨울',N?col.summer:col.winter,'6월 21일'],[354,N?'겨울':'여름',N?col.winter:col.summer,'12월 21일']].forEach(([d,t,cl])=>{
+    c.strokeStyle=cl; c.setLineDash([4,4]); c.beginPath(); c.moveTo(X(d),T); c.lineTo(X(d),T+gh); c.stroke(); c.setLineDash([]);
+    c.fillStyle=cl; c.font=`800 13px ${F}`; c.textBaseline='bottom'; c.textAlign=d>300?'right':'center'; c.fillText((d===171?'하지 ':'동지 ')+'('+t+')',d>300?X(d)+6:X(d),T-4);
+  });
+  const line=(orb,stroke,dash,wd)=>{ c.strokeStyle=stroke; c.lineWidth=wd; c.setLineDash(dash); c.beginPath();
+    for(let d=0;d<=365;d+=2){ const v=insolation(lat,doyToLambda(d),orb); d?c.lineTo(X(d),Y(v)):c.moveTo(X(d),Y(v)); } c.stroke(); c.setLineDash([]); };
+  line(cur,col.now||'#8a8f98',[6,5],2.2);
+  line(selOrb,col.ink,[],2.6);
+  [171,354].forEach(d=>{ const v=insolation(lat,doyToLambda(d),selOrb); c.fillStyle=col.ink; c.beginPath(); c.arc(X(d),Y(v),4,0,7); c.fill(); });
+}
+let precHemi='N';
+function drawPrecGraph(){ drawMonthly($('precG'),precHemi==='N'?JLAT:-JLAT,orbitOf({years:0,tilt:NOW.tilt,ecc:NOW.ecc}),orbitOf(state)); $('precLg').textContent=yearsLabel(state.years); }
+$('precHemi').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; precHemi=b.dataset.h;
+  [...$('precHemi').children].forEach(x=>x.setAttribute('aria-pressed',x===b)); drawPrecGraph(); });
+
+/* =========================================================
+   ① 질문 흐름: 시작 질문(근일점 오개념) → 예측 → 시간 막대 → 판단표
+   ========================================================= */
+function renderQ0(){
+  const v=rec.q0; [...$('q0Opts').children].forEach(b=>{ b.classList.toggle('sel',b.dataset.v===v); b.disabled=v==='win'; });
+  $('q0Fb').innerHTML= v==='win'?`<div class="fb ok"><b>맞아요.</b> 북반구는 태양에 가장 가까운 1월 초에 <b>겨울</b>이에요. 그러니 계절은 태양과의 거리 때문에 생기는 것이 아니에요. 계절의 원인은 <b>자전축 기울기</b>예요(② 탭에서 확인해요).</div>`
+    : v==='sum'?`<div class="fb hint"><b>힌트</b> 아래 '북반구의 여름과 겨울은 어디에?' 칸에서 6월 21일과 12월 21일의 태양까지 거리를 비교해 보세요. 어느 때가 태양에 더 가까운가요?</div>`:'';
+}
+$('q0Opts').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||SIM||rec.q0==='win') return; rec.q0=b.dataset.v; saveRec(); renderQ0(); });
+const PRED_NAME={peri:'근일점',aph:'원일점',mid:'그 사이'}, PRED_WAS={peri:'근일점이었어요',aph:'원일점이었어요',mid:'그 사이였어요'};
+function renderQ1(){
+  const v=rec.pred; [...$('q1Opts').children].forEach(b=>{ b.classList.toggle('sel',b.dataset.v===v); b.disabled=!!v; });
+  $('tCard').classList.toggle('locked',!SIM&&!v);
+  let h='';
+  if(v){
+    if(rec.saw13k) h= v==='peri'?`<div class="fb ok"><b>예측대로예요.</b> 13,000년 후 북반구 여름은 <b>근일점</b> 부근에 와요. 겨울은 원일점 부근이에요.</div>`
+      :`<div class="fb info">내 예측은 '${PRED_WAS[v].replace(/(이었어요|였어요)$/,'')}'${PRED_WAS[v].match(/(이었어요|였어요)$/)[0]}. 확인해 보니 13,000년 후 북반구 여름은 <b>근일점</b> 부근에 와요. 위 그림에서 '북반구 여름' 글자가 어디로 옮겨 갔는지 보세요.</div>`;
+    else h=`<div class="fb info">내 예측: <b>${PRED_NAME[v]}</b>. 이제 시간 막대에서 <b>[13,000년 후]</b>를 눌러 확인해 보세요.</div>`;
+  }
+  $('q1Fb').innerHTML=h;
+}
+$('q1Opts').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||SIM||rec.pred) return; rec.pred=b.dataset.v; saveRec(); renderQ1(); });
+
+const judgePrec=makeJudge($('judgePrec'),{
+  key:'prec', title:'13,000년 후를 현재와 비교해',
+  pics:[{label:'현재',orb:()=>orbitOf({years:0,tilt:NOW.tilt,ecc:NOW.ecc})},{label:'13,000년 후',orb:()=>orbitOf({years:13000,tilt:NOW.tilt,ecc:NOW.ecc})}],
+  scenario:()=>orbitOf({years:13000,tilt:NOW.tilt,ecc:NOW.ecc}),
+  base:()=>orbitOf({years:0,tilt:NOW.tilt,ecc:NOW.ecc}),
+  hints:{
+    Nsum:'13,000년 후 그림에서 \'북반구 여름\' 글자는 근일점 쪽인가요, 원일점 쪽인가요? 태양에 가까우면 햇빛이 더 세요.',
+    Nwin:'13,000년 후 \'북반구 겨울\'(12월) 때 지구는 태양에 가까워졌나요, 멀어졌나요?',
+    Nrng:'여름은 더 따뜻한 쪽, 겨울은 더 추운 쪽으로 바뀌면 둘의 차이는 어떻게 될까요?',
+    Ssum:'남반구 여름은 12월이에요. 13,000년 후 12월에 지구는 근일점 쪽인가요, 원일점 쪽인가요? 남반구 그래프로 바꿔서 12월 값을 보세요.',
+    Swin:'남반구 겨울은 6월이에요. 13,000년 후 6월에 지구는 태양에 가까운가요, 먼가요?',
+    Srng:'남반구의 여름과 겨울 칸에서 고른 것을 함께 보세요. 여름과 겨울의 차이가 커지나요, 작아지나요?'
+  },
+  summary:'13,000년 후에는 북반구 여름이 근일점, 겨울이 원일점 부근에 와요. 그래서 <b>북반구는 연교차가 커지고</b>(교과서 60쪽), 계절이 반대인 <b>남반구는 연교차가 작아져요.</b>'
+});
+
+/* =========================================================
+   ② 자전축 기울기
+   ========================================================= */
+const noonAlt=(lat,dec)=>90-Math.abs(lat-dec); // 남중 고도(°)
+// 남중 고도 옆모습: 하지·동지 태양 위치. cmp=true면 현재(23.5°)를 점선으로 함께
+function drawAltitude(cv,lat,tilt,o={}){
+  const dpr=window.devicePixelRatio||1, r=cv.getBoundingClientRect(); if(!r.width) return;
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr); const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0);
+  const w=r.width, h=r.height, F=getComputedStyle(document.body).fontFamily, mini=!!o.mini, fs=mini?11:14;
+  c.clearRect(0,0,w,h);
+  const gy=h-(mini?22:30), ox=w/2, Rr=Math.min(w*0.42,(gy-(mini?8:14)));
+  const N=lat>0, dir=N?1:-1; // 북반구: 태양이 남쪽(오른쪽), 남반구: 북쪽(왼쪽)
+  // 땅과 하늘
+  c.fillStyle=col.space; c.fillRect(0,0,w,gy); c.fillStyle=col.line; c.fillRect(0,gy,w,h-gy);
+  c.strokeStyle=col.muted; c.setLineDash([3,4]); c.lineWidth=1; c.beginPath(); c.arc(ox,gy,Rr,Math.PI,2*Math.PI); c.stroke(); c.setLineDash([]);
+  c.fillStyle=col.ink; c.font=`700 ${fs-1}px ${F}`; c.textBaseline='top'; c.textAlign='right'; c.fillText('남',w-6,gy+4); c.textAlign='left'; c.fillText('북',6,gy+4);
+  const Hs=Rr*(mini?0.28:0.32); // 막대 높이(그림)
+  const vis=t=>o.forceExag&&t>=21?NOW.tilt+(t-NOW.tilt)*5:visTilt(t);
+  const pos=(alt)=>{ const a=rad(alt); return [ox+dir*Math.cos(a)*Rr, gy-Math.sin(a)*Rr]; };
+  const sumDec=N?1:-1; // 그 반구의 여름: 하지(N)·동지(S)에 태양이 그 반구 쪽
+  const cases=[{k:'sum',d: sumDec},{k:'win',d:-sumDec}];
+  // 현재(점선)
+  if(o.cmp&&Math.abs(tilt-NOW.tilt)>1e-6){ cases.forEach(cs=>{ const alt=noonAlt(lat,cs.d*vis(NOW.tilt)); const [x,y]=pos(alt);
+      c.strokeStyle=col.now; c.setLineDash([4,4]); c.lineWidth=1.5; c.beginPath(); c.moveTo(ox,gy); c.lineTo(x,y); c.stroke(); c.setLineDash([]);
+      c.beginPath(); c.arc(x,y,mini?4:6,0,7); c.stroke(); }); }
+  cases.forEach(cs=>{
+    const realAlt=noonAlt(lat,cs.d*tilt), alt=noonAlt(lat,cs.d*vis(tilt)), [x,y]=pos(alt), cl=cs.k==='sum'?col.summer:col.winter;
+    c.strokeStyle=cl; c.lineWidth=2; c.beginPath(); c.moveTo(ox,gy); c.lineTo(x,y); c.stroke();
+    c.lineWidth=1.5; c.beginPath(); c.arc(ox,gy,mini?18:30,dir>0?-rad(alt):Math.PI,dir>0?0:Math.PI+rad(alt)); c.stroke();
+    c.fillStyle=col.sun; c.strokeStyle=col.sunEdge; c.beginPath(); c.arc(x,y,mini?6:9,0,7); c.fill(); c.stroke();
+    const name=(cs.k==='sum'?'여름':'겨울')+(N?(cs.k==='sum'?' (하지)':' (동지)'):(cs.k==='sum'?' (동지)':' (하지)'));
+    c.fillStyle=cl; c.font=`800 ${fs}px ${F}`; c.textBaseline='middle';
+    const txt=mini?`${realAlt.toFixed(1)}°`:`${name} ${realAlt.toFixed(1)}°`, tw=c.measureText(txt).width, off=mini?9:14;
+    // 바깥쪽(태양이 뜨는 쪽)에 쓰되, 넘치면 안쪽으로
+    let left = dir>0 ? x+off : x-off-tw;
+    if(left+tw>w-4) left=x-off-tw;
+    if(left<4) left=x+off;
+    left=Math.max(4,Math.min(w-4-tw,left));
+    c.textAlign='left'; c.lineWidth=4; c.strokeStyle=col.space; c.lineJoin='round'; c.strokeText(txt,left,y-(mini?0:2)); c.fillText(txt,left,y-(mini?0:2));
+  });
+  // 막대와 그림자 (그림자 길이 = 막대 높이 ÷ tan(남중 고도))
+  const shadows=cases.map(cs=>{ const altV=noonAlt(lat,cs.d*vis(tilt)), altR=noonAlt(lat,cs.d*tilt); return {k:cs.k, altV, ratio:1/Math.tan(rad(altR)), len:Hs/Math.tan(rad(altV))}; });
+  shadows.forEach((sh,i)=>{ const cl=sh.k==='sum'?col.summer:col.winter, yy=gy+(mini?3:4)+i*(mini?5:7), xe=ox-dir*sh.len;
+    c.strokeStyle=cl; c.lineWidth=mini?4:5; c.lineCap='round'; c.globalAlpha=.85; c.beginPath(); c.moveTo(ox,yy); c.lineTo(xe,yy); c.stroke(); c.globalAlpha=1; c.lineCap='butt';
+    // 막대 끝을 지나 그림자 끝에 닿는 햇빛(점선)
+    c.strokeStyle=cl; c.lineWidth=1; c.setLineDash([2,3]); c.beginPath(); c.moveTo(ox,gy-Hs); c.lineTo(xe,gy); c.stroke(); c.setLineDash([]); });
+  c.strokeStyle=col.ink; c.lineWidth=mini?2.5:3.5; c.beginPath(); c.moveTo(ox,gy); c.lineTo(ox,gy-Hs); c.stroke();
+  if(!mini){ c.fillStyle=col.muted; c.font=`600 12px ${F}`; c.textAlign='left'; c.textBaseline='top'; c.fillText(`위도 ${Math.abs(lat)}°${N?'N':'S'}`,6,6);
+    const note=$('altShadow'); if(note){ const sm=shadows.find(x=>x.k==='sum'), wn=shadows.find(x=>x.k==='win');
+      note.innerHTML=`그림자 길이(막대 높이 = 1): <b style="color:var(--summer)">여름 ${sm.ratio.toFixed(2)}</b> · <b style="color:var(--winter)">겨울 ${wn.ratio.toFixed(2)}</b>`; } }
+}
+let altHemi='N';
+function drawAltMain(){ drawAltitude($('altC'),altHemi==='N'?JLAT:-JLAT,state.tilt,{cmp:true}); }
+$('altHemi').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; altHemi=b.dataset.h; [...$('altHemi').children].forEach(x=>x.setAttribute('aria-pressed',x===b)); drawAltMain(); });
+
+// 위도별 하지·동지 일사량 그래프
+function drawLat(){
+  const cv=$('latG'), dpr=window.devicePixelRatio||1, r=cv.getBoundingClientRect(); if(!r.width) return;
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr); const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0);
+  const w=r.width, h=r.height, F=getComputedStyle(document.body).fontFamily;
+  const L=40, Rm=8, T=12, B=40, gw=w-L-Rm, gh=h-T-B, yMax=600;
+  const X=la=>L+(la+90)/180*gw, Y=v=>T+gh-(v/yMax)*gh;
+  c.clearRect(0,0,w,h); c.font=`600 12px ${F}`; c.fillStyle=col.muted; c.strokeStyle=col.line; c.lineWidth=1;
+  c.textAlign='right'; c.textBaseline='middle';
+  for(let v=0;v<=yMax;v+=200){ c.beginPath(); c.moveTo(L,Y(v)); c.lineTo(w-Rm,Y(v)); c.stroke(); c.fillText(v,L-5,Y(v)); }
+  c.save(); c.translate(11,T+gh/2); c.rotate(-Math.PI/2); c.textAlign='center'; c.fillText('W/m²',0,0); c.restore();
+  c.textAlign='center'; c.textBaseline='top';
+  [[-90,'90°S'],[-37.5,'37.5°S'],[0,'적도'],[37.5,'37.5°N'],[90,'90°N']].forEach(([la,t])=>{ c.fillText(t,Math.max(L+14,Math.min(w-Rm-16,X(la))),T+gh+6);
+    if(Math.abs(la)===37.5||la===0){ c.strokeStyle=col.line; c.setLineDash([2,3]); c.beginPath(); c.moveTo(X(la),T); c.lineTo(X(la),T+gh); c.stroke(); c.setLineDash([]); } });
+  c.fillText('← 남반구 · 북반구 →',L+gw/2,T+gh+22);
+  const cur=orbitOf({years:0,tilt:NOW.tilt,ecc:NOW.ecc}), sel=orbitOf({years:0,tilt:state.tilt,ecc:NOW.ecc});
+  const line=(orb,lam,stroke,dash,wd)=>{ c.strokeStyle=stroke; c.lineWidth=wd; c.setLineDash(dash); c.beginPath();
+    for(let la=-90;la<=90;la+=1){ const v=insolation(la,lam,orb); la>-90?c.lineTo(X(la),Y(v)):c.moveTo(X(la),Y(v)); } c.stroke(); c.setLineDash([]); };
+  line(cur,LAMBDA.summer,col.now,[6,5],2); line(cur,LAMBDA.winter,col.now,[6,5],2);
+  line(sel,LAMBDA.summer,col.summer,[],2.6); line(sel,LAMBDA.winter,col.winter,[],2.6);
+  // 변화 크기 안내
+  const d=la=>insolation(la,LAMBDA.summer,sel)-insolation(la,LAMBDA.summer,cur);
+  $('latNote').innerHTML = Math.abs(state.tilt-NOW.tilt)<0.05 ? (state.tilt<1?'기울기 0°: 6월 21일과 12월 21일 곡선이 거의 겹쳐요. 계절이 사라져요.':'기울기를 바꾸면 현재(점선)와 비교할 수 있어요.')
+    : `6월 21일 일사량 변화(현재와 비교): 적도 ${fmtW(d(0))}, 37.5°N ${fmtW(d(37.5))}, 65°N ${fmtW(d(65))}, 80°N ${fmtW(d(80))} W/m²`;
+  if(state.tilt<1) $('latNote').innerHTML='기울기 0°(사고 실험): 6월 21일과 12월 21일 곡선이 거의 겹쳐요. <b>계절이 거의 사라져요.</b> 남은 작은 차이는 태양까지 거리 차이 때문이에요.';
+}
+const fmtW=v=>(v>=0?'+':'')+v.toFixed(0);
+
+function renderTilt(){
+  const t=state.tilt;
+  $('tiltVal').textContent=(t<1?'0°  (사고 실험)':t.toFixed(1)+'°');
+  if(t>=21) $('tiltSlider').value=t;
+  document.querySelectorAll('[data-tilt]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.tilt-t)<1e-6));
+  $('bExag').classList.toggle('on',exag); $('bExag').textContent=exag?'그림 과장 끄기':'그림 과장 켜기'; $('bExag').setAttribute('aria-pressed',exag);
+  $('tiltExagNote').innerHTML=exag?'<span class="tag model">모형 · 기울기 차이 5배 과장</span>':'';
+  $('tilt0Note').textContent=t<1?'위 그래프와 공전 궤도 그림에서 계절이 어떻게 되는지 보세요.':'';
+  if(t>=24.45&&rec.predLat&&!rec.sawLat&&!SIM){ rec.sawLat=true; saveRec(); renderQLat(); }
+  drawAltMain(); drawLat(); draw(); drawPrecGraph();
+}
+function setTilt(v){ state.tilt=Math.round(v*10)/10; renderTilt(); }
+$('tiltSlider').addEventListener('input',e=>setTilt(+e.target.value));
+document.querySelectorAll('[data-tilt]').forEach(b=>b.onclick=()=>setTilt(+b.dataset.tilt));
+$('bExag').onclick=()=>{ exag=!exag; renderTilt(); };
+$('bTilt0').onclick=()=>setTilt(0);
+$('bTiltBack').onclick=()=>setTilt(NOW.tilt);
+
+const LAT_NAME={eq:'적도 부근',mid:'중위도',high:'고위도'};
+function renderQLat(){
+  const v=rec.predLat; [...$('qLatOpts').children].forEach(b=>{ b.classList.toggle('sel',b.dataset.v===v); b.disabled=!!v; });
+  let h='';
+  if(v){
+    if(rec.sawLat) h= v==='high'?`<div class="fb ok"><b>예측대로예요.</b> 기울기가 커지면 <b>고위도</b>의 하지 일사량이 가장 크게 늘어요. 적도 부근은 거의 변하지 않아요.</div>`
+      :`<div class="fb info">내 예측은 '${LAT_NAME[v]}'. 그래프를 보면 하지 일사량 변화는 <b>고위도</b>에서 가장 크고, 적도 부근은 거의 변하지 않아요. 아래 숫자를 비교해 보세요.</div>`;
+    else h=`<div class="fb info">내 예측: <b>${LAT_NAME[v]}</b>. 이제 기울기를 <b>24.5°</b>로 바꾸고 아래 위도별 그래프에서 점선(현재)과 실선의 간격을 비교해 보세요.</div>`;
+  }
+  $('qLatFb').innerHTML=h;
+}
+$('qLatOpts').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||SIM||rec.predLat) return; rec.predLat=b.dataset.v; saveRec(); renderQLat(); });
+modeHooks.push(renderQLat);
+
+const tiltOrb=t=>orbitOf({years:0,tilt:t,ecc:NOW.ecc});
+const altPic=(t,lab)=>({label:lab,draw:cv=>drawAltitude(cv,JLAT,t,{mini:true,forceExag:true})});
+makeJudge($('judgeTilt1'),{
+  key:'tilt245', title:'기울기 24.5°를 현재(23.5°)와 비교해',
+  pics:[altPic(NOW.tilt,'현재 23.5°'),altPic(24.5,'기울기 24.5°')], picNote:'37.5°N의 여름(하지)·겨울(동지) 태양 남중 고도예요. 숫자는 계산값이고, 그림은 기울기 차이를 5배로 과장했어요.',
+  scenario:()=>tiltOrb(24.5), base:()=>tiltOrb(NOW.tilt),
+  hints:{
+    Nsum:'기울기가 커지면 하지 때 북반구는 태양 쪽으로 더 많이 기울어요. 위 그림에서 여름 태양의 남중 고도는 높아졌나요?',
+    Nwin:'동지 때 북반구는 태양 반대쪽으로 더 많이 기울어요. 겨울 태양의 남중 고도는 어떻게 되었나요?',
+    Nrng:'여름과 겨울 칸에서 고른 것을 함께 보세요. 두 계절의 차이가 커지나요, 작아지나요?',
+    Ssum:'남반구 여름은 12월이에요. 그때 남반구는 태양 쪽으로 기울어 있어요. 기울기가 커지면 더 많이 기울까요? 남중 고도 그림을 남반구로 바꿔 보세요.',
+    Swin:'남반구 겨울은 6월이에요. 그때 남반구는 태양 반대쪽으로 기울어 있어요. 기울기가 커지면?',
+    Srng:'남반구의 여름과 겨울 칸에서 고른 것을 함께 보세요.'
+  },
+  summary:'기울기가 커지면 여름에는 태양이 더 높이, 겨울에는 더 낮게 떠요. 그래서 <b>북반구와 남반구 모두</b> 여름은 더 덥고 겨울은 더 추워져 <b>연교차가 커져요</b>(교과서 60쪽). 세차 운동과 달리 <b>두 반구가 같은 방향</b>으로 변해요.'
+});
+makeJudge($('judgeTilt2'),{
+  key:'tilt215', title:'기울기 21.5°를 현재(23.5°)와 비교해 — 교과서 69쪽 6번과 같은 상황',
+  pics:[altPic(NOW.tilt,'현재 23.5°'),altPic(21.5,'기울기 21.5°')], picNote:'37.5°N의 여름(하지)·겨울(동지) 태양 남중 고도예요. 숫자는 계산값이고, 그림은 기울기 차이를 5배로 과장했어요.',
+  scenario:()=>tiltOrb(21.5), base:()=>tiltOrb(NOW.tilt),
+  hints:{
+    Nsum:'기울기가 작아지면 하지 때 북반구가 태양 쪽으로 덜 기울어요. 여름 태양의 남중 고도는?',
+    Nwin:'기울기가 작아지면 동지 때 북반구가 태양 반대쪽으로 덜 기울어요. 겨울 태양의 남중 고도는?',
+    Nrng:'여름과 겨울 칸에서 고른 것을 함께 보세요.',
+    Ssum:'남반구 여름(12월)에 남반구가 태양 쪽으로 덜 기울면 햇빛은?',
+    Swin:'남반구 겨울(6월)에 남반구가 태양 반대쪽으로 덜 기울면 햇빛은?',
+    Srng:'남반구의 여름과 겨울 칸에서 고른 것을 함께 보세요.'
+  },
+  summary:'기울기가 작아지면 두 반구 모두 여름 일사량은 줄고 겨울 일사량은 늘어 <b>연교차가 작아져요.</b> 그래서 69쪽 6번에서는 \'우리나라의 여름철 평균 기온이 낮아진다\'가 맞아요. 기울기는 지구 전체가 1년 동안 받는 햇빛의 양은 거의 바꾸지 않아요. 계절별·위도별로 나누어 받는 양을 바꿔요.'
+});
+
+/* =========================================================
+   ③ 공전 궤도 모양
+   ========================================================= */
+function orbitBadge(e){ if(e<0.002) return '원 궤도'; if(Math.abs(e-NOW.ecc)<0.0015) return '현재 궤도'; return e<NOW.ecc?'원에 가까워진 궤도':'납작해진 궤도'; }
+function orbitShape(e){ if(e<0.002) return '원에 가까움'; if(Math.abs(e-NOW.ecc)<0.0015) return '현재 모양'; return e<NOW.ecc?'현재보다 원에 가까움':'현재보다 납작함'; }
+function renderOrbit(){
+  const e=state.ecc;
+  $('eccVal').textContent=orbitShape(e)+(e<0.002?' (원 궤도)':'');
+  $('eccSlider').value=e;
+  document.querySelectorAll('[data-ecc]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.ecc-e)<0.0015));
+  $('periDist').textContent=e<0.002?'—':distLabel(1-e); $('aphDist').textContent=e<0.002?'—':distLabel(1+e);
+  const ip=100/((1-e)*(1-e)), ia=100/((1+e)*(1+e)), mx=115;
+  $('ibars').innerHTML=[['근일점',ip],['원일점',ia]].map(([n,v])=>`<div class="ibar"><span>${n}</span><span class="tr"><span class="fl" style="width:${v/mx*100}%"></span><span class="mid" style="left:${100/mx*100}%"></span></span><span class="v">${v.toFixed(1)}</span></div>`).join('');
+  $('iNote').innerHTML= e<0.002?'원 궤도에서는 태양까지 거리가 늘 같아서 <b>1년 내내 같은 세기</b>의 햇빛을 받아요(근일점·원일점이 없어요).'
+    : `근일점에서 받는 햇빛이 원일점보다 <b>약 ${(ip/ia*100-100).toFixed(1)}%</b> 더 세요. 궤도가 원에 가까워질수록 이 차이가 줄어들어요.`;
+  $('eccNum').textContent=e.toFixed(3);
+  draw(); drawPrecGraph();
+}
+function setEcc(v){ state.ecc=Math.round(v*1000)/1000; if(Math.abs(state.ecc-0.017)<1e-9) state.ecc=NOW.ecc; renderOrbit(); }
+$('eccSlider').addEventListener('input',e=>setEcc(+e.target.value));
+document.querySelectorAll('[data-ecc]').forEach(b=>b.onclick=()=>setEcc(+b.dataset.ecc));
+
+function renderQOrb(){
+  const v=rec.qOrb; [...$('qOrbOpts').children].forEach(b=>{ b.classList.toggle('sel',b.dataset.v===v); b.disabled=v==='peri'; });
+  $('qOrbFb').innerHTML= v==='peri'?`<div class="fb ok"><b>맞아요.</b> 지금은 북반구 겨울이 <b>근일점</b> 부근, 여름이 원일점 부근이에요. 이것을 기억하고 아래 판단표를 풀어 보세요.</div>`
+    : v==='aph'?`<div class="fb hint"><b>힌트</b> 맨 위 공전 궤도 그림에서 '북반구 겨울' 글자가 근일점과 원일점 중 어느 쪽에 있나요? (① 탭의 시간 막대가 '현재'인지도 확인하세요.)</div>`:'';
+}
+$('qOrbOpts').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||SIM||rec.qOrb==='peri') return; rec.qOrb=b.dataset.v; saveRec(); renderQOrb(); });
+modeHooks.push(renderQOrb);
+
+const eccOrb=e=>orbitOf({years:0,tilt:NOW.tilt,ecc:e});
+makeJudge($('judgeOrbit'),{
+  key:'orbit0', title:'궤도가 원에 가까워지면 — 현재와 비교해',
+  pics:[{label:'현재 궤도',orb:()=>eccOrb(NOW.ecc)},{label:'원에 가까운 궤도',orb:()=>eccOrb(0)}],
+  picNote:'두 그림 모두 북반구 계절 위치는 지금과 같아요(세차 운동은 현재). 궤도 모양은 과장해서 그렸어요.',
+  scenario:()=>eccOrb(0), base:()=>eccOrb(NOW.ecc),
+  hints:{
+    Nsum:'지금 북반구 여름은 원일점 부근이라 햇빛이 조금 약해요. 궤도가 원이 되면 그때 태양까지 거리는 가까워지나요, 멀어지나요?',
+    Nwin:'지금 북반구 겨울은 근일점 부근이라 햇빛을 조금 더 받아요. 궤도가 원이 되면 그 덤은 어떻게 될까요?',
+    Nrng:'여름과 겨울 칸에서 고른 것을 함께 보세요. 두 계절의 차이가 커지나요, 작아지나요?',
+    Ssum:'남반구 여름은 12월, 지금은 근일점 부근이에요. 궤도가 원이 되면 그때 태양까지 거리는?',
+    Swin:'남반구 겨울은 6월, 지금은 원일점 부근이에요. 궤도가 원이 되면 그때 태양까지 거리는?',
+    Srng:'남반구의 여름과 겨울 칸에서 고른 것을 함께 보세요. 북반구와 같은 방향인가요?'
+  },
+  summary:'궤도가 원에 가까워지면 근일점·원일점의 차이가 사라져요. 지금 북반구는 겨울이 근일점에 있어 덤으로 받던 햇빛이 줄고, 여름은 원일점에서 덜 받던 햇빛이 늘어요. 그래서 <b>북반구는 겨울이 더 춥고 여름이 더 더워져 연교차가 커져요</b>(교과서 60쪽). <b>남반구는 반대로 연교차가 작아져요.</b> 이 결론은 <b>지금처럼 북반구 겨울이 근일점 부근일 때</b>예요. 13,000년 후라면 어떻게 될지 ④ 탭에서 확인해 보세요.'
+});
+
+/* =========================================================
+   ④ 함께 보기
+   ========================================================= */
+const combOrb=(y,t,e)=>orbitOf({years:y,tilt:t,ecc:e});
+makeJudge($('judgeComb1'),{
+  key:'comb1', title:'13,000년 후 + 기울기 24.5°를 현재와 비교해',
+  pics:[{label:'현재',orb:()=>combOrb(0,NOW.tilt,NOW.ecc)},{label:'13,000년 후 + 24.5°',orb:()=>combOrb(13000,24.5,NOW.ecc)}],
+  picNote:'두 요인이 함께 바뀌었어요. ① 탭과 ② 탭의 결과를 하나씩 떠올려 보세요.',
+  scenario:()=>combOrb(13000,24.5,NOW.ecc), base:()=>combOrb(0,NOW.tilt,NOW.ecc),
+  hints:{
+    Nsum:'세차 운동(13,000년 후)과 기울기 증가는 북반구 여름에 각각 어떤 영향을 줬나요? 둘이 같은 방향이면 더 크게 바뀌어요.',
+    Nwin:'두 요인이 북반구 겨울에 주는 영향을 각각 떠올려 보세요.',
+    Nrng:'여름과 겨울 칸에서 고른 것을 함께 보세요.',
+    Ssum:'남반구 여름(12월): 세차 운동은 ↓, 기울기 증가는 ↑ 쪽이에요. 어느 쪽이 더 클까요? 판단이 어려우면 아래 자유 실험에서 확인해 보세요.',
+    Swin:'남반구 겨울(6월): 세차 운동과 기울기 증가가 반대 방향이에요. 아래 자유 실험에서 하나씩 켜 보세요.',
+    Srng:'남반구의 여름과 겨울 칸에서 고른 것을 함께 보세요.'
+  },
+  summary:'북반구는 두 요인이 <b>같은 방향</b>(연교차 커짐)이라 효과가 더해져요. 남반구는 두 요인이 <b>반대 방향</b>인데, 위도 37.5°에서는 세차 운동의 효과가 더 커서 연교차가 작아져요.'
+});
+makeJudge($('judgeComb2'),{
+  key:'comb2', title:'13,000년 후의 지구에서 궤도가 원에 가까워지면 — 13,000년 후와 비교해',
+  pics:[{label:'13,000년 후 · 현재 궤도',orb:()=>combOrb(13000,NOW.tilt,NOW.ecc)},{label:'13,000년 후 · 원 궤도',orb:()=>combOrb(13000,NOW.tilt,0)}],
+  picNote:'비교 기준이 \'현재\'가 아니라 \'13,000년 후\'예요. 13,000년 후 북반구 여름은 근일점 부근이에요.',
+  scenario:()=>combOrb(13000,NOW.tilt,0), base:()=>combOrb(13000,NOW.tilt,NOW.ecc),
+  hints:{
+    Nsum:'13,000년 후 북반구 여름은 근일점 부근이라 햇빛을 덤으로 받아요. 궤도가 원이 되면 그 덤은?',
+    Nwin:'13,000년 후 북반구 겨울은 원일점 부근이라 햇빛을 덜 받아요. 궤도가 원이 되면?',
+    Nrng:'여름과 겨울 칸에서 고른 것을 함께 보세요.',
+    Ssum:'13,000년 후 남반구 여름(12월)은 원일점 부근이에요. 궤도가 원이 되면?',
+    Swin:'13,000년 후 남반구 겨울(6월)은 근일점 부근이에요. 궤도가 원이 되면?',
+    Srng:'남반구의 여름과 겨울 칸에서 고른 것을 함께 보세요.'
+  },
+  summary:'③ 탭(현재 기준)과 <b>정반대</b>예요. 13,000년 후에 궤도가 원에 가까워지면 북반구 연교차는 <b>작아지고</b>, 남반구 연교차는 커져요. 궤도 모양의 효과는 <b>근일점이 어느 계절에 있느냐(세차 운동)</b>에 따라 달라져요. 교과서의 "원에 가까워지면 북반구 연교차가 커진다"는 지금의 지구를 기준으로 한 설명이에요.'
+});
+
+// 자유 실험
+const cb={base:0};
+function segSet(id,val){ [...$(id).children].forEach(b=>b.setAttribute('aria-pressed',Math.abs(+b.dataset.v-val)<1e-6)); }
+function renderComb(){
+  segSet('cbYears',state.years); segSet('cbTilt',state.tilt); segSet('cbEcc',state.ecc); segSet('cbBase',cb.base);
+  const base=combOrb(cb.base,NOW.tilt,NOW.ecc), sc=orbitOf(state), ans=judgeAnswers(sc,base);
+  const fmtP=v=>(v>=0?'+':'')+v.toFixed(1)+'%';
+  const desc=[yearsLabel(state.years),`기울기 ${state.tilt.toFixed(1)}°`,'궤도 '+orbitShape(state.ecc)].join(' · ');
+  let h=`<div class="jHead" style="margin-top:10px">결과 — ${cb.base?'13,000년 후 지구':'현재 지구'}와 비교해</div><div class="jSub">지금 조합: <b>${desc}</b> <span class="tag calc">계산값</span></div>`;
+  HEMI.forEach(r=>{ h+=`<div class="jRow"><div class="rh">${r.name}</div><div class="jCells">`+COLS.map(c=>{ const a=ans[r.h][c.c];
+    return `<div class="jCell"><div class="cl ${c.cls}">${c.name}</div><div style="font-size:26px;font-weight:800;line-height:1.2">${SIGN[a.sign]}</div><div class="pc">${fmtP(a.pct)}</div></div>`; }).join('')+'</div></div>'; });
+  $('cbLive').innerHTML=h;
+}
+const cbSeg=(id,fn)=>$(id).addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; fn(+b.dataset.v); renderComb(); renderPrec(); renderTilt(); renderOrbit(); });
+cbSeg('cbYears',v=>{ state.years=v; });
+cbSeg('cbTilt',v=>{ state.tilt=v; });
+cbSeg('cbEcc',v=>{ state.ecc=v<0.01&&v>0?v:v; if(Math.abs(v-0.0167)<1e-6) state.ecc=NOW.ecc; });
+cbSeg('cbBase',v=>{ cb.base=v; });
+
+// 지난 80만 년 그래프
+const PAST={"ecc":[0.01593,0.01629,0.0167,0.01712,0.01749,0.01787,0.01821,0.01858,0.01888,0.01913,0.01944,0.01965,0.01985,0.02002,0.02019,0.02026,0.02037,0.02042,0.02048,0.02045,0.02044,0.02044,0.02029,0.02021,0.02004,0.01985,0.01961,0.01931,0.01905,0.01863,0.01824,0.01786,0.01733,0.01683,0.01634,0.01572,0.01518,0.01453,0.01395,0.0133,0.0126,0.01202,0.0113,0.01064,0.00999,0.00935,0.00874,0.00812,0.00763,0.00723,0.00683,0.00673,0.0067,0.00688,0.00722,0.00766,0.00835,0.00895,0.00973,0.01055,0.01137,0.01226,0.01313,0.01408,0.01498,0.01589,0.01686,0.01778,0.0187,0.01965,0.02057,0.0215,0.0224,0.02329,0.02422,0.02498,0.02589,0.02668,0.02741,0.0282,0.02889,0.02957,0.03023,0.03085,0.0315,0.03204,0.03261,0.0332,0.03366,0.03421,0.03469,0.03516,0.03559,0.03601,0.03641,0.03676,0.03707,0.03743,0.03765,0.03791,0.03815,0.03833,0.0385,0.03862,0.03878,0.03883,0.03888,0.03896,0.03897,0.03894,0.03896,0.03891,0.0388,0.03876,0.03858,0.03846,0.03824,0.03802,0.0378,0.03747,0.03717,0.03687,0.03642,0.03605,0.03561,0.03511,0.03463,0.03407,0.03357,0.03293,0.03233,0.03172,0.03101,0.03031,0.02962,0.02881,0.02805,0.0272,0.0264,0.02549,0.02459,0.02372,0.02276,0.02182,0.02092,0.01998,0.01905,0.01821,0.01733,0.01655,0.0158,0.01514,0.01459,0.01407,0.01379,0.01358,0.01349,0.01364,0.0139,0.01425,0.01487,0.01548,0.01626,0.01711,0.01805,0.01901,0.02004,0.02111,0.02221,0.02328,0.02443,0.02558,0.02667,0.02782,0.02899,0.03005,0.03119,0.03227,0.03332,0.03438,0.03534,0.03641,0.03726,0.03819,0.0391,0.03985,0.04065,0.0414,0.04205,0.04271,0.04328,0.04387,0.04437,0.0448,0.04531,0.04564,0.04599,0.04632,0.04657,0.04681,0.04697,0.04717,0.04723,0.04731,0.04733,0.04733,0.04722,0.04716,0.04703,0.04683,0.04664,0.04642,0.04613,0.04585,0.0455,0.04521,0.04478,0.0444,0.04404,0.04351,0.04312,0.04261,0.0421,0.04158,0.041,0.04046,0.03985,0.0392,0.03865,0.03793,0.03727,0.03665,0.0359,0.03523,0.03449,0.03379,0.03303,0.03226,0.03152,0.03072,0.02992,0.02913,0.02832,0.02745,0.02665,0.02577,0.02492,0.02403,0.02318,0.02229,0.02139,0.02052,0.01968,0.01874,0.01795,0.01711,0.01629,0.01556,0.01485,0.01419,0.01361,0.0131,0.01272,0.01237,0.01218,0.01214,0.01213,0.01234,0.01263,0.013,0.01349,0.0141,0.0147,0.01543,0.01617,0.01695,0.01777,0.01857,0.01948,0.02028,0.02115,0.02207,0.02288,0.02372,0.0246,0.02536,0.02619,0.02692,0.02768,0.0284,0.02903,0.02975,0.03032,0.03088,0.03145,0.03193,0.03237,0.03281,0.03317,0.03353,0.03378,0.03408,0.03428,0.03443,0.03456,0.03469,0.03467,0.03469,0.03468,0.03455,0.03446,0.03427,0.03411,0.03383,0.03355,0.03329,0.03287,0.03252,0.03213,0.03167,0.03121,0.03072,0.03022,0.02968,0.02905,0.02855,0.02788,0.02725,0.02666,0.02595,0.02531,0.02461,0.02394,0.02323,0.02248,0.0218,0.02107,0.02027,0.01961,0.01884,0.01811,0.01737,0.01667,0.01595,0.01523,0.01454,0.01387,0.01316,0.01251,0.01189,0.01123,0.01065,0.01005,0.00954,0.009,0.00851,0.00816,0.00771,0.00741,0.00717,0.00697,0.00685,0.00678,0.00685,0.00691,0.00705,0.00728,0.00755,0.00781,0.00815,0.00851,0.00891,0.00927,0.00971,0.01014,0.01051,0.01096,0.01137,0.01177,0.01217,0.01256,0.01294,0.01329,0.01359,0.014,0.01424,0.01454,0.01484,0.01506,0.01528,0.01548,0.01566,0.01579,0.0159,0.01601,0.01606,0.01604,0.01607,0.016,0.01591,0.01581,0.01563,0.0155,0.01521,0.01501,0.01475,0.01438,0.01409,0.01372,0.0133,0.01289,0.01241,0.01195,0.0114,0.01082,0.01032,0.00963,0.00905,0.00842,0.00777,0.00712,0.00649,0.0059,0.00533,0.00482,0.00448,0.00422,0.00416,0.0043,0.00459,0.0051,0.0056,0.00629,0.00705,0.00777,0.00861,0.00942,0.01032,0.01116,0.01203,0.01299,0.0138,0.01472,0.0156,0.01647,0.01733,0.01816,0.01902,0.01983,0.0206,0.02145,0.02218,0.02291,0.02369,0.02436,0.02509,0.02573,0.0264,0.02704,0.02761,0.02821,0.02881,0.02927,0.02986,0.03033,0.03079,0.03125,0.03169,0.03211,0.03248,0.03287,0.03324,0.03355,0.03387,0.03421,0.03445,0.03473,0.03498,0.0352,0.03542,0.03558,0.03581,0.03591,0.03604,0.03619,0.03626,0.03632,0.03641,0.03641,0.03644,0.03642,0.0364,0.03638,0.03624,0.03623,0.03609,0.03593,0.03583,0.03562,0.0354,0.03519,0.03489,0.03464,0.03427,0.03396,0.03358,0.03315,0.03273,0.0323,0.03177,0.03128,0.03077,0.03019,0.02964,0.02904,0.02848,0.02783,0.02723,0.02666,0.026,0.02541,0.02485,0.02423,0.02367,0.02316,0.02262,0.02218,0.02171,0.0214,0.02105,0.0208,0.02069,0.02056,0.02056,0.0207,0.02085,0.02113,0.0215,0.02195,0.02247,0.02304,0.02373,0.02444,0.02519,0.02604,0.02689,0.02773,0.02872,0.02961,0.03056,0.03152,0.03247,0.03341,0.03436,0.03528,0.03623,0.03709,0.03798,0.03889,0.03965,0.04053,0.04131,0.04205,0.04281,0.04348,0.04418,0.04479,0.04539,0.046,0.04648,0.04695,0.04748,0.0478,0.04821,0.04853,0.04882,0.04907,0.04927,0.04949,0.04962,0.04972,0.04986,0.04989,0.04992,0.04995,0.04993,0.04989,0.04981,0.04975,0.04962,0.04947,0.04933,0.04918,0.04892,0.04878,0.04853,0.04826,0.04804,0.04775,0.04749,0.04717,0.04688,0.04659,0.04621,0.04589,0.04559,0.04516,0.04482,0.04445,0.04401,0.04363,0.04315,0.04276,0.04224,0.04176,0.04132,0.04078,0.04025,0.0398,0.03922,0.0387,0.03817,0.03764,0.03708,0.03653,0.03599,0.03543,0.03484,0.03433,0.03376,0.03317,0.03268,0.0321,0.0316,0.03108,0.03061,0.03014,0.02968,0.0293,0.02893,0.02857,0.02833,0.02811,0.02789,0.02783,0.02776,0.02778,0.02785,0.028,0.0282,0.02844,0.02876,0.02914,0.02952,0.02997,0.03052,0.03098,0.03158,0.03216,0.03274,0.03337,0.03397,0.03462,0.03525,0.03583,0.03656,0.03708,0.03772,0.03835,0.03888,0.03945,0.04,0.04049,0.04099,0.04141,0.04186,0.04224,0.04255,0.04292,0.04315,0.04337,0.04358,0.04372,0.04381,0.04388,0.04392,0.04388,0.04384,0.04373,0.04365,0.04342,0.04325,0.04303,0.04272,0.04245,0.04212,0.04177,0.04138,0.04096,0.04056,0.04006,0.03958,0.03914,0.03855,0.03809,0.03754,0.037,0.03645,0.03588,0.03532,0.03474,0.03411,0.0336,0.03294,0.03235,0.0318,0.03116,0.03058,0.02999,0.0294,0.0288,0.02821,0.02765,0.02708,0.02647,0.02595,0.02541,0.02481,0.02435,0.02379,0.02328,0.02278,0.02229,0.02179,0.02131,0.02082,0.02039,0.01986,0.01942,0.01898,0.01847,0.01804,0.01761,0.01716,0.01674,0.01633,0.01596,0.01557,0.01522,0.01496,0.0146,0.01439,0.01418,0.01399,0.01384,0.01379,0.01371,0.01372,0.01374,0.01382,0.01393,0.01404,0.01427,0.01442,0.01465,0.01494,0.01517,0.01545,0.01578,0.01605,0.01637,0.01665,0.01697,0.01728,0.01751,0.01787,0.01809,0.01834,0.01862,0.01884,0.019,0.01922,0.01935,0.01949,0.01956,0.01963,0.01968,0.01965,0.01961,0.0196,0.01942,0.01933,0.01918,0.01894,0.01875,0.01845,0.01821,0.01785,0.0175,0.01716,0.0167],"obl":[23.158,23.233,23.311,23.39,23.468,23.543,23.614,23.678,23.733,23.779,23.815,23.839,23.851,23.85,23.839,23.815,23.782,23.738,23.686,23.626,23.56,23.49,23.416,23.34,23.263,23.187,23.114,23.045,22.981,22.924,22.874,22.833,22.802,22.78,22.768,22.767,22.776,22.795,22.824,22.862,22.911,22.968,23.032,23.104,23.181,23.263,23.347,23.433,23.517,23.6,23.679,23.752,23.819,23.877,23.926,23.964,23.991,24.004,24.005,23.991,23.964,23.923,23.868,23.801,23.723,23.636,23.541,23.44,23.335,23.229,23.124,23.023,22.927,22.84,22.764,22.7,22.651,22.617,22.601,22.602,22.62,22.654,22.704,22.768,22.843,22.929,23.022,23.12,23.221,23.323,23.423,23.519,23.608,23.69,23.762,23.823,23.872,23.908,23.93,23.94,23.936,23.92,23.892,23.853,23.805,23.748,23.684,23.615,23.541,23.464,23.386,23.308,23.232,23.16,23.092,23.031,22.977,22.932,22.896,22.87,22.853,22.847,22.85,22.864,22.888,22.92,22.962,23.011,23.067,23.128,23.194,23.262,23.332,23.4,23.467,23.529,23.587,23.639,23.683,23.718,23.744,23.76,23.765,23.758,23.74,23.711,23.67,23.62,23.561,23.495,23.423,23.348,23.272,23.196,23.123,23.055,22.994,22.942,22.901,22.871,22.854,22.851,22.861,22.886,22.924,22.974,23.036,23.107,23.185,23.268,23.353,23.438,23.521,23.599,23.67,23.732,23.785,23.826,23.855,23.87,23.871,23.859,23.833,23.793,23.742,23.679,23.607,23.528,23.442,23.354,23.264,23.175,23.089,23.008,22.934,22.868,22.812,22.767,22.734,22.714,22.708,22.715,22.736,22.769,22.815,22.873,22.94,23.015,23.097,23.185,23.276,23.369,23.463,23.555,23.644,23.729,23.807,23.877,23.938,23.988,24.027,24.052,24.063,24.06,24.042,24.009,23.962,23.901,23.827,23.741,23.643,23.536,23.422,23.303,23.181,23.059,22.941,22.828,22.725,22.633,22.556,22.496,22.455,22.434,22.434,22.455,22.497,22.56,22.642,22.742,22.856,22.982,23.116,23.256,23.397,23.536,23.67,23.794,23.907,24.005,24.087,24.151,24.196,24.22,24.225,24.21,24.174,24.12,24.048,23.961,23.86,23.748,23.628,23.503,23.377,23.252,23.131,23.018,22.915,22.824,22.747,22.685,22.64,22.612,22.602,22.608,22.631,22.669,22.722,22.787,22.862,22.946,23.035,23.128,23.222,23.315,23.405,23.491,23.571,23.644,23.709,23.764,23.809,23.844,23.867,23.878,23.878,23.865,23.841,23.806,23.761,23.706,23.643,23.572,23.496,23.415,23.331,23.246,23.161,23.08,23.003,22.932,22.871,22.82,22.781,22.756,22.747,22.752,22.774,22.811,22.864,22.93,23.009,23.098,23.195,23.299,23.405,23.512,23.616,23.714,23.805,23.884,23.95,24.0,24.032,24.046,24.041,24.016,23.971,23.908,23.828,23.731,23.622,23.501,23.372,23.239,23.105,22.974,22.85,22.736,22.636,22.554,22.492,22.453,22.438,22.446,22.479,22.536,22.613,22.711,22.825,22.952,23.089,23.232,23.377,23.521,23.661,23.791,23.91,24.015,24.104,24.174,24.224,24.254,24.263,24.252,24.22,24.17,24.102,24.018,23.92,23.81,23.69,23.563,23.431,23.298,23.166,23.038,22.917,22.805,22.705,22.618,22.547,22.492,22.454,22.434,22.432,22.448,22.482,22.532,22.599,22.68,22.775,22.881,22.996,23.118,23.245,23.374,23.502,23.628,23.748,23.861,23.965,24.057,24.136,24.2,24.247,24.277,24.287,24.277,24.247,24.197,24.128,24.039,23.933,23.812,23.678,23.535,23.384,23.23,23.077,22.927,22.785,22.656,22.542,22.447,22.374,22.326,22.304,22.31,22.343,22.403,22.488,22.595,22.72,22.862,23.014,23.173,23.334,23.493,23.646,23.788,23.916,24.027,24.119,24.187,24.233,24.253,24.249,24.22,24.168,24.094,24.001,23.891,23.767,23.633,23.494,23.352,23.211,23.076,22.951,22.838,22.741,22.662,22.604,22.567,22.553,22.561,22.59,22.639,22.706,22.787,22.881,22.984,23.094,23.206,23.32,23.43,23.535,23.633,23.722,23.799,23.864,23.914,23.951,23.973,23.98,23.973,23.953,23.919,23.872,23.814,23.746,23.669,23.583,23.491,23.394,23.294,23.192,23.091,22.992,22.898,22.811,22.733,22.666,22.612,22.572,22.548,22.54,22.55,22.578,22.624,22.688,22.77,22.867,22.979,23.104,23.238,23.379,23.523,23.668,23.808,23.941,24.063,24.17,24.261,24.331,24.38,24.405,24.405,24.379,24.328,24.252,24.151,24.027,23.884,23.723,23.549,23.365,23.176,22.987,22.804,22.631,22.474,22.338,22.227,22.145,22.094,22.076,22.092,22.142,22.222,22.333,22.468,22.625,22.799,22.984,23.174,23.366,23.553,23.731,23.896,24.045,24.173,24.28,24.362,24.419,24.45,24.455,24.434,24.389,24.321,24.233,24.126,24.004,23.869,23.726,23.577,23.426,23.277,23.132,22.995,22.869,22.756,22.658,22.578,22.515,22.472,22.448,22.443,22.456,22.488,22.536,22.599,22.676,22.764,22.862,22.968,23.08,23.195,23.312,23.429,23.542,23.651,23.753,23.846,23.928,23.997,24.052,24.092,24.116,24.122,24.111,24.083,24.037,23.975,23.896,23.803,23.696,23.578,23.452,23.319,23.184,23.05,22.92,22.798,22.689,22.596,22.521,22.469,22.441,22.438,22.461,22.509,22.582,22.676,22.79,22.92,23.062,23.213,23.368,23.523,23.672,23.813,23.941,24.052,24.144,24.212,24.257,24.275,24.268,24.234,24.174,24.091,23.986,23.862,23.721,23.569,23.409,23.245,23.082,22.926,22.78,22.648,22.536,22.446,22.38,22.341,22.329,22.345,22.388,22.456,22.546,22.656,22.782,22.921,23.068,23.22,23.373,23.522,23.665,23.798,23.918,24.023,24.111,24.181,24.231,24.261,24.271,24.262,24.233,24.185,24.121,24.041,23.946,23.839,23.722,23.597,23.466,23.333,23.198,23.065,22.937,22.816,22.704,22.603,22.516,22.444,22.391,22.356,22.341,22.348,22.375,22.424,22.493,22.581,22.686,22.806,22.939,23.083,23.233,23.387,23.541,23.693,23.838,23.974,24.097,24.205,24.295,24.364,24.411,24.435,24.433,24.406,24.355,24.279,24.18,24.061,23.923,23.769,23.604,23.431,23.253,23.077,22.905,22.744,22.597,22.468,22.362,22.282,22.23,22.207,22.215,22.252,22.317,22.409,22.523,22.657,22.805,22.964,23.129,23.295,23.458,23.613,23.757,23.886,23.997,24.089,24.159,24.207,24.231,24.231,24.21,24.166,24.102,24.021,23.924,23.814,23.695,23.569,23.439],"lp":[225.66,244.59,263.48,281.9,300.65,318.91,337.1,355.36,13.39,31.38,49.33,67.15,85.19,102.82,120.78,138.71,156.39,174.46,192.28,210.27,228.19,246.15,264.23,282.16,300.22,318.45,336.49,354.68,13.07,31.32,49.77,68.19,86.91,105.52,124.2,143.32,162.16,181.38,200.66,220.21,239.8,259.69,279.86,300.42,321.01,342.56,4.54,26.99,50.54,74.93,100.45,126.1,152.64,178.92,204.38,228.97,252.56,275.39,297.08,318.03,338.86,358.78,18.33,37.9,56.84,75.8,94.45,113.05,131.63,149.81,168.26,186.46,204.58,222.69,240.76,258.76,276.62,294.61,312.45,330.24,347.98,5.81,23.37,41.0,58.57,76.02,93.41,110.74,127.98,145.17,162.14,179.26,196.12,212.91,229.82,246.45,263.18,279.82,296.44,313.07,329.6,346.21,2.85,19.33,36.03,52.64,69.23,85.95,102.6,119.35,136.01,152.8,169.57,186.29,203.12,219.93,236.73,253.53,270.4,287.21,304.06,320.83,337.72,354.44,11.22,28.02,44.68,61.33,78.07,94.55,111.11,127.54,143.91,160.23,176.33,192.54,208.52,224.33,240.24,255.87,271.32,286.88,301.98,317.16,331.98,346.67,1.18,15.16,29.15,42.65,55.63,68.42,80.82,92.51,104.25,115.56,126.69,137.93,149.32,160.92,172.93,185.31,198.27,211.45,225.12,239.37,253.53,268.33,283.3,298.38,313.74,329.23,344.82,0.56,16.29,32.27,48.1,64.14,80.23,96.31,112.42,128.7,144.92,161.22,177.59,194.02,210.51,226.99,243.68,260.31,277.01,293.86,310.66,327.55,344.48,1.44,18.43,35.43,52.45,69.54,86.46,103.56,120.55,137.47,154.46,171.35,188.24,205.05,221.84,238.62,255.27,271.92,288.58,305.05,321.59,338.05,354.45,10.79,27.13,43.38,59.63,75.77,92.0,108.11,124.2,140.38,156.45,172.58,188.7,204.87,221.02,237.16,253.43,269.67,285.86,302.24,318.57,334.84,351.34,7.64,24.11,40.44,56.84,73.24,89.43,105.71,121.92,137.82,153.8,169.6,185.07,200.52,215.63,230.57,245.16,259.47,273.53,287.12,300.19,313.31,325.38,337.41,349.11,0.18,11.17,22.27,32.88,44.12,55.31,67.0,79.11,91.43,104.64,117.89,131.7,146.09,160.63,175.52,190.93,206.38,222.13,238.12,254.25,270.57,286.86,303.5,320.05,336.68,353.46,10.26,26.97,43.88,60.68,77.55,94.36,111.25,128.13,144.93,161.81,178.72,195.49,212.41,229.26,246.09,263.0,279.8,296.8,313.6,330.53,347.55,4.43,21.44,38.52,55.53,72.67,89.82,107.03,124.32,141.53,158.99,176.34,193.73,211.3,228.74,246.32,263.87,281.54,299.13,316.78,334.44,352.12,9.63,27.32,44.92,62.43,79.99,97.56,115.07,132.57,150.08,167.73,185.15,202.74,220.6,237.99,256.03,273.82,291.9,310.16,328.42,347.33,6.18,25.29,45.26,65.12,85.49,106.6,127.88,149.86,171.86,194.73,217.79,240.25,263.89,286.42,309.25,331.44,353.28,15.28,35.86,56.82,77.31,97.05,116.73,136.09,155.03,173.89,192.19,210.9,228.8,246.82,264.89,282.56,300.33,317.92,335.62,353.18,10.58,28.32,45.85,63.19,81.07,98.49,116.19,133.91,151.57,169.55,187.21,205.31,223.37,241.32,259.57,277.86,296.08,314.43,332.92,351.32,9.83,28.25,47.07,65.41,84.07,102.84,121.48,140.24,159.27,178.41,197.76,217.21,237.6,258.14,279.03,301.86,324.93,350.19,16.51,45.1,74.41,102.99,131.38,157.54,182.6,205.45,227.58,249.17,269.21,289.25,308.89,327.93,346.9,5.61,24.24,42.76,61.0,79.52,97.78,115.88,134.28,152.26,170.42,188.35,206.36,224.17,241.87,259.54,277.08,294.39,311.72,328.88,345.89,2.8,19.64,36.36,52.94,69.52,86.04,102.43,118.79,135.3,151.5,167.93,184.29,200.63,217.09,233.46,250.02,266.53,283.05,299.81,316.44,333.14,350.04,6.79,23.68,40.56,57.45,74.41,91.17,108.16,124.93,141.7,158.46,175.15,191.72,208.27,224.76,241.15,257.43,273.73,289.91,306.0,322.08,338.14,354.05,9.99,25.93,41.73,57.61,73.33,89.21,104.88,120.58,136.38,151.93,167.54,183.24,198.65,214.17,229.58,244.86,260.17,275.14,290.29,305.1,319.72,334.45,348.76,2.99,17.17,31.1,44.84,58.67,72.17,85.81,99.22,112.78,126.34,139.79,153.49,167.28,180.89,195.01,208.96,223.1,237.39,251.78,266.25,280.85,295.57,310.44,325.31,340.39,355.63,10.85,26.35,41.93,57.64,73.47,89.5,105.63,121.88,138.29,154.86,171.49,188.2,205.14,221.98,238.96,255.98,272.96,289.96,306.88,323.83,340.66,357.37,14.11,30.67,47.11,63.57,79.8,96.04,112.12,128.17,144.16,160.02,175.9,191.76,207.45,223.3,239.04,254.79,270.58,286.39,302.23,318.08,334.03,349.99,6.01,22.06,38.23,54.36,70.58,86.9,103.14,119.5,135.82,152.21,168.54,184.88,201.25,217.53,233.76,250.08,266.21,282.37,298.5,314.51,330.54,346.37,2.29,18.03,33.63,49.33,64.79,80.15,95.59,110.72,125.92,140.92,155.92,170.77,185.52,200.23,214.9,229.35,243.88,258.36,272.62,287.04,301.36,315.63,329.96,344.28,358.66,13.04,27.45,42.05,56.56,71.16,86.04,100.66,115.63,130.56,145.55,160.61,175.72,190.87,206.05,221.19,236.51,251.7,266.95,282.3,297.58,312.88,328.29,343.64,359.06,14.51,30.02,45.61,61.14,76.94,92.65,108.48,124.47,140.48,156.59,172.84,189.16,205.62,222.11,238.75,255.51,272.2,289.12,306.0,322.88,339.85,356.76,13.69,30.53,47.36,64.14,80.81,97.36,113.99,130.31,146.66,162.95,179.07,195.17,211.2,227.13,243.05,258.79,274.65,290.35,305.97,321.71,337.27,352.89,8.49,24.11,39.69,55.28,70.92,86.59,102.11,117.89,133.58,149.22,165.08,180.82,196.67,212.47,228.38,244.28,260.09,276.01,291.94,307.66,323.5,339.32,354.82,10.53,25.93,41.33,56.54,71.63,86.65,101.46,116.01,130.79,144.93,159.16,173.36,187.12,200.85,214.65,227.95,241.51,254.72,268.08,281.34,294.34,307.89,321.04,334.35,348.05,1.64,15.37,29.58,43.72,58.2,72.89,87.79,103.02,118.13,133.83,149.52,165.26,181.3,197.51,213.5,229.92,246.2,262.54,278.89,295.23,311.69,327.9,344.3,0.71,16.91,33.3,49.67,65.93,82.38,98.66,115.27,131.59,148.15,164.84,181.41,198.08,215.03,231.77,248.76,265.82,282.92],"temp":[-8.88,-8.72,-8.54,-8.73,-8.38,-7.33,-6.51,-5.91,-5.33,-4.27,-3.4,-2.59,-2.06,-0.58,-1.04,-1.1,-1.7,-2.04,-2.06,-2.37,-2.15,-2.17,-2.5,-2.7,-2.69,-3.22,-3.82,-4.32,-4.32,-3.86,-3.84,-4.54,-5.66,-6.4,-5.89,-5.1,-4.74,-5.16,-6.25,-7.33,-7.2,-6.25,-5.54,-5.3,-6.25,-7.38,-7.88,-8.3,-8.42,-8.59,-8.41,-8.52,-8.66,-8.62,-8.56,-8.54,-8.84,-8.77,-8.47,-8.25,-7.62,-5.94,-5.07,-4.49,-3.88,-4.07,-3.94,-4.0,-4.85,-5.26,-5.31,-5.76,-6.05,-6.03,-5.07,-5.18,-5.75,-7.73,-8.77,-7.9,-7.13,-6.92,-6.35,-5.59,-5.26,-4.72,-4.02,-4.1,-4.19,-4.03,-3.97,-4.02,-3.53,-3.68,-3.6,-3.21,-2.76,-2.42,-2.06,-2.24,-2.56,-2.24,-1.89,-1.87,-1.85,-1.92,-1.83,-2.01,-2.65,-2.72,-3.1,-3.52,-3.43,-3.92,-4.51,-4.71,-5.35,-5.27,-5.8,-7.1,-6.2,-4.91,-6.28,-7.02,-5.92,-6.8,-7.6,-7.99,-8.2,-7.45,-7.24,-8.31,-8.92,-9.03,-9.05,-8.94,-8.12,-8.0,-8.3,-8.64,-8.02,-8.36,-7.52,-7.04,-6.87,-7.58,-7.92,-7.72,-7.29,-7.47,-7.07,-7.26,-7.46,-7.82,-7.71,-7.68,-7.73,-8.21,-8.5,-8.86,-8.84,-8.68,-8.54,-8.39,-8.92,-8.9,-8.57,-8.24,-8.8,-8.72,-8.53,-8.37,-6.36,-4.42,-3.19,-2.45,-2.63,-2.84,-2.55,-1.95,-2.17,-2.29,-2.04,-1.94,-1.37,-0.97,-1.17,-1.2,-1.44,-1.47,-1.18,-1.56,-2.01,-2.64,-3.34,-3.51,-3.92,-4.2,-4.33,-4.7,-4.99,-5.44,-6.42,-6.5,-5.44,-4.16,-4.47,-5.09,-5.49,-5.46,-3.48,-4.34,-5.64,-6.62,-5.49,-5.92,-6.4,-6.35,-4.38,-3.1,-1.5,-1.04,-1.71,-2.01,-1.62,-1.19,-1.42,-1.61,-1.66,-1.44,-1.53,-1.49,-1.59,-1.59,-1.84,-2.24,-2.59,-3.33,-4.1,-4.84,-5.55,-6.56,-5.51,-4.81,-3.8,-3.97,-4.88,-5.98,-6.71,-5.93,-5.74,-7.0,-7.0,-7.54,-8.14,-8.12,-7.49,-7.24,-7.19,-7.49,-7.46,-7.66,-7.0,-6.79,-6.88,-6.64,-7.22,-7.6,-7.42,-7.04,-5.56,-4.47,-4.34,-4.71,-4.89,-4.61,-4.37,-4.67,-3.48,-3.49,-3.54,-3.41,-3.69,-4.03,-4.19,-4.81,-5.0,-5.56,-5.67,-5.8,-5.67,-5.84,-5.15,-4.62,-5.06,-4.92,-4.22,-4.41,-4.47,-4.43,-4.29,-3.81,-3.9,-3.8,-3.66,-3.78,-3.84,-3.38,-3.34,-3.03,-2.33,-2.09,-2.48,-2.69,-3.32,-3.46,-3.56,-3.94,-4.28,-4.85,-5.05,-5.86,-4.92,-4.07,-4.85,-6.32,-7.01,-5.84,-4.31,-5.0,-6.78,-6.47,-8.11,-8.03,-8.34,-8.44,-7.86,-7.63,-7.3,-8.24,-8.41,-8.8,-8.76,-8.92,-7.8,-7.01,-6.57,-7.56,-7.07,-7.31,-7.46,-7.43,-6.44,-6.15,-7.56,-7.45,-7.46,-8.16,-8.33,-8.9,-9.09,-9.19,-9.2,-9.44,-8.47,-8.49,-8.38,-8.25,-8.19,-8.14,-7.18,-6.33,-5.05,-3.06,-2.14,-0.36,-1.91,-2.1,-1.64,-0.9,-0.37,-0.3,0.26,0.55,0.34,0.33,0.36,0.38,0.65,1.53,1.68,2.0,2.18,2.64,2.37,1.99,2.03,2.19,1.69,1.33,0.61,0.17,-0.27,-0.46,-1.24,-1.88,-2.55,-3.59,-4.54,-4.79,-5.71,-6.35,-5.36,-3.7,-4.21,-4.95,-5.85,-5.43,-4.51,-4.91,-5.11,-5.96,-6.52,-6.53,-7.16,-7.63,-6.86,-5.43,-6.16,-6.37,-7.06,-7.84,-7.25,-7.49,-7.46,-7.9,-7.4,-6.75,-7.79,-8.27,-8.09,-8.54,-8.91,-8.68,-8.75,-8.79,-7.88,-7.54,-7.86,-7.78,-7.48,-7.42,-8.5,-8.1,-8.53,-8.69,-8.83,-8.82,-9.29,-8.71,-6.87,-5.84,-4.25,-2.81,-1.12,1.49,3.13,3.13,1.39,0.12,0.69,0.71,0.89,0.45,0.67,-0.23,-0.43,-1.24,-2.04,-2.84,-3.98,-4.62,-3.83,-3.26,-2.21,-3.21,-3.48,-4.2,-4.91,-5.46,-5.74,-5.75,-6.12,-6.77,-5.16,-4.7,-5.29,-5.93,-6.77,-6.73,-5.78,-6.69,-7.48,-7.16,-5.86,-7.55,-7.16,-6.91,-6.12,-5.02,-4.23,-5.03,-4.83,-5.28,-5.35,-5.83,-5.84,-6.19,-6.83,-7.1,-6.86,-8.39,-8.04,-8.78,-8.23,-8.82,-9.09,-9.17,-9.33,-9.04,-8.86,-8.71,-8.58,-8.03,-7.91,-7.22,-6.75,-7.03,-7.82,-7.3,-7.72,-7.44,-6.81,-7.38,-7.86,-7.83,-7.57,-8.17,-8.16,-7.49,-7.44,-6.33,-5.9,-6.82,-4.9,-3.01,-0.58,1.32,2.07,-0.11,-1.38,-2.0,-2.44,-2.56,-3.08,-3.96,-4.86,-5.91,-6.12,-7.34,-6.47,-7.54,-7.81,-6.47,-5.81,-7.68,-8.51,-8.3,-7.73,-7.2,-6.09,-5.26,-5.01,-3.73,-2.47,-1.64,-2.22,-2.12,-2.15,-1.75,-1.52,-1.98,-2.54,-3.07,-3.12,-3.53,-4.49,-4.43,-3.27,-2.14,-2.22,-2.25,-2.82,-3.89,-4.74,-5.57,-6.62,-6.36,-5.56,-7.28,-6.86,-6.29,-4.93,-6.43,-7.91,-8.36,-8.73,-8.8,-8.76,-8.59,-8.2,-7.56,-6.25,-6.92,-8.74,-7.82,-8.2,-7.67,-6.46,-8.17,-7.66,-7.06,-6.82,-7.8,-8.32,-8.58,-8.52,-7.32,-6.72,-8.24,-7.53,-6.94,-8.79,-9.02,-9.08,-8.88,-8.29,-7.89,-7.65,-7.5,-7.14,-8.12,-7.89,-8.1,-8.39,-8.32,-8.47,-8.33,-8.52,-8.87,-8.72,-8.97,-8.2,-8.21,-7.69,-6.95,-4.99,-3.5,-1.77,0.52,2.61,3.78,3.57,2.29,1.24,1.56,2.36,1.94,1.73,1.48,1.07,0.32,0.02,-0.76,-1.74,-2.26,-3.04,-4.24,-5.03,-5.14,-5.44,-6.45,-6.3,-4.64,-4.42,-4.99,-6.05,-5.73,-4.66,-4.28,-4.51,-4.93,-4.53,-4.6,-4.73,-4.47,-4.71,-4.94,-5.43,-5.86,-5.26,-5.56,-6.38,-6.3,-5.12,-4.3,-3.67,-3.23,-3.92,-4.9,-5.08,-5.5,-6.37,-6.37,-6.93,-5.59,-5.51,-7.13,-7.28,-6.23,-7.23,-8.74,-8.57,-9.08,-9.13,-8.81,-8.11,-9.02,-8.08,-7.02,-6.6,-5.69,-5.95,-6.25,-7.41,-6.81,-6.45,-5.67,-6.33,-7.1,-7.09,-7.6,-7.32,-6.14,-5.84,-7.37,-8.12,-7.39,-8.39,-8.06,-8.19,-7.22,-6.46,-7.75,-8.27,-7.76,-8.85,-8.59,-8.44,-9.04,-8.99,-8.56,-8.98,-9.31,-9.69,-9.82,-9.43,-9.23,-9.33,-9.38,-9.47,-9.34,-9.28,-8.38,-6.21,-4.71,-3.68,-4.44,-2.21,-0.44,-0.18,-0.79,-1.08,-0.92,-0.35,-0.21,0.07,-0.02,-0.33,-0.01,-0.14]};
+const PN=PAST.ecc.length; // 0 = 80만 년 전, PN-1 = 현재
+const pastQ65=PAST.ecc.map((e,i)=>insolation(65,LAMBDA.summer,{tilt:PAST.obl[i],ecc:e,lp:PAST.lp[i]}));
+window.__calc.pastQ65=pastQ65;
+const pastPrec=PAST.ecc.map((e,i)=>e*Math.sin(rad(PAST.lp[i])));
+let pastRange=800, pastCur=null;
+const PANELS=[
+  {k:'ecc', name:'공전 궤도 모양', unit:'', sub:'위: 납작함 · 아래: 원에 가까움', data:()=>PAST.ecc, lo:0, hi:0.06, col:'orbit', fmt:v=>'이심률 '+v.toFixed(3)},
+  {k:'obl', name:'자전축 기울기', unit:'°', sub:'점선: 교과서 범위 21.5°·24.5°', data:()=>PAST.obl, lo:21.2, hi:24.8, col:'ink', fmt:v=>v.toFixed(2)+'°', guides:[21.5,24.5]},
+  {k:'prec', name:'세차 운동의 효과', unit:'', sub:'위: 북반구 여름이 근일점에 가까움', data:()=>pastPrec, lo:-0.055, hi:0.055, col:'accent', fmt:v=>(v>=0?'+':'')+v.toFixed(3), guides:[0]},
+  {k:'q65', name:'북위 65° 하지 일사량', unit:'W/m²', sub:'세 요인이 합쳐진 결과', data:()=>pastQ65, lo:420, hi:565, col:'warn', fmt:v=>v.toFixed(0)+' W/m²'},
+  {k:'temp', name:'남극 기온 (EPICA)', unit:'°C', sub:'실제 자료 · 최근 1천 년 평균과의 차이', data:()=>PAST.temp, lo:-11, hi:6, col:'winter', fmt:v=>(v>=0?'+':'')+v.toFixed(1)+'°C', guides:[0]}
+];
+function drawPast(){
+  const cv=$('pastG'), dpr=window.devicePixelRatio||1, r=cv.getBoundingClientRect(); if(!r.width) return;
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr); const c=cv.getContext('2d'); c.setTransform(dpr,0,0,dpr,0,0);
+  const w=r.width, h=r.height, F=getComputedStyle(document.body).fontFamily, cs=getComputedStyle(document.documentElement);
+  const L=6, Rm=6, T=4, B=40, gap=6, LH=32, ph=(h-T-B-gap*(PANELS.length-1))/PANELS.length-LH, gw=w-L-Rm; // LH: 이름 칸
+  const i0=PN-1-pastRange, X=i=>L+(i-i0)/pastRange*gw;
+  c.clearRect(0,0,w,h);
+  // 세로 눈금
+  const step=pastRange===800?100:25;
+  c.strokeStyle=col.line; c.lineWidth=1;
+  PANELS.forEach((P,pi)=>{
+    const yl=T+pi*(ph+LH+gap), y0=yl+LH, Y=v=>y0+ph-(v-P.lo)/(P.hi-P.lo)*ph, d=P.data();
+    c.fillStyle=col.space; c.fillRect(L,y0,gw,ph);
+    c.strokeStyle=col.line; c.lineWidth=1;
+    for(let ka=0;ka<=pastRange;ka+=step){ const x=X(PN-1-ka); c.beginPath(); c.moveTo(x,y0); c.lineTo(x,y0+ph); c.stroke(); }
+    (P.guides||[]).forEach(g=>{ c.strokeStyle=col.muted; c.lineWidth=1; c.setLineDash([4,4]); c.beginPath(); c.moveTo(L,Y(g)); c.lineTo(w-Rm,Y(g)); c.stroke(); c.setLineDash([]); });
+    const lc=cs.getPropertyValue('--'+P.col).trim()||col.ink;
+    c.strokeStyle=lc; c.lineWidth=1.8; c.beginPath();
+    for(let i=i0;i<PN;i++){ const x=X(i), y=Y(d[i]); i===i0?c.moveTo(x,y):c.lineTo(x,y); } c.stroke();
+    c.fillStyle=col.ink; c.font=`800 13px ${F}`; c.textAlign='left'; c.textBaseline='top';
+    c.fillText(P.name,L+2,yl+1);
+    c.font=`600 11px ${F}`; c.fillStyle=col.muted; c.fillText(P.sub,L+2,yl+17);
+  });
+  // 가로축
+  c.fillStyle=col.muted; c.font=`600 12px ${F}`; c.textAlign='center'; c.textBaseline='top';
+  for(let ka=0;ka<=pastRange;ka+=step){ const x=X(PN-1-ka); c.textAlign=ka===0?'right':ka===pastRange?'left':'center'; c.fillText(ka===0?'현재':String(ka),x,h-B+5); }
+  c.textAlign='center'; c.fillText('천 년 전   (과거 → 현재)',L+gw/2,h-B+22);
+  // 커서
+  if(pastCur!==null&&pastCur>=i0){ const x=X(pastCur); c.strokeStyle=col.ink; c.lineWidth=1.5; c.beginPath(); c.moveTo(x,T+LH); c.lineTo(x,h-B); c.stroke(); }
+}
+function pastPick(ev){
+  const cv=$('pastG'), r=cv.getBoundingClientRect(), x=ev.clientX-r.left, L=6, gw=r.width-12;
+  const i0=PN-1-pastRange; let i=Math.round(i0+(x-L)/gw*pastRange); i=Math.max(i0,Math.min(PN-1,i)); pastCur=i;
+  const ka=PN-1-i;
+  $('pastRead').innerHTML=`<b>${ka===0?'현재':fmt(ka*1000)+'년 전'}</b> · `+PANELS.map(P=>`${P.name} ${P.fmt(P.data()[i])}`).join(' · ');
+  drawPast();
+}
+$('pastG').addEventListener('pointerdown',e=>{ pastPick(e); $('pastG').setPointerCapture(e.pointerId); });
+$('pastG').addEventListener('pointermove',e=>{ if(e.buttons) pastPick(e); });
+$('pastRange').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; pastRange=+b.dataset.v; [...$('pastRange').children].forEach(x=>x.setAttribute('aria-pressed',x===b)); drawPast(); });
+
+// 질문
+const q65per100=Math.abs(pastQ65[PN-1]-pastQ65[PN-2])/10; // 최근 1천 년 변화의 1/10 ≈ 100년 변화
+function renderQComb(){
+  let v=rec.qCyc; [...$('qCycOpts').children].forEach(b=>{ b.classList.toggle('sel',b.dataset.v===v); b.disabled=v==='100'; });
+  $('qCycFb').innerHTML= v==='100'?`<div class="fb ok"><b>맞아요.</b> 지난 80만 년 동안 간빙기가 약 10만 년마다 돌아왔어요. 세 주기 중 <b>공전 궤도 모양(약 10만 년)</b>과 가장 비슷해요. 그런데 궤도 모양의 일사량 효과는 셋 중 가장 작아요. 그 까닭은 아직 연구 중이에요(모형 안내 10번).</div>`
+    : v?`<div class="fb hint"><b>힌트</b> 맨 아래 남극 기온 그래프에서 높이 솟은 봉우리(간빙기)가 80만 년 동안 몇 개인지 세어 보세요. 800,000 ÷ 봉우리 수 = ?</div>`:'';
+  v=rec.qNow; [...$('qNowOpts').children].forEach(b=>{ b.classList.toggle('sel',b.dataset.v===v); b.disabled=v==='no'; });
+  $('qNowFb').innerHTML= v==='no'?`<div class="fb ok"><b>맞아요.</b> 밀란코비치 주기는 수만~수십만 년에 걸쳐 일어나요. 지금 100년 동안 북위 65° 여름 일사량은 약 ${q65per100.toFixed(1)} W/m²밖에 바뀌지 않아요 <span class="tag calc">계산값</span>. 최근의 빠른 기온 상승은 온실 기체 증가 같은 <b>인위적 요인</b> 때문이에요(교과서 61쪽).</div>`
+    : v?`<div class="fb hint"><b>힌트</b> 위 그래프에서 100년은 얼마나 될까요? 눈금 한 칸(10만 년)의 1,000분의 1이에요. 그동안 세 요인이 얼마나 바뀔 수 있을까요?</div>`:'';
+  $('combSimNote').innerHTML=`<b>정리</b><ul style="margin:6px 0 0;padding-left:20px"><li>지난 80만 년 동안 간빙기는 약 <b>10만 년</b>마다 돌아왔어요. 궤도 모양 주기와 비슷하지만, 그 까닭은 아직 연구 중이에요.</li><li>밀란코비치 주기는 수만~수십만 년 규모예요. 100년 동안 북위 65° 여름 일사량 변화는 약 ${q65per100.toFixed(1)} W/m²라서, 최근의 빠른 기온 상승은 <b>인위적 요인</b> 때문이에요.</li></ul>`;
+}
+$('qCycOpts').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||SIM||rec.qCyc==='100') return; rec.qCyc=b.dataset.v; saveRec(); renderQComb(); });
+$('qNowOpts').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||SIM||rec.qNow==='no') return; rec.qNow=b.dataset.v; saveRec(); renderQComb(); });
+modeHooks.push(renderQComb);
+/* =========================================================
+   탭과 URL 파라미터 (?tab=precession|tilt|orbit|combine, ?mode=sim)
+   ========================================================= */
+const TABS=['precession','tilt','orbit','combine'];
+let curTab='precession';
+function setURL(k,v){ try{ const u=new URL(location.href); if(v===null) u.searchParams.delete(k); else u.searchParams.set(k,v); history.replaceState(null,'',u); }catch(e){} }
+function showTab(t,push){
+  if(!TABS.includes(t)) t='precession';
+  curTab=t;
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t?'true':'false'));
+  document.querySelectorAll('[data-tabsec]').forEach(s=>s.classList.toggle('hidden',s.id!==t));
+  // 모형 안내: 지금 탭 카드를 앞으로
+  const box=$('mcards'); [...box.children].sort((p,q)=>rank(p)-rank(q)).forEach(c=>box.appendChild(c));
+  function rank(c){ const d=c.dataset.tabs; return d===t?0:d==='all'?1:2; }
+  if(push) setURL('tab',t==='precession'?null:t);
+  draw();
+  if(t==='tilt'){ drawAltMain(); drawLat(); }
+  if(t==='combine'){ renderComb(); drawPast(); }
+  if(t==='precession') drawPrecGraph();
+  modeHooks.forEach(f=>f());
+}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>showTab(b.dataset.tab,true));
+
+/* ---------- 모드: 탐구 모드 / 시뮬레이션 모드 (dating-sim과 같은 구조) ----------
+   모드는 주소로만 정함: ?mode=sim 이면 시뮬레이션 모드, 없으면 항상 탐구 모드(기기에 기억하지 않음). */
+function readParam(k){ try{ return new URLSearchParams(location.search).get(k); }catch(e){ return null; } }
+function setMode(m){
+  SIM=m==='sim';
+  document.body.classList.toggle('sim',SIM);
+  $('modeNow').textContent=SIM?'시뮬레이션 모드':'탐구 모드';
+  $('modeBtn').textContent=SIM?'탐구 모드로':'시뮬레이션 모드로';
+  $('modelGuide').open=SIM; // 모형 안내: 시뮬레이션 모드는 펼친 채로, 탐구 모드는 접어서 시작
+  setURL('mode',SIM?'sim':null);
+  renderQ0(); renderQ1(); modeHooks.forEach(f=>f());
+}
+$('modeBtn').onclick=()=>setMode(SIM?'inq':'sim');
+
+/* ---------- 그림 접기 (휴대폰) ---------- */
+$('foldBtn').onclick=()=>{ const f=$('figPanel').classList.toggle('folded'); $('foldBtn').textContent=f?'그림 펴기':'그림 접기'; if(!f) requestAnimationFrame(resize); };
+
+readColors();
+loadRec();
+setMode(readParam('mode')==='sim'?'sim':'inq');
+showTab(readParam('tab')||'precession',false);
+new ResizeObserver(resize).observe(C);
+let rzT=null; window.addEventListener('resize',()=>{clearTimeout(rzT); rzT=setTimeout(()=>{modeHooks.forEach(f=>f()); drawPast();},150);});
+new ResizeObserver(()=>drawPrecGraph()).observe($('precG'));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColors();draw();drawPrecGraph();modeHooks.forEach(f=>f());});
+renderPrec();
+renderTilt();
+renderOrbit();
+renderComb();
+})();
+</script>
+</body>
+</html>
